@@ -1,16 +1,19 @@
+// Controlador del dashboard para resumen de datos según el rol
 const { Pool } = require("pg");
 
+// Conexión a la base de datos PostgreSQL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+// Genera un resumen de métricas para el dashboard según el rol del usuario
 const getDashboardSummary = async (req, res) => {
   try {
+    // Obtiene el ID y rol del usuario autenticado
     const userId = req.user.id;
     const userRole = req.user.role;
-
     let summary = {};
-
+    // Si es SUPERM, obtiene estadísticas de sus productos y reservas
     if (userRole === "SUPERMARKET") {
       const productsResult = await pool.query(
         `SELECT COUNT(*)::int AS products_available

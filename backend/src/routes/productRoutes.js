@@ -1,3 +1,4 @@
+// Rutas de productos para supermercados
 const express = require("express");
 const router = express.Router();
 
@@ -9,6 +10,7 @@ const {
   getProducts,
 } = require("../controllers/productController");
 
+// POST /products - Crea un nuevo producto (requiere ser SUPERMARKET)
 router.post(
   "/",
   authMiddleware,
@@ -16,6 +18,7 @@ router.post(
   createProduct
 );
 
+// GET /products - Obtiene todos los productos disponibles
 router.get(
   "/",
   authMiddleware,

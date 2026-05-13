@@ -1,13 +1,18 @@
+// Controlador de notificaciones del usuario
 const { Pool } = require("pg");
 
+// Conexión a la base de datos PostgreSQL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+// Obtiene las notificaciones del usuario autenticado
 const getNotifications = async (req, res) => {
   try {
+    // Obtiene el ID del usuario autenticado
     const userId = req.user.id;
 
+    // Busca todas las notificaciones del usuario, ordenadas por fecha descendente
     const result = await pool.query(
       `SELECT
         id,
@@ -36,11 +41,15 @@ const getNotifications = async (req, res) => {
   }
 };
 
+// Marca una notificación como leída para el usuario autenticado
 const markNotificationAsRead = async (req, res) => {
   try {
+    // Obtiene el ID de la notificación del parámetro de ruta
     const { id } = req.params;
+    // Obtiene el ID del usuario autenticado
     const userId = req.user.id;
 
+    // Actualiza el campo is_read a true solo para notificaciones del usuario
     const result = await pool.query(
       `UPDATE notifications
        SET is_read = true
