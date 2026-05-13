@@ -1,5 +1,6 @@
-// Controlador de notificaciones del usuario
+// Controlador de notificaciones
 const { Pool } = require("pg");
+const { isValidUUID } = require("../utils/validators");
 
 // Conexión a la base de datos PostgreSQL
 const pool = new Pool({
@@ -9,10 +10,10 @@ const pool = new Pool({
 // Obtiene las notificaciones del usuario autenticado
 const getNotifications = async (req, res) => {
   try {
-    // Obtiene el ID del usuario autenticado
+    // El usuario se obtiene desde el token JWT
     const userId = req.user.id;
 
-    // Busca todas las notificaciones del usuario, ordenadas por fecha descendente
+    // Busca las notificaciones del usuario ordenadas por fecha
     const result = await pool.query(
       `SELECT
         id,
@@ -28,28 +29,37 @@ const getNotifications = async (req, res) => {
       [userId]
     );
 
+    // Responde con las notificaciones encontradas
     res.json({
       message: "Notificaciones obtenidas correctamente",
-      notifications: result.rows,
+      notifications: result.rows
     });
   } catch (error) {
     console.error(error);
 
     res.status(500).json({
-      error: "Error al obtener notificaciones",
+      error: "Error al obtener notificaciones"
     });
   }
 };
 
-// Marca una notificación como leída para el usuario autenticado
+// Marca una notificación como leída
 const markNotificationAsRead = async (req, res) => {
   try {
-    // Obtiene el ID de la notificación del parámetro de ruta
+    // Extrae el ID de la notificación desde la URL
     const { id } = req.params;
-    // Obtiene el ID del usuario autenticado
+
+    // El usuario se obtiene desde el token JWT
     const userId = req.user.id;
 
-    // Actualiza el campo is_read a true solo para notificaciones del usuario
+    // Valida formato UUID de la notificación
+    if (!isValidUUID(id)) {
+      return res.status(400).json({
+        error: "El id de la notificación debe ser un UUID válido"
+      });
+    }
+
+    // Actualiza la notificación solo si pertenece al usuario autenticado
     const result = await pool.query(
       `UPDATE notifications
        SET is_read = true
@@ -58,26 +68,28 @@ const markNotificationAsRead = async (req, res) => {
       [id, userId]
     );
 
+    // Si no se encontró, puede no existir o no pertenecer al usuario
     if (result.rows.length === 0) {
       return res.status(404).json({
-        error: "Notificación no encontrada",
+        error: "Notificación no encontrada"
       });
     }
 
+    // Responde con la notificación actualizada
     res.json({
       message: "Notificación marcada como leída",
-      notification: result.rows[0],
+      notification: result.rows[0]
     });
   } catch (error) {
     console.error(error);
 
     res.status(500).json({
-      error: "Error al actualizar notificación",
+      error: "Error al actualizar notificación"
     });
   }
 };
 
 module.exports = {
   getNotifications,
-  markNotificationAsRead,
+  markNotificationAsRead
 };

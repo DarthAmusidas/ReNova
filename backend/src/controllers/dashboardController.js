@@ -1,4 +1,4 @@
-// Controlador del dashboard para resumen de datos según el rol
+// Controlador de dashboard / resumen general
 const { Pool } = require("pg");
 
 // Conexión a la base de datos PostgreSQL
@@ -6,15 +6,18 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-// Genera un resumen de métricas para el dashboard según el rol del usuario
+// Obtiene el resumen del dashboard según el rol del usuario autenticado
 const getDashboardSummary = async (req, res) => {
   try {
-    // Obtiene el ID y rol del usuario autenticado
+    // El usuario y rol se obtienen desde el token JWT
     const userId = req.user.id;
     const userRole = req.user.role;
+
     let summary = {};
-    // Si es SUPERM, obtiene estadísticas de sus productos y reservas
+
+    // Resumen para supermercado
     if (userRole === "SUPERMARKET") {
+      // Cuenta productos disponibles propios
       const productsResult = await pool.query(
         `SELECT COUNT(*)::int AS products_available
          FROM products
@@ -23,6 +26,7 @@ const getDashboardSummary = async (req, res) => {
         [userId]
       );
 
+      // Cuenta reservas asociadas a productos del supermercado
       const reservationsResult = await pool.query(
         `SELECT
           COUNT(*)::int AS total_reservations,
@@ -36,6 +40,7 @@ const getDashboardSummary = async (req, res) => {
         [userId]
       );
 
+      // Cuenta notificaciones no leídas del supermercado
       const notificationsResult = await pool.query(
         `SELECT COUNT(*)::int AS unread_notifications
          FROM notifications
@@ -52,15 +57,20 @@ const getDashboardSummary = async (req, res) => {
         reservations_confirmed: reservationsResult.rows[0].reservations_confirmed,
         reservations_completed: reservationsResult.rows[0].reservations_completed,
         reservations_cancelled: reservationsResult.rows[0].reservations_cancelled,
-        unread_notifications: notificationsResult.rows[0].unread_notifications,
+        unread_notifications: notificationsResult.rows[0].unread_notifications
       };
-    } else if (userRole === "ONG") {
+    }
+
+    // Resumen para ONG
+    else if (userRole === "ONG") {
+      // Cuenta todos los productos disponibles
       const productsResult = await pool.query(
         `SELECT COUNT(*)::int AS products_available
          FROM products
          WHERE status = 'AVAILABLE'`
       );
 
+      // Cuenta reservas propias de la ONG
       const reservationsResult = await pool.query(
         `SELECT
           COUNT(*)::int AS total_reservations,
@@ -73,6 +83,7 @@ const getDashboardSummary = async (req, res) => {
         [userId]
       );
 
+      // Cuenta notificaciones no leídas de la ONG
       const notificationsResult = await pool.query(
         `SELECT COUNT(*)::int AS unread_notifications
          FROM notifications
@@ -89,15 +100,20 @@ const getDashboardSummary = async (req, res) => {
         reservations_confirmed: reservationsResult.rows[0].reservations_confirmed,
         reservations_completed: reservationsResult.rows[0].reservations_completed,
         reservations_cancelled: reservationsResult.rows[0].reservations_cancelled,
-        unread_notifications: notificationsResult.rows[0].unread_notifications,
+        unread_notifications: notificationsResult.rows[0].unread_notifications
       };
-    } else if (userRole === "ADMIN") {
+    }
+
+    // Resumen para ADMIN
+    else if (userRole === "ADMIN") {
+      // Cuenta todos los productos disponibles
       const productsResult = await pool.query(
         `SELECT COUNT(*)::int AS products_available
          FROM products
          WHERE status = 'AVAILABLE'`
       );
 
+      // Cuenta todas las reservas
       const reservationsResult = await pool.query(
         `SELECT
           COUNT(*)::int AS total_reservations,
@@ -108,6 +124,7 @@ const getDashboardSummary = async (req, res) => {
         FROM reservations`
       );
 
+      // Cuenta todas las notificaciones no leídas
       const notificationsResult = await pool.query(
         `SELECT COUNT(*)::int AS unread_notifications
          FROM notifications
@@ -122,27 +139,31 @@ const getDashboardSummary = async (req, res) => {
         reservations_confirmed: reservationsResult.rows[0].reservations_confirmed,
         reservations_completed: reservationsResult.rows[0].reservations_completed,
         reservations_cancelled: reservationsResult.rows[0].reservations_cancelled,
-        unread_notifications: notificationsResult.rows[0].unread_notifications,
+        unread_notifications: notificationsResult.rows[0].unread_notifications
       };
-    } else {
+    }
+
+    // Si el rol no es válido, rechaza la solicitud
+    else {
       return res.status(403).json({
-        error: "Rol no autorizado para ver el resumen",
+        error: "Rol no autorizado para ver el resumen"
       });
     }
 
+    // Responde con el resumen calculado
     res.json({
       message: "Resumen obtenido correctamente",
-      summary,
+      summary
     });
   } catch (error) {
     console.error(error);
 
     res.status(500).json({
-      error: "Error al obtener resumen del dashboard",
+      error: "Error al obtener resumen del dashboard"
     });
   }
 };
 
 module.exports = {
-  getDashboardSummary,
+  getDashboardSummary
 };

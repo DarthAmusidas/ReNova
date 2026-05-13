@@ -1,4 +1,4 @@
-// Controlador de productos para supermercados
+// Controlador de productos
 const { Pool } = require("pg");
 
 // Conexión a la base de datos PostgreSQL
@@ -6,10 +6,10 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-// Crea un nuevo producto asociado al supermercado autenticado
+// Crea un nuevo producto publicado por un supermercado
 const createProduct = async (req, res) => {
   try {
-    // Extrae los datos del producto del cuerpo de la solicitud
+    // Extrae los datos del cuerpo de la solicitud
     const {
       name,
       description,
@@ -17,20 +17,49 @@ const createProduct = async (req, res) => {
       quantity,
       unit,
       expiration_date,
-      low_rotation,
-    } = req.body;
+      low_rotation
+    } = req.body || {};
 
-    // Obtiene el ID del supermercado del usuario autenticado
+    // El supermercado se obtiene desde el token JWT
     const supermarket_id = req.user.id;
 
-    // Valida que los campos obligatorios estén presentes
-    if (!name || !quantity || !unit) {
+    // Valida campos obligatorios
+    if (!name || !quantity || !unit || !expiration_date) {
       return res.status(400).json({
-        error: "Nombre, cantidad y unidad son obligatorios",
+        error: "Nombre, cantidad, unidad y fecha de vencimiento son obligatorios"
       });
     }
 
-    // Inserta el producto con estado AVAILABLE por defecto
+    // Convierte la cantidad a número
+    const parsedQuantity = Number(quantity);
+
+    // Valida que la cantidad sea numérica y mayor a cero
+    if (Number.isNaN(parsedQuantity) || parsedQuantity <= 0) {
+      return res.status(400).json({
+        error: "La cantidad debe ser un número mayor a 0"
+      });
+    }
+
+    // Convierte y valida la fecha de vencimiento
+    const expirationDate = new Date(expiration_date);
+
+    if (Number.isNaN(expirationDate.getTime())) {
+      return res.status(400).json({
+        error: "La fecha de vencimiento no es válida"
+      });
+    }
+
+    // No permite cargar productos vencidos
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (expirationDate < today) {
+      return res.status(400).json({
+        error: "No se puede cargar un producto vencido"
+      });
+    }
+
+    // Inserta el producto en la base de datos
     const result = await pool.query(
       `INSERT INTO products
       (supermarket_id, name, description, category, quantity, unit, expiration_date, low_rotation, status)
@@ -39,34 +68,34 @@ const createProduct = async (req, res) => {
       [
         supermarket_id,
         name,
-        description,
-        category,
-        quantity,
+        description || null,
+        category || null,
+        parsedQuantity,
         unit,
         expiration_date,
         low_rotation || false,
-        "AVAILABLE",
+        "AVAILABLE"
       ]
     );
 
+    // Responde con el producto creado
     res.status(201).json({
       message: "Producto creado correctamente",
-      product: result.rows[0],
+      product: result.rows[0]
     });
   } catch (error) {
     console.error(error);
 
     res.status(500).json({
-      error: "Error al crear producto",
+      error: "Error al crear producto"
     });
   }
 };
 
-// Devuelve los productos disponibles para el frontend
+// Obtiene los productos disponibles
 const getProducts = async (req, res) => {
   try {
-    // Busca todos los productos con estado AVAILABLE
-    // Ordena por fecha de vencimiento (primero los que vencen antes)
+    // Busca productos disponibles ordenados por vencimiento
     const result = await pool.query(
       `SELECT *
        FROM products
@@ -75,20 +104,21 @@ const getProducts = async (req, res) => {
       ["AVAILABLE"]
     );
 
+    // Responde con la lista de productos disponibles
     res.json({
       message: "Productos disponibles",
-      products: result.rows,
+      products: result.rows
     });
   } catch (error) {
     console.error(error);
 
     res.status(500).json({
-      error: "Error al obtener productos",
+      error: "Error al obtener productos"
     });
   }
 };
 
 module.exports = {
   createProduct,
-  getProducts,
+  getProducts
 };
