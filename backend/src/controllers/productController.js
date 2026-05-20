@@ -1,10 +1,18 @@
 // Controlador de productos
 const { Pool } = require("pg");
+const { isValidUUID } = require("../utils/validators");
 
 // Conexión a la base de datos PostgreSQL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
+
+// Estados permitidos para productos
+const allowedProductStatuses = [
+  "AVAILABLE",
+  "RESERVED",
+  "UNAVAILABLE"
+];
 
 // Crea un nuevo producto publicado por un supermercado
 const createProduct = async (req, res) => {
@@ -92,21 +100,56 @@ const createProduct = async (req, res) => {
   }
 };
 
-// Obtiene los productos disponibles
+// Obtiene los productos según el rol del usuario autenticado
 const getProducts = async (req, res) => {
   try {
-    // Busca productos disponibles ordenados por vencimiento
-    const result = await pool.query(
-      `SELECT *
-       FROM products
-       WHERE status = $1
-       ORDER BY expiration_date ASC NULLS LAST, created_at DESC`,
-      ["AVAILABLE"]
-    );
+    // El usuario y el rol se obtienen desde el token JWT
+    const userId = req.user.id;
+    const userRole = req.user.role;
 
-    // Responde con la lista de productos disponibles
+    let result;
+
+    // Si es supermercado, ve únicamente sus propios productos
+    if (userRole === "SUPERMARKET") {
+      result = await pool.query(
+        `SELECT *
+         FROM products
+         WHERE supermarket_id = $1
+         ORDER BY expiration_date ASC NULLS LAST, created_at DESC`,
+        [userId]
+      );
+    }
+
+    // Si es ONG, ve los productos disponibles de todos los supermercados
+    else if (userRole === "ONG") {
+      result = await pool.query(
+        `SELECT *
+         FROM products
+         WHERE status = $1
+         ORDER BY expiration_date ASC NULLS LAST, created_at DESC`,
+        ["AVAILABLE"]
+      );
+    }
+
+    // Si es ADMIN, ve todos los productos
+    else if (userRole === "ADMIN") {
+      result = await pool.query(
+        `SELECT *
+         FROM products
+         ORDER BY expiration_date ASC NULLS LAST, created_at DESC`
+      );
+    }
+
+    // Si el rol no está autorizado
+    else {
+      return res.status(403).json({
+        error: "No tenés permisos para ver productos"
+      });
+    }
+
+    // Responde con los productos encontrados
     res.json({
-      message: "Productos disponibles",
+      message: "Productos obtenidos correctamente",
       products: result.rows
     });
   } catch (error) {
@@ -118,7 +161,262 @@ const getProducts = async (req, res) => {
   }
 };
 
+// Edita un producto existente
+const updateProduct = async (req, res) => {
+  try {
+    // Extrae el ID del producto desde la URL
+    const { id } = req.params;
+
+    // Extrae los datos enviados en el body
+    const {
+      name,
+      description,
+      category,
+      quantity,
+      unit,
+      expiration_date,
+      low_rotation,
+      status
+    } = req.body || {};
+
+    // El usuario y rol se obtienen desde el token JWT
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    // Valida que el ID tenga formato UUID
+    if (!isValidUUID(id)) {
+      return res.status(400).json({
+        error: "El id del producto debe tener un formato válido"
+      });
+    }
+
+    // Busca el producto existente
+    const productResult = await pool.query(
+      `SELECT *
+       FROM products
+       WHERE id = $1`,
+      [id]
+    );
+
+    const product = productResult.rows[0];
+
+    // Valida que el producto exista
+    if (!product) {
+      return res.status(404).json({
+        error: "Producto no encontrado"
+      });
+    }
+
+    // Las ONG no pueden editar productos
+    if (userRole === "ONG") {
+      return res.status(403).json({
+        error: "Las organizaciones no pueden editar productos"
+      });
+    }
+
+    // El supermercado solo puede editar sus propios productos
+    if (userRole === "SUPERMARKET" && product.supermarket_id !== userId) {
+      return res.status(403).json({
+        error: "No tenés permisos para editar este producto"
+      });
+    }
+
+    // Valida que al menos se envíe un campo para actualizar
+    const hasFieldsToUpdate =
+      name !== undefined ||
+      description !== undefined ||
+      category !== undefined ||
+      quantity !== undefined ||
+      unit !== undefined ||
+      expiration_date !== undefined ||
+      low_rotation !== undefined ||
+      status !== undefined;
+
+    if (!hasFieldsToUpdate) {
+      return res.status(400).json({
+        error: "No se enviaron datos para actualizar el producto"
+      });
+    }
+
+    // Valida cantidad si fue enviada
+    let parsedQuantity = product.quantity;
+
+    if (quantity !== undefined && quantity !== null && quantity !== "") {
+      parsedQuantity = Number(quantity);
+
+      if (Number.isNaN(parsedQuantity) || parsedQuantity < 0) {
+        return res.status(400).json({
+          error: "La cantidad debe ser un número igual o mayor a 0"
+        });
+      }
+    }
+
+    // Valida fecha de vencimiento si fue enviada
+    let parsedExpirationDate = product.expiration_date;
+
+    if (
+      expiration_date !== undefined &&
+      expiration_date !== null &&
+      expiration_date !== ""
+    ) {
+      const expirationDate = new Date(expiration_date);
+
+      if (Number.isNaN(expirationDate.getTime())) {
+        return res.status(400).json({
+          error: "La fecha de vencimiento no es válida"
+        });
+      }
+
+      parsedExpirationDate = expiration_date;
+    }
+
+    // Valida estado si fue enviado
+    let parsedStatus = status !== undefined ? status : product.status;
+
+    if (status && !allowedProductStatuses.includes(status)) {
+      return res.status(400).json({
+        error: "Estado de producto inválido",
+        allowedStatuses: allowedProductStatuses
+      });
+    }
+
+    // Si no se envió estado, se calcula automáticamente según la cantidad
+    if (!status && parsedQuantity === 0) {
+      parsedStatus = "RESERVED";
+    }
+
+    if (!status && parsedQuantity > 0) {
+      parsedStatus = "AVAILABLE";
+    }
+
+    // Actualiza el producto
+    const result = await pool.query(
+      `UPDATE products
+       SET
+        name = $1,
+        description = $2,
+        category = $3,
+        quantity = $4,
+        unit = $5,
+        expiration_date = $6,
+        low_rotation = $7,
+        status = $8
+       WHERE id = $9
+       RETURNING *`,
+      [
+        name !== undefined ? name : product.name,
+        description !== undefined ? description : product.description,
+        category !== undefined ? category : product.category,
+        parsedQuantity,
+        unit !== undefined ? unit : product.unit,
+        parsedExpirationDate,
+        low_rotation !== undefined ? low_rotation : product.low_rotation,
+        parsedStatus,
+        id
+      ]
+    );
+
+    // Responde con el producto actualizado
+    res.json({
+      message: "Producto actualizado correctamente",
+      product: result.rows[0]
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      error: "Error al actualizar producto"
+    });
+  }
+};
+// Elimina un producto existente
+const deleteProduct = async (req, res) => {
+  try {
+    // Extrae el ID del producto desde la URL
+    const { id } = req.params;
+
+    // El usuario y rol se obtienen desde el token JWT
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    // Valida que el ID tenga formato UUID
+    if (!isValidUUID(id)) {
+      return res.status(400).json({
+        error: "El id del producto debe tener un formato válido"
+      });
+    }
+
+    // Busca el producto existente
+    const productResult = await pool.query(
+      `SELECT *
+       FROM products
+       WHERE id = $1`,
+      [id]
+    );
+
+    const product = productResult.rows[0];
+
+    // Valida que el producto exista
+    if (!product) {
+      return res.status(404).json({
+        error: "Producto no encontrado"
+      });
+    }
+
+    // Las ONG no pueden eliminar productos
+    if (userRole === "ONG") {
+      return res.status(403).json({
+        error: "Las organizaciones no pueden eliminar productos"
+      });
+    }
+
+    // El supermercado solo puede eliminar sus propios productos
+    if (userRole === "SUPERMARKET" && product.supermarket_id !== userId) {
+      return res.status(403).json({
+        error: "No tenés permisos para eliminar este producto"
+      });
+    }
+
+    // Verifica si el producto tiene reservas asociadas
+    const reservationsResult = await pool.query(
+      `SELECT id
+       FROM reservations
+       WHERE product_id = $1
+       LIMIT 1`,
+      [id]
+    );
+
+    if (reservationsResult.rows.length > 0) {
+      return res.status(400).json({
+        error: "No se puede eliminar un producto que tiene reservas asociadas"
+      });
+    }
+
+    // Elimina el producto
+    const result = await pool.query(
+      `DELETE FROM products
+       WHERE id = $1
+       RETURNING *`,
+      [id]
+    );
+
+    // Responde con el producto eliminado
+    res.json({
+      message: "Producto eliminado correctamente",
+      product: result.rows[0]
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      error: "Error al eliminar producto"
+    });
+  }
+};
+
 module.exports = {
   createProduct,
-  getProducts
+  getProducts,
+  updateProduct,
+  deleteProduct
 };

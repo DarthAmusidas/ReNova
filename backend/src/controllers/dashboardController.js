@@ -1,20 +1,16 @@
 // Controlador de dashboard / resumen general
 const { Pool } = require("pg");
-
 // Conexión a la base de datos PostgreSQL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
-
 // Obtiene el resumen del dashboard según el rol del usuario autenticado
 const getDashboardSummary = async (req, res) => {
   try {
     // El usuario y rol se obtienen desde el token JWT
     const userId = req.user.id;
     const userRole = req.user.role;
-
     let summary = {};
-
     // Resumen para supermercado
     if (userRole === "SUPERMARKET") {
       // Cuenta productos disponibles propios
@@ -25,7 +21,6 @@ const getDashboardSummary = async (req, res) => {
          AND status = 'AVAILABLE'`,
         [userId]
       );
-
       // Cuenta reservas asociadas a productos del supermercado
       const reservationsResult = await pool.query(
         `SELECT
@@ -39,7 +34,6 @@ const getDashboardSummary = async (req, res) => {
         WHERE p.supermarket_id = $1`,
         [userId]
       );
-
       // Cuenta notificaciones no leídas del supermercado
       const notificationsResult = await pool.query(
         `SELECT COUNT(*)::int AS unread_notifications
@@ -82,7 +76,6 @@ const getDashboardSummary = async (req, res) => {
         WHERE ong_id = $1`,
         [userId]
       );
-
       // Cuenta notificaciones no leídas de la ONG
       const notificationsResult = await pool.query(
         `SELECT COUNT(*)::int AS unread_notifications
@@ -91,7 +84,6 @@ const getDashboardSummary = async (req, res) => {
          AND is_read = false`,
         [userId]
       );
-
       summary = {
         role: userRole,
         products_available: productsResult.rows[0].products_available,

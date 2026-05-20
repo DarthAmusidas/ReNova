@@ -96,7 +96,6 @@ const createReservation = async (req, res) => {
         error: "Producto no encontrado"
       });
     }
-
     // Valida que el producto esté disponible
     if (product.status !== "AVAILABLE") {
       await client.query("ROLLBACK");
@@ -106,7 +105,6 @@ const createReservation = async (req, res) => {
         error: "El producto no está disponible para reservar"
       });
     }
-
     // Valida que el producto no esté vencido
     if (product.expiration_date) {
       const expirationDate = new Date(product.expiration_date);
