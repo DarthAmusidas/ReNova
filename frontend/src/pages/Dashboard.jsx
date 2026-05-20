@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getDashboardSummary } from "../services/dashboardService";
+import NotificationBell from "../components/NotificationBell";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -40,14 +41,11 @@ function Dashboard() {
           <h2>ReNova</h2>
         </div>
 
-        <nav className="dashboard-menu">
-          <button className="active">Dashboard</button>
-          <button onClick={() => navigate("/products")}>Productos</button>
-          <button onClick={() => navigate("/reservations")}>Reservas</button>
-          <button onClick={() => navigate("/notifications")}>
-            Notificaciones
-          </button>
-        </nav>
+       <nav className="dashboard-menu">
+  <button className="active">Dashboard</button>
+  <button onClick={() => navigate("/products")}>Productos</button>
+  <button onClick={() => navigate("/reservations")}>Reservas</button>
+</nav>
 
         <button className="sidebar-logout" onClick={logout}>
           Cerrar sesión
@@ -71,16 +69,28 @@ function Dashboard() {
             </p>
           </div>
 
-          <div className="dashboard-user-card">
-            <div className="user-avatar">
-              {isSupermarket ? "🛒" : "🤝"}
-            </div>
+        <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: "18px",
+    minWidth: "fit-content",
+  }}
+>
+  <div className="dashboard-user-card">
+    <div className="user-avatar">
+      {isSupermarket ? "🛒" : "🤝"}
+    </div>
 
-            <div>
-              <strong>{user?.name}</strong>
-              <p>{user?.role}</p>
-            </div>
-          </div>
+    <div>
+      <strong>{user?.name}</strong>
+      <p>{user?.role}</p>
+    </div>
+  </div>
+
+  <NotificationBell />
+</div>
         </header>
 
         {error && <div className="error-message-modern">{error}</div>}

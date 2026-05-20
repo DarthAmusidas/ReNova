@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getProducts, deleteProduct } from "../services/productService";
 import { createReservation } from "../services/reservationService";
+import NotificationBell from "../components/NotificationBell";
 
 function Products() {
   const navigate = useNavigate();
@@ -27,7 +28,27 @@ function Products() {
   };
 
   useEffect(() => {
-    loadProducts();
+    let isMounted = true;
+
+    const loadInitialProducts = async () => {
+      try {
+        const data = await getProducts();
+
+        if (isMounted) {
+          setProducts(data.products || []);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err.response?.data?.error || "Error al cargar productos");
+        }
+      }
+    };
+
+    loadInitialProducts();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const logout = () => {
@@ -50,10 +71,13 @@ function Products() {
 
   const handleReserve = async (e) => {
     e.preventDefault();
+
     setError("");
     setSuccess("");
 
-    if (!selectedProduct) return;
+    if (!selectedProduct) {
+      return;
+    }
 
     try {
       await createReservation({
@@ -80,7 +104,9 @@ function Products() {
   };
 
   const handleDeleteProduct = async () => {
-    if (!productToDelete) return;
+    if (!productToDelete) {
+      return;
+    }
 
     setError("");
     setSuccess("");
@@ -109,9 +135,6 @@ function Products() {
           <button onClick={() => navigate("/dashboard")}>Dashboard</button>
           <button className="active">Productos</button>
           <button onClick={() => navigate("/reservations")}>Reservas</button>
-          <button onClick={() => navigate("/notifications")}>
-            Notificaciones
-          </button>
         </nav>
 
         <button className="sidebar-logout" onClick={logout}>
@@ -136,14 +159,26 @@ function Products() {
             </p>
           </div>
 
-          {isSupermarket && (
-            <button
-              className="topbar-action-button"
-              onClick={() => navigate("/products/create")}
-            >
-              Cargar producto
-            </button>
-          )}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: "18px",
+              minWidth: "fit-content",
+            }}
+          >
+            {isSupermarket && (
+              <button
+                className="topbar-action-button"
+                onClick={() => navigate("/products/create")}
+              >
+                Cargar producto
+              </button>
+            )}
+
+            <NotificationBell />
+          </div>
         </header>
 
         {error && <div className="error-message-modern">{error}</div>}

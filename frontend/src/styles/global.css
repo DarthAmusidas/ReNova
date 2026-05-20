@@ -1324,4 +1324,281 @@ a {
   .danger-button-modern {
     width: 100%;
   }
+  /* =========================
+   TOPBAR RIGHT / NOTIFICATIONS
+========================= */
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
+
+.notification-bell-wrapper {
+  position: relative;
+}
+
+.notification-bell-button {
+  width: 54px;
+  height: 54px;
+  border: none;
+  border-radius: 18px;
+  background: white;
+  color: #2f8f2c;
+  font-size: 1.35rem;
+  box-shadow: 0 14px 32px rgba(43, 69, 38, 0.07);
+  border: 1px solid #ddebd6;
+  position: relative;
+}
+
+.notification-count {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: #c0392b;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 68px;
+  right: 0;
+  width: 380px;
+  max-height: 480px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #dbead3;
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(16, 32, 24, 0.18);
+  z-index: 80;
+  padding: 18px;
+}
+
+.notification-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.notification-dropdown-header h3 {
+  margin: 0;
+  color: #102018;
+}
+
+.notification-dropdown-header span {
+  color: #2f8f2c;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.notification-empty {
+  color: #667066;
+  background: #f4faf0;
+  border: 1px solid #dcebd5;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.notification-item {
+  border: 1px solid #e5eedf;
+  border-radius: 18px;
+  padding: 14px;
+  margin-bottom: 10px;
+  background: white;
+}
+
+.notification-item.unread {
+  background: #f4faf0;
+  border-color: #bfe3b4;
+}
+
+.notification-item strong {
+  display: block;
+  color: #102018;
+  margin-bottom: 6px;
+}
+
+.notification-item p {
+  margin: 0 0 8px;
+  color: #667066;
+  line-height: 1.5;
+  font-size: 0.92rem;
+}
+
+.notification-item small {
+  color: #8b968d;
+}
+
+/* =========================
+   RESERVAS - FINAL
+========================= */
+
+.reservations-grid-modern {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 24px !important;
+  width: 100% !important;
+}
+
+.reservation-card-modern {
+  background: #ffffff !important;
+  border: 1px solid #dbead3 !important;
+  border-radius: 28px !important;
+  padding: 28px !important;
+  box-shadow: 0 14px 34px rgba(43, 69, 38, 0.06) !important;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease !important;
+}
+
+.reservation-card-modern:hover {
+  transform: translateY(-6px) !important;
+  border-color: #45b238 !important;
+  box-shadow: 0 22px 44px rgba(47, 151, 40, 0.14) !important;
+}
+
+.reservation-card-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 20px !important;
+}
+
+.reservation-icon {
+  width: 64px !important;
+  height: 64px !important;
+  border-radius: 20px !important;
+  background: #e8f4df !important;
+  color: #2f8f2c !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1.8rem !important;
+}
+
+.reservation-card-modern h3 {
+  margin: 0 0 10px !important;
+  font-size: 1.55rem !important;
+  color: #102018 !important;
+}
+
+.reservation-description {
+  margin: 0 0 22px !important;
+  color: #667066 !important;
+  line-height: 1.7 !important;
+  min-height: 72px !important;
+}
+
+.reservation-status {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: fit-content !important;
+  padding: 8px 14px !important;
+  border-radius: 999px !important;
+  font-size: 0.78rem !important;
+  font-weight: 900 !important;
+  background: #e8f4df !important;
+  color: #2f8f2c !important;
+}
+
+.reservation-status.pending {
+  background: #fff8e8 !important;
+  color: #b37b00 !important;
+}
+
+.reservation-status.confirmed {
+  background: #e8f4df !important;
+  color: #2f8f2c !important;
+}
+
+.reservation-status.completion_pending {
+  background: #fff8e8 !important;
+  color: #b37b00 !important;
+}
+
+.reservation-status.completed {
+  background: #e8f4df !important;
+  color: #1f7a2e !important;
+}
+
+.reservation-status.cancelled {
+  background: #fff1ef !important;
+  color: #c0392b !important;
+}
+
+.reservation-data-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  margin-bottom: 18px !important;
+}
+
+.reservation-data-grid div {
+  background: #f4faf0 !important;
+  border: 1px solid #dcebd5 !important;
+  border-radius: 18px !important;
+  padding: 14px !important;
+}
+
+.reservation-data-grid span,
+.completion-status-box span {
+  display: block !important;
+  color: #667066 !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 6px !important;
+}
+
+.reservation-data-grid strong,
+.completion-status-box strong {
+  display: block !important;
+  color: #102018 !important;
+  font-size: 0.98rem !important;
+}
+
+.completion-status-box {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  margin-bottom: 22px !important;
+}
+
+.completion-status-box div {
+  background: #fffdf4 !important;
+  border: 1px solid #efe3b5 !important;
+  border-radius: 18px !important;
+  padding: 14px !important;
+}
+
+.reservation-actions-row {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+}
+
+.reservation-full-button {
+  width: 100% !important;
+}
+
+@media (max-width: 1200px) {
+  .reservations-grid-modern {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .reservations-grid-modern,
+  .reservation-data-grid,
+  .reservation-actions-row,
+  .completion-status-box {
+    grid-template-columns: 1fr !important;
+  }
+}}

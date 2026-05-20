@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import CreateProduct from "./pages/CreateProduct";
 import EditProduct from "./pages/EditProduct";
+import Reservations from "./pages/Reservations";
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -48,7 +49,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-
+<Route
+  path="/reservations"
+  element={
+    <ProtectedRoute>
+      <Reservations />
+    </ProtectedRoute>
+  }
+/>
         <Route
           path="/products/:id/edit"
           element={
@@ -63,6 +71,7 @@ function App() {
       </Routes>
     </BrowserRouter>
   );
+  
 }
 
 export default App;
