@@ -1,13 +1,14 @@
-// Controlador de reservas
 const { Pool } = require("pg");
 const { isValidUUID } = require("../utils/validators");
 
-// Conexión a la base de datos PostgreSQL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl:
+    process.env.NODE_ENV === "production"
+      ? { rejectUnauthorized: false }
+      : false,
 });
 
-// Crea una notificación interna
 const createNotification = async (client, userId, title, message, type) => {
   await client.query(
     `
@@ -19,14 +20,13 @@ const createNotification = async (client, userId, title, message, type) => {
   );
 };
 
-// Crea una nueva reserva
 const createReservation = async (req, res) => {
   const client = await pool.connect();
   let transactionStarted = false;
 
   try {
     const { product_id, quantity_reserved } = req.body || {};
-    const ong_id = req.user.id;
+    const ongId = req.user.id;
     const userRole = req.user.role;
 
     if (userRole !== "ONG") {
@@ -35,14 +35,7 @@ const createReservation = async (req, res) => {
       });
     }
 
-    if (
-      product_id === undefined ||
-      product_id === null ||
-      product_id === "" ||
-      quantity_reserved === undefined ||
-      quantity_reserved === null ||
-      quantity_reserved === ""
-    ) {
+    if (!product_id || !quantity_reserved) {
       return res.status(400).json({
         error: "El id del producto y la cantidad a reservar son obligatorios",
       });
@@ -111,7 +104,7 @@ const createReservation = async (req, res) => {
       }
     }
 
-    if (quantity > product.quantity) {
+    if (quantity > Number(product.quantity)) {
       await client.query("ROLLBACK");
       transactionStarted = false;
 
@@ -131,16 +124,16 @@ const createReservation = async (req, res) => {
           supermarket_completed,
           ong_completed
         )
-      VALUES ($1, $2, $3, $4, false, false)
+      VALUES ($1, $2, $3, 'PENDING', false, false)
       RETURNING *
       `,
-      [product_id, ong_id, quantity, "PENDING"]
+      [product_id, ongId, quantity]
     );
 
     const reservation = reservationResult.rows[0];
 
-    const newQuantity = product.quantity - quantity;
-    const newStatus = newQuantity === 0 ? "RESERVED" : "AVAILABLE";
+    const newQuantity = Number(product.quantity) - quantity;
+    const newStatus = newQuantity === 0 ? "UNAVAILABLE" : "AVAILABLE";
 
     await client.query(
       `
@@ -156,8 +149,8 @@ const createReservation = async (req, res) => {
       client,
       product.supermarket_id,
       "Nueva reserva recibida",
-      `Una ONG reservó ${quantity} ${product.unit} del producto "${product.name}".`,
-      "RESERVATION_CREATED"
+      `Una ONG reservó ${quantity} ${product.unit || "unidades"} del producto "${product.name}".`,
+      "RESERVATION_REQUEST"
     );
 
     await client.query("COMMIT");
@@ -182,7 +175,6 @@ const createReservation = async (req, res) => {
   }
 };
 
-// Obtiene reservas según el rol del usuario autenticado
 const getReservations = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -303,7 +295,6 @@ const getReservations = async (req, res) => {
   }
 };
 
-// Actualiza el estado de una reserva
 const updateReservationStatus = async (req, res) => {
   const client = await pool.connect();
 
@@ -418,7 +409,7 @@ const updateReservationStatus = async (req, res) => {
         reservation.ong_id,
         "Reserva confirmada",
         `El supermercado confirmó tu reserva del producto "${reservation.product_name}".`,
-        "RESERVATION_CONFIRMED"
+        "RESERVATION_UPDATE"
       );
     }
 
@@ -513,7 +504,7 @@ const updateReservationStatus = async (req, res) => {
           reservation.ong_id,
           "Producto entregado",
           `El supermercado marcó como entregado el producto "${reservation.product_name}". Confirmá la recepción para cerrar la reserva.`,
-          "RESERVATION_PARTIAL_COMPLETION"
+          "RESERVATION_UPDATE"
         );
       } else if (isReservationOng && userRole === "ONG") {
         if (reservation.ong_completed) {
@@ -541,7 +532,7 @@ const updateReservationStatus = async (req, res) => {
           reservation.supermarket_id,
           "Producto recibido",
           `La ONG marcó como recibido el producto "${reservation.product_name}".`,
-          "RESERVATION_PARTIAL_COMPLETION"
+          "RESERVATION_UPDATE"
         );
       } else {
         await client.query("ROLLBACK");
@@ -573,7 +564,7 @@ const updateReservationStatus = async (req, res) => {
           reservation.ong_id,
           "Reserva completada",
           `La reserva del producto "${reservation.product_name}" fue completada correctamente.`,
-          "RESERVATION_COMPLETED"
+          "RESERVATION_UPDATE"
         );
 
         await createNotification(
@@ -581,7 +572,7 @@ const updateReservationStatus = async (req, res) => {
           reservation.supermarket_id,
           "Reserva completada",
           `La reserva del producto "${reservation.product_name}" fue completada correctamente.`,
-          "RESERVATION_COMPLETED"
+          "RESERVATION_UPDATE"
         );
       }
     }
