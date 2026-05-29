@@ -1,4 +1,8 @@
-const pool = require("../config/db");
+const { Pool } = require("pg");
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
 const getNotifications = async (req, res) => {
   try {
@@ -24,6 +28,7 @@ const getNotifications = async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error("Error obteniendo notificaciones:", error);
+
     res.status(500).json({
       error: "Error obteniendo notificaciones",
     });
@@ -55,6 +60,7 @@ const markNotificationAsRead = async (req, res) => {
     res.json(result.rows[0]);
   } catch (error) {
     console.error("Error marcando notificación:", error);
+
     res.status(500).json({
       error: "Error marcando notificación",
     });
@@ -82,6 +88,7 @@ const markNotificationsAsRead = async (req, res) => {
     });
   } catch (error) {
     console.error("Error marcando notificaciones:", error);
+
     res.status(500).json({
       error: "Error marcando notificaciones",
     });
