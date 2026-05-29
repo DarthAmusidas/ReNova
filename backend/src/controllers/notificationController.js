@@ -29,7 +29,15 @@ const getNotifications = async (req, res) => {
       [userId]
     );
 
-    res.json(result.rows);
+    const unreadCount = result.rows.filter(
+      (notification) => notification.is_read === false
+    ).length;
+
+    res.json({
+      message: "Notificaciones obtenidas correctamente",
+      notifications: result.rows,
+      unread_count: unreadCount,
+    });
   } catch (error) {
     console.error("Error obteniendo notificaciones:", error);
 
@@ -61,7 +69,10 @@ const markNotificationAsRead = async (req, res) => {
       });
     }
 
-    res.json(result.rows[0]);
+    res.json({
+      message: "Notificación marcada como leída",
+      notification: result.rows[0],
+    });
   } catch (error) {
     console.error("Error marcando notificación:", error);
 

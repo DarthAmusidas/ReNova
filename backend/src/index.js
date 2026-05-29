@@ -6,6 +6,7 @@ const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
 
+const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/authRoutes");
 const productRoutes = require("./routes/productRoutes");
 const reservationRoutes = require("./routes/reservationRoutes");
@@ -58,6 +59,7 @@ const pool = new Pool({
 });
 
 // Rutas montadas por módulo para mejor organización
+app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
 app.use("/products", productRoutes);
 app.use("/reservations", reservationRoutes);
