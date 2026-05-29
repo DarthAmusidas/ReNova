@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import CreateProduct from "./pages/CreateProduct";
@@ -21,7 +22,10 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
+
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         <Route
           path="/dashboard"
@@ -49,14 +53,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-<Route
-  path="/reservations"
-  element={
-    <ProtectedRoute>
-      <Reservations />
-    </ProtectedRoute>
-  }
-/>
+
         <Route
           path="/products/:id/edit"
           element={
@@ -66,12 +63,19 @@ function App() {
           }
         />
 
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route
+          path="/reservations"
+          element={
+            <ProtectedRoute>
+              <Reservations />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );
-  
 }
 
 export default App;

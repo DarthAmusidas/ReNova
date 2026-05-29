@@ -8,13 +8,19 @@ function Login() {
   const [email, setEmail] = useState("supertest@renova.com");
   const [password, setPassword] = useState("supertest123");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
     setError("");
+    setLoading(true);
 
     try {
-      const data = await login(email, password);
+      const data = await login({
+        email,
+        password,
+      });
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
@@ -22,6 +28,8 @@ function Login() {
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.error || "Error al iniciar sesión");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -111,6 +119,7 @@ function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   type="email"
                   placeholder="usuario@renova.com"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -124,6 +133,7 @@ function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   type="password"
                   placeholder="Ingresá tu contraseña"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -141,8 +151,12 @@ function Login() {
 
             {error && <div className="error-message-modern">{error}</div>}
 
-            <button className="btn-login-modern" type="submit">
-              Ingresar
+            <button
+              className="btn-login-modern"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? "Ingresando..." : "Ingresar"}
             </button>
           </form>
 
@@ -153,7 +167,10 @@ function Login() {
           </div>
 
           <div className="login-register-text">
-            ¿No tenés cuenta? <button type="button">Registrate</button>
+            ¿No tenés cuenta?{" "}
+            <button type="button" onClick={() => navigate("/register")}>
+              Registrate
+            </button>
           </div>
         </div>
       </section>

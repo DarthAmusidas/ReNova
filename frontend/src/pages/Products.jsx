@@ -3,368 +3,387 @@ import { useNavigate } from "react-router-dom";
 import { getProducts, deleteProduct } from "../services/productService";
 import { createReservation } from "../services/reservationService";
 import NotificationBell from "../components/NotificationBell";
+import { pageStyles as styles, getStatusStyle } from "../styles/pageStyles";
 
 function Products() {
   const navigate = useNavigate();
 
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [productToDelete, setProductToDelete] = useState(null);
+  const [reservationQuantity, setReservationQuantity] = useState(1);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [quantityReserved, setQuantityReserved] = useState("");
-  const [productToDelete, setProductToDelete] = useState(null);
 
-  const user = JSON.parse(localStorage.getItem("user"));
-  const isSupermarket = user?.role === "SUPERMARKET";
-  const isOng = user?.role === "ONG";
+  const storedUser = localStorage.getItem("user");
+  const user = storedUser ? JSON.parse(storedUser) : null;
+
+  const userName = user?.name || "Usuario";
+  const userRole = user?.role || "";
+
+  const isSupermarket = userRole === "SUPERMARKET";
+  const isOng = userRole === "ONG";
+
+  const roleLabel = isSupermarket ? "Supermercado" : "ONG";
+  const userIcon = isSupermarket ? "🛒" : "🤝";
 
   const loadProducts = async () => {
     try {
+      setLoading(true);
       const data = await getProducts();
-      setProducts(data.products || []);
+
+      const productList = Array.isArray(data)
+        ? data
+        : data.products || data.data || [];
+
+      setProducts(productList);
     } catch (err) {
-      setError(err.response?.data?.error || "Error al cargar productos");
+      console.error("Error cargando productos:", err);
+      setError("No se pudieron cargar los productos.");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    let isMounted = true;
-
-    const loadInitialProducts = async () => {
-      try {
-        const data = await getProducts();
-
-        if (isMounted) {
-          setProducts(data.products || []);
-        }
-      } catch (err) {
-        if (isMounted) {
-          setError(err.response?.data?.error || "Error al cargar productos");
-        }
-      }
-    };
-
-    loadInitialProducts();
-
-    return () => {
-      isMounted = false;
-    };
+    loadProducts();
   }, []);
 
-  const logout = () => {
+  const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login");
   };
 
-  const openReservationModal = (product) => {
+  const handleOpenReservation = (product) => {
     setSelectedProduct(product);
-    setQuantityReserved("");
+    setReservationQuantity(1);
     setError("");
     setSuccess("");
   };
 
-  const closeReservationModal = () => {
-    setSelectedProduct(null);
-    setQuantityReserved("");
-  };
+  const handleReserve = async () => {
+    if (!selectedProduct) return;
 
-  const handleReserve = async (e) => {
-    e.preventDefault();
+    const quantity = Number(reservationQuantity);
 
-    setError("");
-    setSuccess("");
+    if (!quantity || quantity <= 0) {
+      setError("Ingresá una cantidad válida.");
+      return;
+    }
 
-    if (!selectedProduct) {
+    if (quantity > selectedProduct.quantity) {
+      setError("La cantidad solicitada supera el stock disponible.");
       return;
     }
 
     try {
+      setError("");
+      setSuccess("");
+
       await createReservation({
         product_id: selectedProduct.id,
-        quantity_reserved: Number(quantityReserved),
+        quantity_reserved: quantity,
       });
 
-      setSuccess("Reserva creada correctamente");
-      closeReservationModal();
+      setSuccess("Reserva creada correctamente.");
+      setSelectedProduct(null);
       await loadProducts();
     } catch (err) {
-      setError(err.response?.data?.error || "Error al crear la reserva");
+      console.error("Error creando reserva:", err);
+      setError(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          "No se pudo crear la reserva."
+      );
     }
   };
 
-  const openDeleteModal = (product) => {
-    setProductToDelete(product);
-    setError("");
-    setSuccess("");
-  };
-
-  const closeDeleteModal = () => {
-    setProductToDelete(null);
-  };
-
-  const handleDeleteProduct = async () => {
-    if (!productToDelete) {
-      return;
-    }
-
-    setError("");
-    setSuccess("");
+  const handleDelete = async () => {
+    if (!productToDelete) return;
 
     try {
+      setError("");
       await deleteProduct(productToDelete.id);
-
-      setSuccess("Producto eliminado correctamente");
       setProductToDelete(null);
       await loadProducts();
     } catch (err) {
-      setError(err.response?.data?.error || "Error al eliminar producto");
-      setProductToDelete(null);
+      console.error("Error eliminando producto:", err);
+      setError(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          "No se pudo eliminar el producto."
+      );
     }
+  };
+
+  const formatDate = (date) => {
+    if (!date) return "-";
+
+    return new Date(date).toLocaleDateString("es-AR");
+  };
+
+  const getProductStatusLabel = (status) => {
+    if (status === "AVAILABLE") return "Disponible";
+    if (status === "UNAVAILABLE") return "No disponible";
+    return status || "Disponible";
   };
 
   return (
-    <div className="dashboard-page-modern">
-      <aside className="dashboard-sidebar">
-        <div className="dashboard-brand">
-          <div className="dashboard-brand-icon">🌱</div>
-          <h2>ReNova</h2>
+    <div style={styles.layout}>
+      <aside style={styles.sidebar}>
+        <div style={styles.logoBox}>
+          <div style={styles.logoIcon}>🌱</div>
+          <h2 style={styles.logoText}>ReNova</h2>
         </div>
 
-        <nav className="dashboard-menu">
-          <button onClick={() => navigate("/dashboard")}>Dashboard</button>
-          <button className="active">Productos</button>
-          <button onClick={() => navigate("/reservations")}>Reservas</button>
+        <nav style={styles.nav}>
+          <button style={styles.navButton} onClick={() => navigate("/dashboard")}>
+            <span>📊</span>
+            Dashboard
+          </button>
+
+          <button style={styles.navButtonActive} onClick={() => navigate("/products")}>
+            <span>🥬</span>
+            Productos
+          </button>
+
+          <button style={styles.navButton} onClick={() => navigate("/reservations")}>
+            <span>📋</span>
+            Reservas
+          </button>
         </nav>
 
-        <button className="sidebar-logout" onClick={logout}>
+        <button style={styles.logoutButton} onClick={handleLogout}>
           Cerrar sesión
         </button>
       </aside>
 
-      <main className="dashboard-main">
-        <header className="dashboard-topbar">
+      <main style={styles.main}>
+        <header style={styles.header}>
           <div>
-            <span className="green-badge dashboard-badge">
-              Productos disponibles
-            </span>
+            <span style={styles.badge}>Gestión de productos</span>
 
-            <h1>
-              Productos <span>ReNova</span>
+            <h1 style={styles.title}>
+              {isSupermarket ? "Mis productos publicados" : "Productos disponibles"}
             </h1>
 
-            <p>
-              Consultá los productos disponibles para donación y reserva dentro
-              de la plataforma.
+            <p style={styles.subtitle}>
+              {isSupermarket
+                ? "Administrá los productos disponibles para donar y revisá su estado."
+                : "Consultá productos disponibles y realizá reservas para tu organización."}
             </p>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-end",
-              gap: "18px",
-              minWidth: "fit-content",
-            }}
-          >
-            {isSupermarket && (
-              <button
-                className="topbar-action-button"
-                onClick={() => navigate("/products/create")}
-              >
-                Cargar producto
-              </button>
-            )}
+          <div style={styles.userArea}>
+            <div style={styles.userCard}>
+              <div style={styles.userAvatar}>{userIcon}</div>
 
-            <NotificationBell />
+              <div style={styles.userInfo}>
+                <span style={styles.sessionText}>Sesión activa</span>
+                <strong style={styles.userName}>{userName}</strong>
+                <span style={styles.rolePill}>{roleLabel}</span>
+              </div>
+            </div>
+
+            <div style={styles.bellWrapper}>
+              <NotificationBell />
+            </div>
           </div>
         </header>
 
-        {error && <div className="error-message-modern">{error}</div>}
-        {success && <div className="success-message-modern">{success}</div>}
-
-        <section className="products-grid-modern">
-          {products.length === 0 && (
-            <div className="empty-state-card">
-              <div className="empty-state-icon">📦</div>
-              <h3>No hay productos disponibles</h3>
-              <p>Cuando un supermercado cargue productos, aparecerán acá.</p>
-            </div>
+        <div style={styles.topActions}>
+          {isSupermarket && (
+            <button
+              type="button"
+              style={styles.primaryButton}
+              onClick={() => navigate("/products/create")}
+            >
+              + Cargar producto
+            </button>
           )}
+        </div>
 
-          {products.map((product) => (
-            <article className="product-card-modern" key={product.id}>
-              <div className="product-card-header">
-                <div className="product-card-icon">🥫</div>
+        <div style={{ height: "22px" }} />
 
-                <span className="product-status-badge">
-                  {product.status || "AVAILABLE"}
-                </span>
-              </div>
+        {error && <div style={styles.errorBox}>{error}</div>}
+        {success && <div style={styles.successBox}>{success}</div>}
 
-              <div className="product-card-content">
-                <h3>{product.name}</h3>
-
-                <p>{product.description || "Sin descripción"}</p>
-
-                <div className="product-data-grid">
-                  <div>
-                    <span>Cantidad</span>
-                    <strong>
-                      {product.quantity} {product.unit}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>Categoría</span>
-                    <strong>{product.category || "General"}</strong>
-                  </div>
-
-                  <div>
-                    <span>Vencimiento</span>
-                    <strong>
-                      {product.expiration_date
-                        ? new Date(product.expiration_date).toLocaleDateString(
-                            "es-AR"
-                          )
-                        : "Sin fecha"}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>Baja rotación</span>
-                    <strong>{product.low_rotation ? "Sí" : "No"}</strong>
-                  </div>
-                </div>
-
-                {isSupermarket && (
-                  <div className="product-actions-row">
-                    <button
-                      className="product-action-button"
-                      onClick={() => navigate(`/products/${product.id}/edit`)}
-                    >
-                      Editar producto
-                    </button>
-
-                    <button
-                      className="product-delete-button"
-                      onClick={() => openDeleteModal(product)}
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                )}
-
-                {isOng && (
-                  <button
-                    className="product-action-button"
-                    onClick={() => openReservationModal(product)}
-                  >
-                    Reservar producto
-                  </button>
-                )}
-              </div>
-            </article>
-          ))}
-        </section>
-      </main>
-
-      {selectedProduct && (
-        <div className="modal-overlay-modern">
-          <div className="modal-card-modern">
-            <div className="modal-header-modern">
-              <div>
-                <span className="green-badge">Nueva reserva</span>
-                <h2>{selectedProduct.name}</h2>
-              </div>
-
-              <button
-                className="modal-close-button"
-                onClick={closeReservationModal}
-              >
-                ×
-              </button>
-            </div>
-
-            <p className="modal-description-modern">
-              Disponible:{" "}
-              <strong>
-                {selectedProduct.quantity} {selectedProduct.unit}
-              </strong>
+        {loading ? (
+          <section style={styles.emptyState}>
+            <h2 style={styles.emptyTitle}>Cargando productos...</h2>
+            <p style={styles.emptyText}>Estamos consultando la información disponible.</p>
+          </section>
+        ) : products.length === 0 ? (
+          <section style={styles.emptyState}>
+            <h2 style={styles.emptyTitle}>No hay productos para mostrar</h2>
+            <p style={styles.emptyText}>
+              {isSupermarket
+                ? "Todavía no cargaste productos disponibles para donar."
+                : "Por el momento no hay productos disponibles para reservar."}
             </p>
+          </section>
+        ) : (
+          <section style={styles.cardsGrid}>
+            {products.map((product) => {
+              const isAvailable =
+                !product.status || product.status === "AVAILABLE";
 
-            <form onSubmit={handleReserve}>
-              <div className="input-group-modern">
-                <label>Cantidad a reservar</label>
-                <div className="input-with-icon">
-                  <span>📦</span>
-                  <input
-                    type="number"
-                    min="1"
-                    max={selectedProduct.quantity}
-                    value={quantityReserved}
-                    onChange={(e) => setQuantityReserved(e.target.value)}
-                    placeholder="Ej: 2"
-                  />
-                </div>
+              return (
+                <article key={product.id} style={styles.card}>
+                  <div style={styles.cardHeader}>
+                    <div>
+                      <h2 style={styles.cardTitle}>{product.name}</h2>
+
+                      <p style={styles.cardText}>
+                        {product.description || "Sin descripción disponible."}
+                      </p>
+                    </div>
+
+                    <div style={styles.cardIcon}>🥬</div>
+                  </div>
+
+                  <span style={getStatusStyle(product.status || "AVAILABLE")}>
+                    {getProductStatusLabel(product.status)}
+                  </span>
+
+                  <div style={styles.metaGrid}>
+                    <div style={styles.metaItem}>
+                      <span style={styles.metaLabel}>Cantidad</span>
+                      <span style={styles.metaValue}>
+                        {product.quantity} {product.unit || "unidades"}
+                      </span>
+                    </div>
+
+                    <div style={styles.metaItem}>
+                      <span style={styles.metaLabel}>Categoría</span>
+                      <span style={styles.metaValue}>{product.category || "-"}</span>
+                    </div>
+
+                    <div style={styles.metaItem}>
+                      <span style={styles.metaLabel}>Vencimiento</span>
+                      <span style={styles.metaValue}>
+                        {formatDate(product.expiration_date)}
+                      </span>
+                    </div>
+
+                    <div style={styles.metaItem}>
+                      <span style={styles.metaLabel}>Baja rotación</span>
+                      <span style={styles.metaValue}>
+                        {product.low_rotation ? "Sí" : "No"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={styles.cardActions}>
+                    {isSupermarket && (
+                      <>
+                        <button
+                          type="button"
+                          style={styles.secondaryButton}
+                          onClick={() => navigate(`/products/${product.id}/edit`)}
+                        >
+                          Editar
+                        </button>
+
+                        <button
+                          type="button"
+                          style={styles.dangerButton}
+                          onClick={() => setProductToDelete(product)}
+                        >
+                          Eliminar
+                        </button>
+                      </>
+                    )}
+
+                    {isOng && isAvailable && product.quantity > 0 && (
+                      <button
+                        type="button"
+                        style={styles.primaryButton}
+                        onClick={() => handleOpenReservation(product)}
+                      >
+                        Reservar
+                      </button>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </section>
+        )}
+
+        {selectedProduct && (
+          <div style={styles.modalOverlay}>
+            <div style={styles.modalCard}>
+              <h2 style={styles.modalTitle}>Reservar producto</h2>
+
+              <p style={styles.modalText}>
+                Vas a reservar <strong>{selectedProduct.name}</strong>. Stock
+                disponible:{" "}
+                <strong>
+                  {selectedProduct.quantity} {selectedProduct.unit || "unidades"}
+                </strong>
+                .
+              </p>
+
+              <div style={styles.inputGroup}>
+                <label style={styles.inputLabel}>Cantidad a reservar</label>
+                <input
+                  style={styles.input}
+                  type="number"
+                  min="1"
+                  max={selectedProduct.quantity}
+                  value={reservationQuantity}
+                  onChange={(e) => setReservationQuantity(e.target.value)}
+                />
               </div>
 
-              <div className="form-actions-modern">
+              <div style={styles.modalActions}>
                 <button
                   type="button"
-                  className="secondary-button-modern"
-                  onClick={closeReservationModal}
+                  style={styles.secondaryButton}
+                  onClick={() => setSelectedProduct(null)}
                 >
                   Cancelar
                 </button>
 
-                <button type="submit" className="primary-button-modern">
+                <button type="button" style={styles.primaryButton} onClick={handleReserve}>
                   Confirmar reserva
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {productToDelete && (
-        <div className="modal-overlay-modern">
-          <div className="delete-modal-card">
-            <div className="delete-modal-icon">🗑️</div>
-
-            <h2>Eliminar producto</h2>
-
-            <p>
-              ¿Seguro que querés eliminar el producto{" "}
-              <strong>"{productToDelete.name}"</strong>?
-            </p>
-
-            <div className="delete-warning-box">
-              Esta acción no se puede deshacer. Si el producto tiene reservas
-              asociadas, el sistema no permitirá eliminarlo.
-            </div>
-
-            <div className="delete-modal-actions">
-              <button
-                type="button"
-                className="secondary-button-modern"
-                onClick={closeDeleteModal}
-              >
-                Cancelar
-              </button>
-
-              <button
-                type="button"
-                className="danger-button-modern"
-                onClick={handleDeleteProduct}
-              >
-                Sí, eliminar
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {productToDelete && (
+          <div style={styles.modalOverlay}>
+            <div style={styles.modalCard}>
+              <h2 style={styles.modalTitle}>Eliminar producto</h2>
+
+              <p style={styles.modalText}>
+                ¿Seguro que querés eliminar{" "}
+                <strong>{productToDelete.name}</strong>? Esta acción no se puede
+                deshacer.
+              </p>
+
+              <div style={styles.modalActions}>
+                <button
+                  type="button"
+                  style={styles.secondaryButton}
+                  onClick={() => setProductToDelete(null)}
+                >
+                  Cancelar
+                </button>
+
+                <button type="button" style={styles.dangerButton} onClick={handleDelete}>
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

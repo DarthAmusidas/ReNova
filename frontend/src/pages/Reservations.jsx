@@ -5,472 +5,383 @@ import {
   updateReservationStatus,
 } from "../services/reservationService";
 import NotificationBell from "../components/NotificationBell";
+import { pageStyles as styles, getStatusStyle } from "../styles/pageStyles";
 
 function Reservations() {
   const navigate = useNavigate();
 
   const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState(null);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
-  const user = JSON.parse(localStorage.getItem("user"));
-  const isSupermarket = user?.role === "SUPERMARKET";
-  const isOng = user?.role === "ONG";
+  const storedUser = localStorage.getItem("user");
+  const user = storedUser ? JSON.parse(storedUser) : null;
+
+  const userName = user?.name || "Usuario";
+  const userRole = user?.role || "";
+
+  const isSupermarket = userRole === "SUPERMARKET";
+  const isOng = userRole === "ONG";
+
+  const roleLabel = isSupermarket ? "Supermercado" : "ONG";
+  const userIcon = isSupermarket ? "🛒" : "🤝";
 
   const loadReservations = async () => {
     try {
+      setLoading(true);
+      setError("");
+
       const data = await getReservations();
-      setReservations(data.reservations || []);
+
+      const reservationList = Array.isArray(data)
+        ? data
+        : data.reservations || data.data || [];
+
+      setReservations(reservationList);
     } catch (err) {
-      setError(err.response?.data?.error || "Error al cargar reservas");
+      console.error("Error cargando reservas:", err);
+      setError("No se pudieron cargar las reservas.");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    let isMounted = true;
-
-    const loadInitialReservations = async () => {
-      try {
-        const data = await getReservations();
-
-        if (isMounted) {
-          setReservations(data.reservations || []);
-        }
-      } catch (err) {
-        if (isMounted) {
-          setError(err.response?.data?.error || "Error al cargar reservas");
-        }
-      }
-    };
-
-    loadInitialReservations();
-
-    return () => {
-      isMounted = false;
-    };
+    loadReservations();
   }, []);
 
-  const logout = () => {
+  const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login");
   };
 
-  const changeStatus = async (reservationId, status) => {
-    setError("");
-    setSuccess("");
-
+  const handleUpdateStatus = async (reservationId, status) => {
     try {
-      await updateReservationStatus(reservationId, status);
+      setUpdatingId(reservationId);
+      setError("");
 
-      setSuccess("Reserva actualizada correctamente");
+      await updateReservationStatus(reservationId, status);
       await loadReservations();
     } catch (err) {
-      setError(err.response?.data?.error || "Error al actualizar la reserva");
+      console.error("Error actualizando reserva:", err);
+      setError(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          "No se pudo actualizar la reserva."
+      );
+    } finally {
+      setUpdatingId(null);
     }
   };
 
-  const getStatusLabel = (status) => {
-    const labels = {
-      PENDING: "Pendiente",
-      CONFIRMED: "Confirmada",
-      COMPLETION_PENDING: "Pendiente de cierre",
-      COMPLETED: "Completada",
-      CANCELLED: "Cancelada",
-    };
+  const formatDate = (date) => {
+    if (!date) return "-";
+    return new Date(date).toLocaleDateString("es-AR");
+  };
 
-    return labels[status] || status || "Sin estado";
+  const getStatusLabel = (status) => {
+    if (status === "PENDING") return "Pendiente";
+    if (status === "CONFIRMED") return "Confirmada";
+    if (status === "COMPLETED") return "Completada";
+    if (status === "CANCELLED" || status === "CANCELED") return "Cancelada";
+    if (status === "COMPLETION_PENDING") return "Pendiente de cierre";
+    return status || "Pendiente";
   };
 
   const getProductName = (reservation) => {
     return (
       reservation.product_name ||
-      reservation.name ||
       reservation.product?.name ||
+      reservation.name ||
       "Producto reservado"
     );
   };
 
-  const getQuantity = (reservation) => {
+  const getCounterpartName = (reservation) => {
+    if (isSupermarket) {
+      return (
+        reservation.ong_name ||
+        reservation.ong?.name ||
+        reservation.organization_name ||
+        "Organización"
+      );
+    }
+
     return (
-      reservation.quantity_reserved ||
-      reservation.quantity ||
-      reservation.reserved_quantity ||
-      "-"
+      reservation.supermarket_name ||
+      reservation.supermarket?.name ||
+      reservation.market_name ||
+      "Supermercado"
     );
   };
 
-  const getReservationDate = (reservation) => {
-    if (!reservation.created_at) {
-      return "-";
-    }
-
-    return new Date(reservation.created_at).toLocaleDateString("es-AR");
-  };
-
-  const getStatusStyle = (status) => {
-    const base = {
-      display: "inline-flex",
-      alignItems: "center",
-      width: "fit-content",
-      padding: "8px 14px",
-      borderRadius: "999px",
-      fontSize: "0.78rem",
-      fontWeight: 900,
-    };
-
-    if (status === "PENDING") {
-      return {
-        ...base,
-        background: "#fff8e8",
-        color: "#b37b00",
-      };
-    }
-
-    if (status === "CANCELLED") {
-      return {
-        ...base,
-        background: "#fff1ef",
-        color: "#c0392b",
-      };
-    }
-
-    if (status === "COMPLETED") {
-      return {
-        ...base,
-        background: "#e8f4df",
-        color: "#1f7a2e",
-      };
-    }
-
-    if (status === "COMPLETION_PENDING") {
-      return {
-        ...base,
-        background: "#fff8e8",
-        color: "#b37b00",
-      };
-    }
-
-    return {
-      ...base,
-      background: "#e8f4df",
-      color: "#2f8f2c",
-    };
-  };
-
-  const styles = {
-    grid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-      gap: "24px",
-      width: "100%",
-    },
-
-    card: {
-      background: "#ffffff",
-      border: "1px solid #dbead3",
-      borderRadius: "28px",
-      padding: "28px",
-      boxShadow: "0 14px 34px rgba(43, 69, 38, 0.06)",
-    },
-
-    cardHeader: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginBottom: "20px",
-    },
-
-    icon: {
-      width: "64px",
-      height: "64px",
-      borderRadius: "20px",
-      background: "#e8f4df",
-      color: "#2f8f2c",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: "1.8rem",
-    },
-
-    title: {
-      margin: "0 0 10px",
-      fontSize: "1.55rem",
-      color: "#102018",
-    },
-
-    description: {
-      margin: "0 0 22px",
-      color: "#667066",
-      lineHeight: 1.7,
-      minHeight: "72px",
-    },
-
-    dataGrid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-      gap: "14px",
-      marginBottom: "18px",
-    },
-
-    dataBox: {
-      background: "#f4faf0",
-      border: "1px solid #dcebd5",
-      borderRadius: "18px",
-      padding: "14px",
-    },
-
-    dataLabel: {
-      display: "block",
-      color: "#667066",
-      fontSize: "0.82rem",
-      fontWeight: 700,
-      marginBottom: "6px",
-    },
-
-    dataValue: {
-      display: "block",
-      color: "#102018",
-      fontSize: "0.98rem",
-      fontWeight: 900,
-    },
-
-    completionBox: {
-      display: "grid",
-      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-      gap: "14px",
-      marginBottom: "22px",
-    },
-
-    completionItem: {
-      background: "#fffdf4",
-      border: "1px solid #efe3b5",
-      borderRadius: "18px",
-      padding: "14px",
-    },
-
-    actionsRow: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: "12px",
-    },
-
-    empty: {
-      gridColumn: "1 / -1",
-      background: "#ffffff",
-      border: "1px solid #dbead3",
-      borderRadius: "30px",
-      padding: "50px",
-      textAlign: "center",
-      boxShadow: "0 14px 34px rgba(43, 69, 38, 0.06)",
-    },
-
-    emptyIcon: {
-      fontSize: "3rem",
-      marginBottom: "16px",
-    },
-  };
-
   return (
-    <div className="dashboard-page-modern">
-      <aside className="dashboard-sidebar">
-        <div className="dashboard-brand">
-          <div className="dashboard-brand-icon">🌱</div>
-          <h2>ReNova</h2>
+    <div style={styles.layout}>
+      <aside style={styles.sidebar}>
+        <div style={styles.logoBox}>
+          <div style={styles.logoIcon}>🌱</div>
+          <h2 style={styles.logoText}>ReNova</h2>
         </div>
 
-        <nav className="dashboard-menu">
-          <button onClick={() => navigate("/dashboard")}>Dashboard</button>
-          <button onClick={() => navigate("/products")}>Productos</button>
-          <button className="active">Reservas</button>
+        <nav style={styles.nav}>
+          <button style={styles.navButton} onClick={() => navigate("/dashboard")}>
+            <span>📊</span>
+            Dashboard
+          </button>
+
+          <button style={styles.navButton} onClick={() => navigate("/products")}>
+            <span>🥬</span>
+            Productos
+          </button>
+
+          <button
+            style={styles.navButtonActive}
+            onClick={() => navigate("/reservations")}
+          >
+            <span>📋</span>
+            Reservas
+          </button>
         </nav>
 
-        <button className="sidebar-logout" onClick={logout}>
+        <button style={styles.logoutButton} onClick={handleLogout}>
           Cerrar sesión
         </button>
       </aside>
 
-      <main className="dashboard-main">
-        <header className="dashboard-topbar">
+      <main style={styles.main}>
+        <header style={styles.header}>
           <div>
-            <span className="green-badge dashboard-badge">
-              Gestión de reservas
-            </span>
+            <span style={styles.badge}>Gestión de reservas</span>
 
-            <h1>
-              Reservas <span>ReNova</span>
+            <h1 style={styles.title}>
+              {isSupermarket ? "Reservas recibidas" : "Mis reservas"}
             </h1>
 
-            <p>
-              Consultá, confirmá y cerrá las reservas realizadas sobre productos
-              disponibles en la plataforma.
+            <p style={styles.subtitle}>
+              {isSupermarket
+                ? "Revisá las solicitudes realizadas por organizaciones y confirmá las entregas."
+                : "Consultá el estado de tus reservas y confirmá la recepción de productos."}
             </p>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-end",
-              gap: "18px",
-              minWidth: "fit-content",
-            }}
-          >
-            <NotificationBell />
+          <div style={styles.userArea}>
+            <div style={styles.userCard}>
+              <div style={styles.userAvatar}>{userIcon}</div>
+
+              <div style={styles.userInfo}>
+                <span style={styles.sessionText}>Sesión activa</span>
+                <strong style={styles.userName}>{userName}</strong>
+                <span style={styles.rolePill}>{roleLabel}</span>
+              </div>
+            </div>
+
+            <div style={styles.bellWrapper}>
+              <NotificationBell />
+            </div>
           </div>
         </header>
 
-        {error && <div className="error-message-modern">{error}</div>}
-        {success && <div className="success-message-modern">{success}</div>}
+        {error && <div style={styles.errorBox}>{error}</div>}
 
-        <section style={styles.grid}>
-          {reservations.length === 0 && (
-            <div style={styles.empty}>
-              <div style={styles.emptyIcon}>📋</div>
-              <h3>No hay reservas</h3>
-              <p>
-                Cuando una organización reserve productos, las reservas
-                aparecerán en esta sección.
-              </p>
-            </div>
-          )}
+        {loading ? (
+          <section style={styles.emptyState}>
+            <h2 style={styles.emptyTitle}>Cargando reservas...</h2>
+            <p style={styles.emptyText}>Estamos consultando las reservas registradas.</p>
+          </section>
+        ) : reservations.length === 0 ? (
+          <section style={styles.emptyState}>
+            <h2 style={styles.emptyTitle}>No hay reservas para mostrar</h2>
+            <p style={styles.emptyText}>
+              {isSupermarket
+                ? "Todavía no recibiste reservas sobre tus productos."
+                : "Todavía no realizaste reservas."}
+            </p>
+          </section>
+        ) : (
+          <section style={styles.cardsGrid}>
+            {reservations.map((reservation) => {
+              const status = reservation.status || "PENDING";
+              const isUpdating = updatingId === reservation.id;
 
-          {reservations.map((reservation) => (
-            <article style={styles.card} key={reservation.id}>
-              <div style={styles.cardHeader}>
-                <div style={styles.icon}>📋</div>
+              return (
+                <article key={reservation.id} style={styles.card}>
+                  <div style={styles.cardHeader}>
+                    <div>
+                      <h2 style={styles.cardTitle}>
+                        {getProductName(reservation)}
+                      </h2>
 
-                <span style={getStatusStyle(reservation.status)}>
-                  {getStatusLabel(reservation.status)}
-                </span>
-              </div>
-
-              <h3 style={styles.title}>{getProductName(reservation)}</h3>
-
-              <p style={styles.description}>
-                Reserva generada dentro de ReNova para coordinar la entrega del
-                producto entre supermercado y organización.
-              </p>
-
-              <div style={styles.dataGrid}>
-                <div style={styles.dataBox}>
-                  <span style={styles.dataLabel}>Cantidad reservada</span>
-                  <strong style={styles.dataValue}>
-                    {getQuantity(reservation)}
-                  </strong>
-                </div>
-
-                <div style={styles.dataBox}>
-                  <span style={styles.dataLabel}>Estado</span>
-                  <strong style={styles.dataValue}>
-                    {getStatusLabel(reservation.status)}
-                  </strong>
-                </div>
-
-                <div style={styles.dataBox}>
-                  <span style={styles.dataLabel}>Fecha</span>
-                  <strong style={styles.dataValue}>
-                    {getReservationDate(reservation)}
-                  </strong>
-                </div>
-
-                <div style={styles.dataBox}>
-                  <span style={styles.dataLabel}>ID reserva</span>
-                  <strong style={styles.dataValue}>
-                    {reservation.id?.slice(0, 8)}...
-                  </strong>
-                </div>
-              </div>
-
-              {reservation.status !== "CANCELLED" &&
-                reservation.status !== "COMPLETED" && (
-                  <div style={styles.completionBox}>
-                    <div style={styles.completionItem}>
-                      <span style={styles.dataLabel}>Supermercado</span>
-                      <strong style={styles.dataValue}>
-                        {reservation.supermarket_completed
-                          ? "Confirmó entrega"
-                          : "Pendiente"}
-                      </strong>
+                      <p style={styles.cardText}>
+                        {isSupermarket
+                          ? "Reserva solicitada por una organización."
+                          : "Reserva realizada a un supermercado."}
+                      </p>
                     </div>
 
-                    <div style={styles.completionItem}>
-                      <span style={styles.dataLabel}>ONG</span>
-                      <strong style={styles.dataValue}>
-                        {reservation.ong_completed
-                          ? "Confirmó recepción"
-                          : "Pendiente"}
-                      </strong>
+                    <div style={styles.cardIcon}>📋</div>
+                  </div>
+
+                  <span style={getStatusStyle(status)}>{getStatusLabel(status)}</span>
+
+                  <div style={styles.metaGrid}>
+                    <div style={styles.metaItem}>
+                      <span style={styles.metaLabel}>
+                        {isSupermarket ? "ONG" : "Supermercado"}
+                      </span>
+                      <span style={styles.metaValue}>
+                        {getCounterpartName(reservation)}
+                      </span>
+                    </div>
+
+                    <div style={styles.metaItem}>
+                      <span style={styles.metaLabel}>Cantidad</span>
+                      <span style={styles.metaValue}>
+                        {reservation.quantity_reserved ||
+                          reservation.quantity ||
+                          0}
+                      </span>
+                    </div>
+
+                    <div style={styles.metaItem}>
+                      <span style={styles.metaLabel}>Fecha</span>
+                      <span style={styles.metaValue}>
+                        {formatDate(reservation.reserved_at || reservation.created_at)}
+                      </span>
+                    </div>
+
+                    <div style={styles.metaItem}>
+                      <span style={styles.metaLabel}>ID reserva</span>
+                      <span style={styles.metaValue}>
+                        {String(reservation.id).slice(0, 8)}
+                      </span>
                     </div>
                   </div>
-                )}
 
-              {isSupermarket && reservation.status === "PENDING" && (
-                <div style={styles.actionsRow}>
-                  <button
-                    className="primary-button-modern"
-                    onClick={() => changeStatus(reservation.id, "CONFIRMED")}
-                  >
-                    Confirmar
-                  </button>
+                  {(reservation.supermarket_completed !== undefined ||
+                    reservation.ong_completed !== undefined) && (
+                    <div
+                      style={{
+                        marginTop: "18px",
+                        background: "#f7faf4",
+                        border: "1px solid #e6efdf",
+                        borderRadius: "18px",
+                        padding: "14px",
+                      }}
+                    >
+                      <span style={styles.metaLabel}>Confirmación de entrega</span>
 
-                  <button
-                    className="danger-button-modern"
-                    onClick={() => changeStatus(reservation.id, "CANCELLED")}
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              )}
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "10px",
+                          flexWrap: "wrap",
+                          marginTop: "8px",
+                        }}
+                      >
+                        <span style={getStatusStyle(
+                          reservation.supermarket_completed
+                            ? "COMPLETED"
+                            : "PENDING"
+                        )}>
+                          Supermercado:{" "}
+                          {reservation.supermarket_completed
+                            ? "confirmado"
+                            : "pendiente"}
+                        </span>
 
-              {isSupermarket && reservation.status === "CONFIRMED" && (
-                <div style={styles.actionsRow}>
-                  <button
-                    className="primary-button-modern"
-                    onClick={() => changeStatus(reservation.id, "COMPLETED")}
-                  >
-                    Confirmé entrega
-                  </button>
+                        <span style={getStatusStyle(
+                          reservation.ong_completed ? "COMPLETED" : "PENDING"
+                        )}>
+                          ONG:{" "}
+                          {reservation.ong_completed ? "confirmado" : "pendiente"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
 
-                  <button
-                    className="danger-button-modern"
-                    onClick={() => changeStatus(reservation.id, "CANCELLED")}
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              )}
+                  <div style={styles.cardActions}>
+                    {isSupermarket && status === "PENDING" && (
+                      <>
+                        <button
+                          type="button"
+                          style={styles.primaryButton}
+                          disabled={isUpdating}
+                          onClick={() =>
+                            handleUpdateStatus(reservation.id, "CONFIRMED")
+                          }
+                        >
+                          Confirmar
+                        </button>
 
-              {isOng && reservation.status === "CONFIRMED" && (
-                <div style={styles.actionsRow}>
-                  <button
-                    className="primary-button-modern"
-                    onClick={() => changeStatus(reservation.id, "COMPLETED")}
-                  >
-                    Confirmé recepción
-                  </button>
+                        <button
+                          type="button"
+                          style={styles.dangerButton}
+                          disabled={isUpdating}
+                          onClick={() =>
+                            handleUpdateStatus(reservation.id, "CANCELLED")
+                          }
+                        >
+                          Cancelar
+                        </button>
+                      </>
+                    )}
 
-                  <button
-                    className="danger-button-modern"
-                    onClick={() => changeStatus(reservation.id, "CANCELLED")}
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              )}
+                    {isOng && status === "PENDING" && (
+                      <button
+                        type="button"
+                        style={styles.dangerButton}
+                        disabled={isUpdating}
+                        onClick={() =>
+                          handleUpdateStatus(reservation.id, "CANCELLED")
+                        }
+                      >
+                        Cancelar reserva
+                      </button>
+                    )}
 
-              {isOng && reservation.status === "PENDING" && (
-                <button
-                  className="danger-button-modern"
-                  style={{ width: "100%" }}
-                  onClick={() => changeStatus(reservation.id, "CANCELLED")}
-                >
-                  Cancelar reserva
-                </button>
-              )}
-            </article>
-          ))}
-        </section>
+                    {status === "CONFIRMED" && (
+                      <>
+                        <button
+                          type="button"
+                          style={styles.primaryButton}
+                          disabled={isUpdating}
+                          onClick={() =>
+                            handleUpdateStatus(reservation.id, "COMPLETED")
+                          }
+                        >
+                          {isSupermarket
+                            ? "Confirmé entrega"
+                            : "Confirmé recepción"}
+                        </button>
+
+                        <button
+                          type="button"
+                          style={styles.dangerButton}
+                          disabled={isUpdating}
+                          onClick={() =>
+                            handleUpdateStatus(reservation.id, "CANCELLED")
+                          }
+                        >
+                          Cancelar
+                        </button>
+                      </>
+                    )}
+
+                    {(status === "COMPLETED" ||
+                      status === "CANCELLED" ||
+                      status === "CANCELED") && (
+                      <button type="button" style={styles.secondaryButton}>
+                        Sin acciones pendientes
+                      </button>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </section>
+        )}
       </main>
     </div>
   );
