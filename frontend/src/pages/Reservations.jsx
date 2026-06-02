@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   getReservations,
@@ -14,6 +14,8 @@ function Reservations() {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState("ALL");
 
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
@@ -23,11 +25,17 @@ function Reservations() {
 
   const isSupermarket = userRole === "SUPERMARKET";
   const isOng = userRole === "ONG";
+  const isAdmin = userRole === "ADMIN";
 
-  const roleLabel = isSupermarket ? "Supermercado" : "ONG";
-  const userIcon = isSupermarket ? "🛒" : "🤝";
+  const roleLabel = isSupermarket
+    ? "Supermercado"
+    : isAdmin
+    ? "Administrador"
+    : "ONG";
 
-  const loadReservations = async () => {
+  const userIcon = isSupermarket ? "🛒" : isAdmin ? "🛡️" : "🤝";
+
+  const loadReservations = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -45,11 +53,11 @@ function Reservations() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadReservations();
-  }, []);
+  }, [loadReservations]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -61,11 +69,21 @@ function Reservations() {
     try {
       setUpdatingId(reservationId);
       setError("");
+      setSuccess("");
 
       await updateReservationStatus(reservationId, status);
+
+      let message = "";
+      if (status === "CONFIRMED") message = "Reserva confirmada correctamente.";
+      if (status === "COMPLETED") message = "Confirmación registrada correctamente.";
+      if (status === "CANCELLED") message = "Reserva cancelada correctamente.";
+      
+      if (message) setSuccess(message);
+      
       await loadReservations();
     } catch (err) {
       console.error("Error actualizando reserva:", err);
+
       setError(
         err.response?.data?.error ||
           err.response?.data?.message ||
@@ -86,9 +104,40 @@ function Reservations() {
     if (status === "CONFIRMED") return "Confirmada";
     if (status === "COMPLETED") return "Completada";
     if (status === "CANCELLED" || status === "CANCELED") return "Cancelada";
-    if (status === "COMPLETION_PENDING") return "Pendiente de cierre";
     return status || "Pendiente";
   };
+
+  const getFilteredReservations = () => {
+    if (selectedFilter === "ALL") {
+      return reservations;
+    }
+    return reservations.filter((res) => {
+      const status = res.status || "PENDING";
+      return status === selectedFilter;
+    });
+  };
+
+  const getStatusCounts = () => {
+    const counts = {
+      ALL: reservations.length,
+      PENDING: 0,
+      CONFIRMED: 0,
+      COMPLETED: 0,
+      CANCELLED: 0,
+    };
+
+    reservations.forEach((res) => {
+      const status = res.status || "PENDING";
+      if (counts[status] !== undefined) {
+        counts[status]++;
+      }
+    });
+
+    return counts;
+  };
+
+  const statusCounts = getStatusCounts();
+  const filteredReservations = getFilteredReservations();
 
   const getProductName = (reservation) => {
     return (
@@ -99,21 +148,141 @@ function Reservations() {
     );
   };
 
-  const getCounterpartName = (reservation) => {
-    if (isSupermarket) {
-      return (
-        reservation.ong_name ||
-        reservation.ong?.name ||
-        reservation.organization_name ||
-        "Organización"
-      );
-    }
-
+  const getSupermarketName = (reservation) => {
     return (
       reservation.supermarket_name ||
       reservation.supermarket?.name ||
       reservation.market_name ||
       "Supermercado"
+    );
+  };
+
+  const getOngName = (reservation) => {
+    return (
+      reservation.ong_name ||
+      reservation.ong?.name ||
+      reservation.organization_name ||
+      "Organización"
+    );
+  };
+
+  const getPageTitle = () => {
+    if (isAdmin) return "Reservas registradas";
+    if (isSupermarket) return "Reservas recibidas";
+    return "Mis reservas";
+  };
+
+  const getPageSubtitle = () => {
+    if (isAdmin) {
+      return "Consultá todas las reservas registradas en la plataforma.";
+    }
+
+    if (isSupermarket) {
+      return "Revisá las solicitudes realizadas por organizaciones y confirmá las entregas.";
+    }
+
+    return "Consultá el estado de tus reservas y confirmá la recepción de productos.";
+  };
+
+  const renderActions = (reservation, status, isUpdating) => {
+    if (isAdmin) {
+      return (
+        <button type="button" style={styles.disabledButton} disabled>
+          Solo consulta
+        </button>
+      );
+    }
+
+    if (isSupermarket && status === "PENDING") {
+      return (
+        <>
+          <button
+            type="button"
+            style={styles.primaryButton}
+            disabled={isUpdating}
+            onClick={() => handleUpdateStatus(reservation.id, "CONFIRMED")}
+          >
+            Confirmar reserva
+          </button>
+
+          <button
+            type="button"
+            style={styles.dangerButton}
+            disabled={isUpdating}
+            onClick={() => handleUpdateStatus(reservation.id, "CANCELLED")}
+          >
+            Cancelar
+          </button>
+        </>
+      );
+    }
+
+    if (isOng && status === "PENDING") {
+      return (
+        <button
+          type="button"
+          style={styles.dangerButton}
+          disabled={isUpdating}
+          onClick={() => handleUpdateStatus(reservation.id, "CANCELLED")}
+        >
+          Cancelar reserva
+        </button>
+      );
+    }
+
+    if (status === "CONFIRMED") {
+      return (
+        <>
+          {isSupermarket && !reservation.supermarket_completed && (
+            <button
+              type="button"
+              style={styles.primaryButton}
+              disabled={isUpdating}
+              onClick={() => handleUpdateStatus(reservation.id, "COMPLETED")}
+            >
+              Confirmé entrega
+            </button>
+          )}
+
+          {isOng && !reservation.ong_completed && (
+            <button
+              type="button"
+              style={styles.primaryButton}
+              disabled={isUpdating}
+              onClick={() => handleUpdateStatus(reservation.id, "COMPLETED")}
+            >
+              Confirmé recepción
+            </button>
+          )}
+
+          {isSupermarket && reservation.supermarket_completed && (
+            <button type="button" style={styles.disabledButton} disabled>
+              Entrega registrada
+            </button>
+          )}
+
+          {isOng && reservation.ong_completed && (
+            <button type="button" style={styles.disabledButton} disabled>
+              Recepción registrada
+            </button>
+          )}
+
+          <button
+            type="button"
+            style={styles.dangerButton}
+            disabled={isUpdating}
+            onClick={() => handleUpdateStatus(reservation.id, "CANCELLED")}
+          >
+            Cancelar
+          </button>
+        </>
+      );
+    }
+
+    return (
+      <button type="button" style={styles.disabledButton} disabled>
+        Sin acciones pendientes
+      </button>
     );
   };
 
@@ -143,6 +312,13 @@ function Reservations() {
             <span>📋</span>
             Reservas
           </button>
+
+          {isAdmin && (
+            <button style={styles.navButton} onClick={() => navigate("/users")}>
+              <span>👥</span>
+              Usuarios
+            </button>
+          )}
         </nav>
 
         <button style={styles.logoutButton} onClick={handleLogout}>
@@ -154,16 +330,8 @@ function Reservations() {
         <header style={styles.header}>
           <div>
             <span style={styles.badge}>Gestión de reservas</span>
-
-            <h1 style={styles.title}>
-              {isSupermarket ? "Reservas recibidas" : "Mis reservas"}
-            </h1>
-
-            <p style={styles.subtitle}>
-              {isSupermarket
-                ? "Revisá las solicitudes realizadas por organizaciones y confirmá las entregas."
-                : "Consultá el estado de tus reservas y confirmá la recepción de productos."}
-            </p>
+            <h1 style={styles.title}>{getPageTitle()}</h1>
+            <p style={styles.subtitle}>{getPageSubtitle()}</p>
           </div>
 
           <div style={styles.userArea}>
@@ -185,23 +353,70 @@ function Reservations() {
 
         {error && <div style={styles.errorBox}>{error}</div>}
 
+        {success && <div style={styles.successBox}>{success}</div>}
+
+        {isAdmin && (
+          <div style={localStyles.adminInfoBox}>
+            El administrador puede consultar todas las reservas, pero no puede
+            modificar estados ni confirmar entregas.
+          </div>
+        )}
+
+        <div style={localStyles.filterBar}>
+          {[
+            { key: "ALL", label: "Todas", count: statusCounts.ALL },
+            { key: "PENDING", label: "Pendientes", count: statusCounts.PENDING, title: "Reservas esperando confirmación del supermercado" },
+            { key: "CONFIRMED", label: "Confirmadas", count: statusCounts.CONFIRMED, title: "Reservas confirmadas por el supermercado" },
+            { key: "COMPLETED", label: "Completadas", count: statusCounts.COMPLETED, title: "Entregas confirmadas por ambas partes" },
+            { key: "CANCELLED", label: "Canceladas", count: statusCounts.CANCELLED, title: "Reservas canceladas" },
+          ].map((filter) => (
+            <button
+              key={filter.key}
+              style={
+                selectedFilter === filter.key
+                  ? localStyles.filterButtonActive
+                  : localStyles.filterButton
+              }
+              onClick={() => setSelectedFilter(filter.key)}
+              title={filter.title}
+            >
+              {filter.label} <span style={localStyles.filterCount}>{filter.count}</span>
+            </button>
+          ))}
+        </div>
+
+        {error && <div style={styles.errorBox}>{error}</div>}
+
+        {isAdmin && (
+          <div style={localStyles.adminInfoBox}>
+            El administrador puede consultar todas las reservas, pero no puede
+            modificar estados ni confirmar entregas.
+          </div>
+        )}
+
         {loading ? (
           <section style={styles.emptyState}>
             <h2 style={styles.emptyTitle}>Cargando reservas...</h2>
-            <p style={styles.emptyText}>Estamos consultando las reservas registradas.</p>
+            <p style={styles.emptyText}>
+              Estamos consultando las reservas registradas.
+            </p>
           </section>
-        ) : reservations.length === 0 ? (
+        ) : filteredReservations.length === 0 ? (
           <section style={styles.emptyState}>
             <h2 style={styles.emptyTitle}>No hay reservas para mostrar</h2>
             <p style={styles.emptyText}>
-              {isSupermarket
+              {selectedFilter !== "ALL"
+                ? `No hay reservas ${selectedFilter === "PENDING" ? "pendientes" : selectedFilter === "CONFIRMED" ? "confirmadas" : selectedFilter === "COMPLETED" ? "completadas" : "canceladas"}.`
+                : isAdmin
+                ? "Todavía no existen reservas registradas."
+                : isSupermarket
                 ? "Todavía no recibiste reservas sobre tus productos."
                 : "Todavía no realizaste reservas."}
             </p>
           </section>
         ) : (
           <section style={styles.cardsGrid}>
-            {reservations.map((reservation) => {
+            {filteredReservations.map((reservation) => {
               const status = reservation.status || "PENDING";
               const isUpdating = updatingId === reservation.id;
 
@@ -214,7 +429,9 @@ function Reservations() {
                       </h2>
 
                       <p style={styles.cardText}>
-                        {isSupermarket
+                        {isAdmin
+                          ? "Reserva registrada en la plataforma."
+                          : isSupermarket
                           ? "Reserva solicitada por una organización."
                           : "Reserva realizada a un supermercado."}
                       </p>
@@ -223,17 +440,39 @@ function Reservations() {
                     <div style={styles.cardIcon}>📋</div>
                   </div>
 
-                  <span style={getStatusStyle(status)}>{getStatusLabel(status)}</span>
+                  <span style={getStatusStyle(status)}>
+                    {getStatusLabel(status)}
+                  </span>
 
                   <div style={styles.metaGrid}>
-                    <div style={styles.metaItem}>
-                      <span style={styles.metaLabel}>
-                        {isSupermarket ? "ONG" : "Supermercado"}
-                      </span>
-                      <span style={styles.metaValue}>
-                        {getCounterpartName(reservation)}
-                      </span>
-                    </div>
+                    {isAdmin ? (
+                      <>
+                        <div style={styles.metaItem}>
+                          <span style={styles.metaLabel}>ONG</span>
+                          <span style={styles.metaValue}>
+                            {getOngName(reservation)}
+                          </span>
+                        </div>
+
+                        <div style={styles.metaItem}>
+                          <span style={styles.metaLabel}>Supermercado</span>
+                          <span style={styles.metaValue}>
+                            {getSupermarketName(reservation)}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <div style={styles.metaItem}>
+                        <span style={styles.metaLabel}>
+                          {isSupermarket ? "ONG" : "Supermercado"}
+                        </span>
+                        <span style={styles.metaValue}>
+                          {isSupermarket
+                            ? getOngName(reservation)
+                            : getSupermarketName(reservation)}
+                        </span>
+                      </div>
+                    )}
 
                     <div style={styles.metaItem}>
                       <span style={styles.metaLabel}>Cantidad</span>
@@ -247,7 +486,9 @@ function Reservations() {
                     <div style={styles.metaItem}>
                       <span style={styles.metaLabel}>Fecha</span>
                       <span style={styles.metaValue}>
-                        {formatDate(reservation.reserved_at || reservation.created_at)}
+                        {formatDate(
+                          reservation.reserved_at || reservation.created_at
+                        )}
                       </span>
                     </div>
 
@@ -259,123 +500,38 @@ function Reservations() {
                     </div>
                   </div>
 
-                  {(reservation.supermarket_completed !== undefined ||
-                    reservation.ong_completed !== undefined) && (
-                    <div
-                      style={{
-                        marginTop: "18px",
-                        background: "#f7faf4",
-                        border: "1px solid #e6efdf",
-                        borderRadius: "18px",
-                        padding: "14px",
-                      }}
-                    >
-                      <span style={styles.metaLabel}>Confirmación de entrega</span>
+                  <div style={localStyles.confirmationBox}>
+                    <span style={styles.metaLabel} title="Ambas partes deben confirmar para completar la entrega">Confirmación de entrega</span>
 
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "10px",
-                          flexWrap: "wrap",
-                          marginTop: "8px",
-                        }}
-                      >
-                        <span style={getStatusStyle(
+                    <div style={localStyles.confirmationTags}>
+                      <span
+                        style={getStatusStyle(
                           reservation.supermarket_completed
                             ? "COMPLETED"
                             : "PENDING"
-                        )}>
-                          Supermercado:{" "}
-                          {reservation.supermarket_completed
-                            ? "confirmado"
-                            : "pendiente"}
-                        </span>
+                        )}
+                        title="El supermercado debe confirmar que realizó la entrega"
+                      >
+                        Supermercado:{" "}
+                        {reservation.supermarket_completed
+                          ? "confirmado"
+                          : "pendiente"}
+                      </span>
 
-                        <span style={getStatusStyle(
+                      <span
+                        style={getStatusStyle(
                           reservation.ong_completed ? "COMPLETED" : "PENDING"
-                        )}>
-                          ONG:{" "}
-                          {reservation.ong_completed ? "confirmado" : "pendiente"}
-                        </span>
-                      </div>
+                        )}
+                        title="La ONG debe confirmar que recibió la entrega"
+                      >
+                        ONG:{" "}
+                        {reservation.ong_completed ? "confirmado" : "pendiente"}
+                      </span>
                     </div>
-                  )}
+                  </div>
 
                   <div style={styles.cardActions}>
-                    {isSupermarket && status === "PENDING" && (
-                      <>
-                        <button
-                          type="button"
-                          style={styles.primaryButton}
-                          disabled={isUpdating}
-                          onClick={() =>
-                            handleUpdateStatus(reservation.id, "CONFIRMED")
-                          }
-                        >
-                          Confirmar
-                        </button>
-
-                        <button
-                          type="button"
-                          style={styles.dangerButton}
-                          disabled={isUpdating}
-                          onClick={() =>
-                            handleUpdateStatus(reservation.id, "CANCELLED")
-                          }
-                        >
-                          Cancelar
-                        </button>
-                      </>
-                    )}
-
-                    {isOng && status === "PENDING" && (
-                      <button
-                        type="button"
-                        style={styles.dangerButton}
-                        disabled={isUpdating}
-                        onClick={() =>
-                          handleUpdateStatus(reservation.id, "CANCELLED")
-                        }
-                      >
-                        Cancelar reserva
-                      </button>
-                    )}
-
-                    {status === "CONFIRMED" && (
-                      <>
-                        <button
-                          type="button"
-                          style={styles.primaryButton}
-                          disabled={isUpdating}
-                          onClick={() =>
-                            handleUpdateStatus(reservation.id, "COMPLETED")
-                          }
-                        >
-                          {isSupermarket
-                            ? "Confirmé entrega"
-                            : "Confirmé recepción"}
-                        </button>
-
-                        <button
-                          type="button"
-                          style={styles.dangerButton}
-                          disabled={isUpdating}
-                          onClick={() =>
-                            handleUpdateStatus(reservation.id, "CANCELLED")
-                          }
-                        >
-                          Cancelar
-                        </button>
-                      </>
-                    )}
-
-                    {(status === "COMPLETED" ||
-                      status === "CANCELLED" ||
-                      status === "CANCELED") && (
-                      <button type="button" style={styles.secondaryButton}>
-                        Sin acciones pendientes
-                      </button>
-                    )}
+                    {renderActions(reservation, status, isUpdating)}
                   </div>
                 </article>
               );
@@ -386,5 +542,71 @@ function Reservations() {
     </div>
   );
 }
+
+const localStyles = {
+  adminInfoBox: {
+    background: "#eef7e7",
+    border: "1px solid #d8ebce",
+    color: "#1f6f21",
+    borderRadius: "18px",
+    padding: "16px 18px",
+    fontWeight: 800,
+    marginBottom: "22px",
+  },
+
+  filterBar: {
+    display: "flex",
+    gap: "10px",
+    flexWrap: "wrap",
+    marginBottom: "24px",
+  },
+
+  filterButton: {
+    border: "1px solid #d6e4d0",
+    borderRadius: "20px",
+    background: "#ffffff",
+    color: "#223025",
+    padding: "10px 18px",
+    fontWeight: 800,
+    fontSize: "0.95rem",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+  },
+
+  filterButtonActive: {
+    border: "2px solid #2f9728",
+    borderRadius: "20px",
+    background: "#e8f4df",
+    color: "#1d7d24",
+    padding: "10px 18px",
+    fontWeight: 900,
+    fontSize: "0.95rem",
+    cursor: "pointer",
+  },
+
+  filterCount: {
+    marginLeft: "6px",
+    background: "rgba(0,0,0,0.08)",
+    padding: "2px 8px",
+    borderRadius: "999px",
+    fontSize: "0.85rem",
+    fontWeight: 900,
+  },
+
+  confirmationBox: {
+    marginTop: "18px",
+    background: "#f7faf4",
+    border: "1px solid #e6efdf",
+    borderRadius: "18px",
+    padding: "14px",
+  },
+
+  confirmationTags: {
+    display: "flex",
+    gap: "10px",
+    flexWrap: "wrap",
+    marginTop: "8px",
+  },
+};
 
 export default Reservations;

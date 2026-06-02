@@ -25,8 +25,16 @@ function Dashboard() {
   const userRole = user?.role || "";
 
   const isSupermarket = userRole === "SUPERMARKET";
-  const roleLabel = isSupermarket ? "Supermercado" : "ONG";
-  const userIcon = isSupermarket ? "🛒" : "🤝";
+  const isOng = userRole === "ONG";
+  const isAdmin = userRole === "ADMIN";
+
+  const roleLabel = isSupermarket
+    ? "Supermercado"
+    : isAdmin
+    ? "Administrador"
+    : "ONG";
+
+  const userIcon = isSupermarket ? "🛒" : isAdmin ? "🛡️" : "🤝";
 
   const pickNumber = (...values) => {
     const value = values.find(
@@ -39,8 +47,6 @@ function Dashboard() {
   const loadDashboard = async () => {
     try {
       const data = await getDashboardSummary();
-
-      console.log("Dashboard API response:", data);
 
       const source = data?.summary || data?.dashboard || data?.data || data || {};
 
@@ -151,6 +157,18 @@ function Dashboard() {
     },
   ];
 
+  const getSubtitle = () => {
+    if (isAdmin) {
+      return "Resumen general de productos, reservas, usuarios y actividad de la plataforma.";
+    }
+
+    if (isSupermarket) {
+      return "Resumen general de productos, reservas y notificaciones de tu cuenta.";
+    }
+
+    return "Resumen general de productos disponibles y reservas realizadas.";
+  };
+
   return (
     <div style={styles.layout}>
       <aside style={styles.sidebar}>
@@ -186,6 +204,17 @@ function Dashboard() {
             <span>📋</span>
             Reservas
           </button>
+
+          {isAdmin && (
+            <button
+              type="button"
+              style={styles.navButton}
+              onClick={() => navigate("/users")}
+            >
+              <span>👥</span>
+              Usuarios
+            </button>
+          )}
         </nav>
 
         <button type="button" style={styles.logoutButton} onClick={handleLogout}>
@@ -196,17 +225,15 @@ function Dashboard() {
       <main style={styles.main}>
         <header style={styles.header}>
           <div>
-            <span style={styles.badge}>Panel de gestión</span>
+            <span style={styles.badge}>
+              {isAdmin ? "Administración" : "Panel de gestión"}
+            </span>
 
             <h1 style={styles.title}>
               Hola, <span style={styles.titleHighlight}>{userName}</span>
             </h1>
 
-            <p style={styles.subtitle}>
-              {isSupermarket
-                ? "Resumen general de productos, reservas y notificaciones de tu cuenta."
-                : "Resumen general de productos disponibles y reservas realizadas."}
-            </p>
+            <p style={styles.subtitle}>{getSubtitle()}</p>
           </div>
 
           <div style={styles.userArea}>
@@ -247,15 +274,13 @@ function Dashboard() {
 
             <section style={styles.panel}>
               <h2 style={styles.panelTitle}>
-                {isSupermarket
-                  ? "Accesos rápidos"
-                  : "Búsqueda y reserva de productos"}
+                {isAdmin ? "Accesos de administración" : "Accesos rápidos"}
               </h2>
 
               <p style={styles.panelText}>
-                {isSupermarket
-                  ? "Continuá gestionando el flujo principal de ReNova desde acá."
-                  : "Desde esta sección podés consultar productos disponibles, realizar reservas y hacer seguimiento de tus solicitudes."}
+                {isAdmin
+                  ? "Desde este panel podés consultar la información general de la plataforma."
+                  : "Continuá gestionando el flujo principal de ReNova desde acá."}
               </p>
 
               <div style={styles.quickActionsGrid}>
@@ -292,6 +317,18 @@ function Dashboard() {
                     <span style={styles.quickActionIcon}>➕</span>
                     <strong>Cargar producto</strong>
                     <small>Publicar un nuevo producto disponible</small>
+                  </button>
+                )}
+
+                {isAdmin && (
+                  <button
+                    type="button"
+                    style={styles.quickActionCard}
+                    onClick={() => navigate("/users")}
+                  >
+                    <span style={styles.quickActionIcon}>👥</span>
+                    <strong>Ver usuarios</strong>
+                    <small>Consultar usuarios registrados</small>
                   </button>
                 )}
               </div>

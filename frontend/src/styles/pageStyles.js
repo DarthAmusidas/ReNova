@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from "react";
 export const pageStyles = {
   layout: {
     minHeight: "100vh",
@@ -331,6 +332,17 @@ export const pageStyles = {
     fontSize: "0.95rem",
   },
 
+  disabledButton: {
+    border: "1px solid #d6e4d0",
+    borderRadius: "15px",
+    background: "#f7faf4",
+    color: "#6b766d",
+    padding: "13px 19px",
+    fontWeight: 900,
+    fontSize: "0.95rem",
+    cursor: "not-allowed",
+  },
+
   statusBadge: {
     display: "inline-flex",
     alignItems: "center",
@@ -443,7 +455,6 @@ export const pageStyles = {
 
 export const getStatusStyle = (status) => {
   const base = pageStyles.statusBadge;
-
   const normalized = String(status || "").toUpperCase();
 
   if (normalized === "AVAILABLE") {

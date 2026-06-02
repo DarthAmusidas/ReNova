@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUsers } from "../services/userService";
 import NotificationBell from "../components/NotificationBell";
@@ -19,7 +19,7 @@ function AdminUsers() {
 
   const isAdmin = userRole === "ADMIN";
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -42,7 +42,7 @@ function AdminUsers() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -51,7 +51,7 @@ function AdminUsers() {
     }
 
     loadUsers();
-  }, []);
+  }, [isAdmin, navigate, loadUsers]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -147,12 +147,16 @@ function AdminUsers() {
         {loading ? (
           <section style={styles.emptyState}>
             <h2 style={styles.emptyTitle}>Cargando usuarios...</h2>
-            <p style={styles.emptyText}>Estamos consultando los usuarios registrados.</p>
+            <p style={styles.emptyText}>
+              Estamos consultando los usuarios registrados.
+            </p>
           </section>
         ) : users.length === 0 ? (
           <section style={styles.emptyState}>
             <h2 style={styles.emptyTitle}>No hay usuarios para mostrar</h2>
-            <p style={styles.emptyText}>Todavía no existen usuarios registrados.</p>
+            <p style={styles.emptyText}>
+              Todavía no existen usuarios registrados.
+            </p>
           </section>
         ) : (
           <section style={styles.cardsGrid}>
@@ -180,12 +184,21 @@ function AdminUsers() {
 
                   <div style={styles.metaItem}>
                     <span style={styles.metaLabel}>Fecha alta</span>
-                    <span style={styles.metaValue}>{formatDate(item.created_at)}</span>
+                    <span style={styles.metaValue}>
+                      {formatDate(item.created_at)}
+                    </span>
                   </div>
 
                   <div style={styles.metaItemWide}>
                     <span style={styles.metaLabel}>Dirección</span>
                     <span style={styles.metaValue}>{item.address || "-"}</span>
+                  </div>
+
+                  <div style={styles.metaItemWide}>
+                    <span style={styles.metaLabel}>ID usuario</span>
+                    <span style={styles.metaValue}>
+                      {String(item.id).slice(0, 8)}
+                    </span>
                   </div>
                 </div>
               </article>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createProduct } from "../services/productService";
 import NotificationBell from "../components/NotificationBell";
-import { pageStyles as baseStyles } from "../styles/pageStyles";
+import { pageStyles as pageStyles } from "../styles/pageStyles";
 
 function CreateProduct() {
   const navigate = useNavigate();
@@ -18,6 +18,7 @@ function CreateProduct() {
   });
 
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const storedUser = localStorage.getItem("user");
@@ -77,7 +78,8 @@ function CreateProduct() {
         low_rotation: formData.low_rotation,
       });
 
-      navigate("/products");
+      setSuccess("Producto creado correctamente.");
+      setTimeout(() => navigate("/products"), 1200);
     } catch (err) {
       console.error("Error creando producto:", err);
 
@@ -165,6 +167,7 @@ function CreateProduct() {
           </div>
 
           {error && <div style={styles.errorBox}>{error}</div>}
+          {success && <div style={styles.successBox}>{success}</div>}
 
           <form onSubmit={handleSubmit}>
             <div style={styles.formGrid}>
@@ -281,7 +284,7 @@ function CreateProduct() {
 }
 
 const styles = {
-  ...baseStyles,
+  ...pageStyles,
 
   formPanel: {
     maxWidth: "980px",

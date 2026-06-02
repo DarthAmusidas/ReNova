@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getProducts, updateProduct } from "../services/productService";
 import NotificationBell from "../components/NotificationBell";
-import { pageStyles as baseStyles } from "../styles/pageStyles";
+import { pageStyles as pageStyles } from "../styles/pageStyles";
 
 function EditProduct() {
   const navigate = useNavigate();
@@ -22,6 +22,7 @@ function EditProduct() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
@@ -136,7 +137,8 @@ function EditProduct() {
         status: formData.status,
       });
 
-      navigate("/products");
+      setSuccess("Producto actualizado correctamente.");
+      setTimeout(() => navigate("/products"), 1200);
     } catch (err) {
       console.error("Error actualizando producto:", err);
 
@@ -223,6 +225,7 @@ function EditProduct() {
           </div>
 
           {error && <div style={styles.errorBox}>{error}</div>}
+          {success && <div style={styles.successBox}>{success}</div>}
 
           {loading ? (
             <p style={styles.loadingText}>Cargando producto...</p>
@@ -356,7 +359,7 @@ function EditProduct() {
 }
 
 const styles = {
-  ...baseStyles,
+  ...pageStyles,
 
   formPanel: {
     maxWidth: "980px",
