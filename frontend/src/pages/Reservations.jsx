@@ -419,6 +419,11 @@ function Reservations() {
             {filteredReservations.map((reservation) => {
               const status = reservation.status || "PENDING";
               const isUpdating = updatingId === reservation.id;
+              const hasPickupInfo =
+                reservation.pickup_person_name ||
+                reservation.pickup_person_dni ||
+                reservation.pickup_person_phone ||
+                reservation.pickup_notes;
 
               return (
                 <article key={reservation.id} style={styles.card}>
@@ -476,7 +481,7 @@ function Reservations() {
 
                     <div style={styles.metaItem}>
                       <span style={styles.metaLabel}>Pedido</span>
-                      <span style={styles.metaValue}>
+                      <span style={styles.orderCodeValue}>
                         {reservation.order_code || String(reservation.id).slice(0, 8)}
                       </span>
                     </div>
@@ -498,43 +503,52 @@ function Reservations() {
                         )}
                       </span>
                     </div>
-
-                    {reservation.pickup_person_name && (
-                      <div style={styles.metaItem}>
-                        <span style={styles.metaLabel}>Persona de retiro</span>
-                        <span style={styles.metaValue}>
-                          {reservation.pickup_person_name}
-                        </span>
-                      </div>
-                    )}
-
-                    {reservation.pickup_person_dni && (
-                      <div style={styles.metaItem}>
-                        <span style={styles.metaLabel}>DNI</span>
-                        <span style={styles.metaValue}>
-                          {reservation.pickup_person_dni}
-                        </span>
-                      </div>
-                    )}
-
-                    {reservation.pickup_person_phone && (
-                      <div style={styles.metaItem}>
-                        <span style={styles.metaLabel}>Teléfono</span>
-                        <span style={styles.metaValue}>
-                          {reservation.pickup_person_phone}
-                        </span>
-                      </div>
-                    )}
-
-                    {reservation.pickup_notes && (
-                      <div style={styles.metaItem}>
-                        <span style={styles.metaLabel}>Notas</span>
-                        <span style={styles.metaValue}>
-                          {reservation.pickup_notes}
-                        </span>
-                      </div>
-                    )}
                   </div>
+
+                  {hasPickupInfo && (
+                    <div style={localStyles.pickupSection}>
+                      <div style={localStyles.pickupTitle}>Datos de retiro</div>
+                      <div style={localStyles.pickupGrid}>
+                        {reservation.pickup_person_name && (
+                          <div style={localStyles.pickupItem}>
+                            <span style={styles.metaLabel}>
+                              Persona de retiro
+                            </span>
+                            <span style={styles.metaValue}>
+                              {reservation.pickup_person_name}
+                            </span>
+                          </div>
+                        )}
+
+                        {reservation.pickup_person_dni && (
+                          <div style={localStyles.pickupItem}>
+                            <span style={styles.metaLabel}>DNI</span>
+                            <span style={styles.metaValue}>
+                              {reservation.pickup_person_dni}
+                            </span>
+                          </div>
+                        )}
+
+                        {reservation.pickup_person_phone && (
+                          <div style={localStyles.pickupItem}>
+                            <span style={styles.metaLabel}>Teléfono</span>
+                            <span style={styles.metaValue}>
+                              {reservation.pickup_person_phone}
+                            </span>
+                          </div>
+                        )}
+
+                        {reservation.pickup_notes && (
+                          <div style={localStyles.pickupItem}>
+                            <span style={styles.metaLabel}>Notas</span>
+                            <span style={styles.metaValue}>
+                              {reservation.pickup_notes}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   <div style={localStyles.confirmationBox}>
                     <span style={styles.metaLabel} title="Ambas partes deben confirmar para completar la entrega">Confirmación de entrega</span>
@@ -642,6 +656,34 @@ const localStyles = {
     gap: "10px",
     flexWrap: "wrap",
     marginTop: "8px",
+  },
+
+  pickupSection: {
+    marginTop: "18px",
+    background: "#f8f9f4",
+    border: "1px solid #dfe8d7",
+    borderRadius: "18px",
+    padding: "16px",
+  },
+
+  pickupTitle: {
+    color: "#102018",
+    fontWeight: 900,
+    marginBottom: "12px",
+    fontSize: "0.95rem",
+  },
+
+  pickupGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+    gap: "12px",
+  },
+
+  pickupItem: {
+    background: "#ffffff",
+    border: "1px solid #e1eadc",
+    borderRadius: "16px",
+    padding: "12px 14px",
   },
 };
 

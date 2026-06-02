@@ -284,6 +284,16 @@ export const pageStyles = {
     fontWeight: 900,
   },
 
+  orderCodeValue: {
+    display: "block",
+    color: "#102018",
+    fontSize: "0.9rem",
+    fontWeight: 900,
+    whiteSpace: "normal",
+    overflowWrap: "break-word",
+    wordBreak: "break-word",
+  },
+
   cardActions: {
     display: "flex",
     gap: "10px",
@@ -482,6 +492,14 @@ export const getStatusStyle = (status) => {
   }
 
   if (normalized === "CANCELLED" || normalized === "CANCELED") {
+    return {
+      ...base,
+      background: "#fde9e7",
+      color: "#b9322a",
+    };
+  }
+
+  if (normalized === "EXPIRED") {
     return {
       ...base,
       background: "#fde9e7",

@@ -70,6 +70,11 @@ function Products() {
   };
 
   const handleOpenReservation = (product) => {
+    if (isProductExpired(product.expiration_date)) {
+      setError("No se puede reservar un producto vencido.");
+      return;
+    }
+
     setSelectedProduct(product);
     setReservationQuantity(1);
     setPickupPersonName("");
@@ -136,11 +141,14 @@ function Products() {
 
     try {
       setError("");
+      setSuccess("");
       await deleteProduct(productToDelete.id);
       setProductToDelete(null);
+      setSuccess("Producto eliminado correctamente.");
       await loadProducts();
     } catch (err) {
       console.error("Error eliminando producto:", err);
+      setProductToDelete(null);
       setError(
         err.response?.data?.error ||
           err.response?.data?.message ||
@@ -160,6 +168,15 @@ function Products() {
     return status || "Disponible";
   };
 
+  const isProductExpired = (expirationDate) => {
+    if (!expirationDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const expDate = new Date(expirationDate);
+    expDate.setHours(0, 0, 0, 0);
+    return expDate < today;
+  };
+
   const isProductSoonToExpire = (expirationDate) => {
     if (!expirationDate) return false;
     const today = new Date();
@@ -176,12 +193,13 @@ function Products() {
     return products.filter((product) => {
       const status = product.status || "AVAILABLE";
       const isAvailable = status === "AVAILABLE";
-      
-      if (selectedFilter === "AVAILABLE") return isAvailable;
-      if (selectedFilter === "UNAVAILABLE") return !isAvailable;
-      if (selectedFilter === "LOW_ROTATION") return product.low_rotation === true;
+
+      if (selectedFilter === "AVAILABLE") return isAvailable && !isProductExpired(product.expiration_date);
+      if (selectedFilter === "UNAVAILABLE") return !isAvailable && !isProductExpired(product.expiration_date);
+      if (selectedFilter === "LOW_ROTATION") return product.low_rotation === true && !isProductExpired(product.expiration_date);
       if (selectedFilter === "SOON_TO_EXPIRE") return isProductSoonToExpire(product.expiration_date);
-      
+      if (selectedFilter === "EXPIRED") return isProductExpired(product.expiration_date);
+
       return true;
     });
   };
@@ -193,16 +211,18 @@ function Products() {
       UNAVAILABLE: 0,
       LOW_ROTATION: 0,
       SOON_TO_EXPIRE: 0,
+      EXPIRED: 0,
     };
 
     products.forEach((product) => {
       const status = product.status || "AVAILABLE";
       const isAvailable = status === "AVAILABLE";
-      
-      if (isAvailable) counts.AVAILABLE++;
-      if (!isAvailable) counts.UNAVAILABLE++;
-      if (product.low_rotation === true) counts.LOW_ROTATION++;
+
+      if (isAvailable && !isProductExpired(product.expiration_date)) counts.AVAILABLE++;
+      if (!isAvailable && !isProductExpired(product.expiration_date)) counts.UNAVAILABLE++;
+      if (product.low_rotation === true && !isProductExpired(product.expiration_date)) counts.LOW_ROTATION++;
       if (isProductSoonToExpire(product.expiration_date)) counts.SOON_TO_EXPIRE++;
+      if (isProductExpired(product.expiration_date)) counts.EXPIRED++;
     });
 
     return counts;
@@ -314,6 +334,11 @@ function Products() {
           )}
         </div>
 
+        {error && <div style={styles.errorBox}>{error}</div>}
+        {success && <div style={styles.successBox}>{success}</div>}
+
+        <div style={localStyles.spacer} />
+
         <div style={localStyles.filterBar}>
           {[
             { key: "ALL", label: "Todas", count: productCounts.ALL },
@@ -321,6 +346,7 @@ function Products() {
             { key: "UNAVAILABLE", label: "No disponibles", count: productCounts.UNAVAILABLE },
             { key: "LOW_ROTATION", label: "Baja rotación", count: productCounts.LOW_ROTATION, title: "Productos con poco movimiento de venta" },
             { key: "SOON_TO_EXPIRE", label: "Próx. a vencer", count: productCounts.SOON_TO_EXPIRE, title: "Productos que vencen en los próximos 7 días" },
+            { key: "EXPIRED", label: "Vencidos", count: productCounts.EXPIRED, title: "Productos cuyo vencimiento ya pasó" },
           ].map((filter) => (
             <button
               key={filter.key}
@@ -336,11 +362,6 @@ function Products() {
             </button>
           ))}
         </div>
-
-        <div style={{ height: "22px" }} />
-
-        {error && <div style={styles.errorBox}>{error}</div>}
-        {success && <div style={styles.successBox}>{success}</div>}
 
         {loading ? (
           <section style={styles.emptyState}>
@@ -365,6 +386,7 @@ function Products() {
             {filteredProducts.map((product) => {
               const isAvailable =
                 !product.status || product.status === "AVAILABLE";
+              const isExpired = isProductExpired(product.expiration_date);
 
               return (
                 <article key={product.id} style={styles.card}>
@@ -380,9 +402,14 @@ function Products() {
                     <div style={styles.cardIcon}>🥬</div>
                   </div>
 
-                  <span style={getStatusStyle(product.status || "AVAILABLE")}>
-                    {getProductStatusLabel(product.status)}
-                  </span>
+                  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "18px" }}>
+                    <span style={getStatusStyle(product.status || "AVAILABLE")}>
+                      {getProductStatusLabel(product.status)}
+                    </span>
+                    {isExpired && (
+                      <span style={getStatusStyle("EXPIRED")}>Vencido</span>
+                    )}
+                  </div>
 
                   <div style={styles.metaGrid}>
                     <div style={styles.metaItem}>
@@ -434,14 +461,29 @@ function Products() {
                         <button
                           type="button"
                           style={styles.dangerButton}
-                          onClick={() => setProductToDelete(product)}
+                          onClick={() => {
+                            setError("");
+                            setSuccess("");
+                            setProductToDelete(product);
+                          }}
                         >
                           Eliminar
                         </button>
                       </>
                     )}
 
-                    {isOng && isAvailable && product.quantity > 0 && (
+                    {isOng && isExpired && (
+                      <button
+                        type="button"
+                        style={styles.disabledButton}
+                        disabled
+                        title="Este producto está vencido y no puede reservarse."
+                      >
+                        Reservar
+                      </button>
+                    )}
+
+                    {isOng && !isExpired && isAvailable && product.quantity > 0 && (
                       <button
                         type="button"
                         style={styles.primaryButton}
@@ -451,6 +493,12 @@ function Products() {
                       </button>
                     )}
                   </div>
+
+                  {isOng && isExpired && (
+                    <p style={localStyles.hintText}>
+                      Este producto está vencido y no puede reservarse.
+                    </p>
+                  )}
                 </article>
               );
             })}
@@ -624,6 +672,17 @@ const localStyles = {
     borderRadius: "999px",
     fontSize: "0.85rem",
     fontWeight: 900,
+  },
+
+  hintText: {
+    marginTop: "12px",
+    color: "#7a867c",
+    fontSize: "0.9rem",
+    lineHeight: 1.5,
+  },
+
+  spacer: {
+    height: "18px",
   },
 };
 

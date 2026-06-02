@@ -331,7 +331,13 @@ const updateProduct = async (req, res) => {
 };
 // Elimina un producto existente
 const deleteProduct = async (req, res) => {
+  const client = await pool.connect();
+  let transactionStarted = false;
+
   try {
+    await client.query("BEGIN");
+    transactionStarted = true;
+
     // Extrae el ID del producto desde la URL
     const { id } = req.params;
 
@@ -341,13 +347,14 @@ const deleteProduct = async (req, res) => {
 
     // Valida que el ID tenga formato UUID
     if (!isValidUUID(id)) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
         error: "El id del producto debe tener un formato válido"
       });
     }
 
     // Busca el producto existente
-    const productResult = await pool.query(
+    const productResult = await client.query(
       `SELECT *
        FROM products
        WHERE id = $1`,
@@ -358,6 +365,7 @@ const deleteProduct = async (req, res) => {
 
     // Valida que el producto exista
     if (!product) {
+      await client.query("ROLLBACK");
       return res.status(404).json({
         error: "Producto no encontrado"
       });
@@ -365,6 +373,7 @@ const deleteProduct = async (req, res) => {
 
     // Las ONG no pueden eliminar productos
     if (userRole === "ONG") {
+      await client.query("ROLLBACK");
       return res.status(403).json({
         error: "Las organizaciones no pueden eliminar productos"
       });
@@ -372,33 +381,74 @@ const deleteProduct = async (req, res) => {
 
     // El supermercado solo puede eliminar sus propios productos
     if (userRole === "SUPERMARKET" && product.supermarket_id !== userId) {
+      await client.query("ROLLBACK");
       return res.status(403).json({
         error: "No tenés permisos para eliminar este producto"
       });
     }
 
-    // Verifica si el producto tiene reservas asociadas
-    const reservationsResult = await pool.query(
-      `SELECT id
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const expirationDate = product.expiration_date
+      ? new Date(product.expiration_date)
+      : null;
+
+    if (expirationDate) {
+      expirationDate.setHours(0, 0, 0, 0);
+    }
+
+    const isExpired = expirationDate ? expirationDate < today : false;
+
+    // Verifica las reservas vinculadas al producto
+    const reservationsResult = await client.query(
+      `SELECT status
        FROM reservations
-       WHERE product_id = $1
-       LIMIT 1`,
+       WHERE product_id = $1`,
       [id]
     );
 
-    if (reservationsResult.rows.length > 0) {
+    const reservations = reservationsResult.rows || [];
+
+    if (reservations.some((reservation) => reservation.status === "COMPLETED")) {
+      await client.query("ROLLBACK");
       return res.status(400).json({
-        error: "No se puede eliminar un producto que tiene reservas asociadas"
+        error: "No se puede eliminar un producto que ya tiene entregas completadas."
       });
     }
 
+    if (!isExpired) {
+      if (
+        reservations.some(
+          (reservation) =>
+            reservation.status === "PENDING" || reservation.status === "CONFIRMED"
+        )
+      ) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({
+          error: "No se puede eliminar un producto que tiene reservas activas."
+        });
+      }
+    }
+
+    if (reservations.length > 0) {
+      await client.query(
+        `DELETE FROM reservations
+         WHERE product_id = $1
+           AND status != 'COMPLETED'`,
+        [id]
+      );
+    }
+
     // Elimina el producto
-    const result = await pool.query(
+    const result = await client.query(
       `DELETE FROM products
        WHERE id = $1
        RETURNING *`,
       [id]
     );
+
+    await client.query("COMMIT");
 
     // Responde con el producto eliminado
     res.json({
@@ -406,11 +456,16 @@ const deleteProduct = async (req, res) => {
       product: result.rows[0]
     });
   } catch (error) {
+    if (transactionStarted) {
+      await client.query("ROLLBACK");
+    }
     console.error(error);
 
     res.status(500).json({
       error: "Error al eliminar producto"
     });
+  } finally {
+    client.release();
   }
 };
 
