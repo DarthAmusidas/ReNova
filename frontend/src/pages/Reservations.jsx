@@ -475,6 +475,13 @@ function Reservations() {
                     )}
 
                     <div style={styles.metaItem}>
+                      <span style={styles.metaLabel}>Pedido</span>
+                      <span style={styles.metaValue}>
+                        {reservation.order_code || String(reservation.id).slice(0, 8)}
+                      </span>
+                    </div>
+
+                    <div style={styles.metaItem}>
                       <span style={styles.metaLabel}>Cantidad</span>
                       <span style={styles.metaValue}>
                         {reservation.quantity_reserved ||
@@ -492,12 +499,41 @@ function Reservations() {
                       </span>
                     </div>
 
-                    <div style={styles.metaItem}>
-                      <span style={styles.metaLabel}>ID reserva</span>
-                      <span style={styles.metaValue}>
-                        {String(reservation.id).slice(0, 8)}
-                      </span>
-                    </div>
+                    {reservation.pickup_person_name && (
+                      <div style={styles.metaItem}>
+                        <span style={styles.metaLabel}>Persona de retiro</span>
+                        <span style={styles.metaValue}>
+                          {reservation.pickup_person_name}
+                        </span>
+                      </div>
+                    )}
+
+                    {reservation.pickup_person_dni && (
+                      <div style={styles.metaItem}>
+                        <span style={styles.metaLabel}>DNI</span>
+                        <span style={styles.metaValue}>
+                          {reservation.pickup_person_dni}
+                        </span>
+                      </div>
+                    )}
+
+                    {reservation.pickup_person_phone && (
+                      <div style={styles.metaItem}>
+                        <span style={styles.metaLabel}>Teléfono</span>
+                        <span style={styles.metaValue}>
+                          {reservation.pickup_person_phone}
+                        </span>
+                      </div>
+                    )}
+
+                    {reservation.pickup_notes && (
+                      <div style={styles.metaItem}>
+                        <span style={styles.metaLabel}>Notas</span>
+                        <span style={styles.metaValue}>
+                          {reservation.pickup_notes}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   <div style={localStyles.confirmationBox}>

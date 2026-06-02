@@ -20,12 +20,43 @@ const createNotification = async (client, userId, title, message, type) => {
   );
 };
 
+const generateUniqueOrderCode = async (client) => {
+  const maxAttempts = 5;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const randomPart = Math.floor(Math.random() * 1000000)
+      .toString()
+      .padStart(6, "0");
+    const orderCode = `RN-2026-${randomPart}`;
+
+    const existingResult = await client.query(
+      `
+      SELECT id FROM reservations WHERE order_code = $1 LIMIT 1
+      `,
+      [orderCode]
+    );
+
+    if (existingResult.rows.length === 0) {
+      return orderCode;
+    }
+  }
+
+  throw new Error("No se pudo generar un código de pedido único");
+};
+
 const createReservation = async (req, res) => {
   const client = await pool.connect();
   let transactionStarted = false;
 
   try {
-    const { product_id, quantity_reserved } = req.body || {};
+    const {
+      product_id,
+      quantity_reserved,
+      pickup_person_name,
+      pickup_person_dni,
+      pickup_person_phone,
+      pickup_notes,
+    } = req.body || {};
     const ongId = req.user.id;
     const userRole = req.user.role;
 
@@ -44,6 +75,12 @@ const createReservation = async (req, res) => {
     if (!isValidUUID(product_id)) {
       return res.status(400).json({
         error: "El id del producto debe tener un formato válido",
+      });
+    }
+
+    if (!pickup_person_name || !pickup_person_dni) {
+      return res.status(400).json({
+        error: "El nombre y DNI de la persona de retirada son obligatorios",
       });
     }
 
@@ -113,6 +150,18 @@ const createReservation = async (req, res) => {
       });
     }
 
+    let orderCode;
+    try {
+      orderCode = await generateUniqueOrderCode(client);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      transactionStarted = false;
+
+      return res.status(500).json({
+        error: "No se pudo generar un código de pedido único",
+      });
+    }
+
     const reservationResult = await client.query(
       `
       INSERT INTO reservations
@@ -122,12 +171,26 @@ const createReservation = async (req, res) => {
           quantity_reserved,
           status,
           supermarket_completed,
-          ong_completed
+          ong_completed,
+          order_code,
+          pickup_person_name,
+          pickup_person_dni,
+          pickup_person_phone,
+          pickup_notes
         )
-      VALUES ($1, $2, $3, 'PENDING', false, false)
+      VALUES ($1, $2, $3, 'PENDING', false, false, $4, $5, $6, $7, $8)
       RETURNING *
       `,
-      [product_id, ongId, quantity]
+      [
+        product_id,
+        ongId,
+        quantity,
+        orderCode,
+        pickup_person_name,
+        pickup_person_dni,
+        pickup_person_phone || null,
+        pickup_notes || null,
+      ]
     );
 
     const reservation = reservationResult.rows[0];
@@ -194,6 +257,11 @@ const getReservations = async (req, res) => {
           r.reserved_at,
           r.supermarket_completed,
           r.ong_completed,
+          r.order_code,
+          r.pickup_person_name,
+          r.pickup_person_dni,
+          r.pickup_person_phone,
+          r.pickup_notes,
           p.name AS product_name,
           p.description AS product_description,
           p.category AS product_category,
@@ -226,6 +294,11 @@ const getReservations = async (req, res) => {
           r.reserved_at,
           r.supermarket_completed,
           r.ong_completed,
+          r.order_code,
+          r.pickup_person_name,
+          r.pickup_person_dni,
+          r.pickup_person_phone,
+          r.pickup_notes,
           p.name AS product_name,
           p.description AS product_description,
           p.category AS product_category,
@@ -258,6 +331,11 @@ const getReservations = async (req, res) => {
           r.reserved_at,
           r.supermarket_completed,
           r.ong_completed,
+          r.order_code,
+          r.pickup_person_name,
+          r.pickup_person_dni,
+          r.pickup_person_phone,
+          r.pickup_notes,
           p.name AS product_name,
           p.description AS product_description,
           p.category AS product_category,

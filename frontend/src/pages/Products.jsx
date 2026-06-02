@@ -13,6 +13,10 @@ function Products() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productToDelete, setProductToDelete] = useState(null);
   const [reservationQuantity, setReservationQuantity] = useState(1);
+  const [pickupPersonName, setPickupPersonName] = useState("");
+  const [pickupPersonDni, setPickupPersonDni] = useState("");
+  const [pickupPersonPhone, setPickupPersonPhone] = useState("");
+  const [pickupNotes, setPickupNotes] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("ALL");
@@ -68,6 +72,10 @@ function Products() {
   const handleOpenReservation = (product) => {
     setSelectedProduct(product);
     setReservationQuantity(1);
+    setPickupPersonName("");
+    setPickupPersonDni("");
+    setPickupPersonPhone("");
+    setPickupNotes("");
     setError("");
     setSuccess("");
   };
@@ -76,6 +84,16 @@ function Products() {
     if (!selectedProduct) return;
 
     const quantity = Number(reservationQuantity);
+
+    if (!pickupPersonName.trim()) {
+      setError("Ingresá el nombre de la persona que retira.");
+      return;
+    }
+
+    if (!pickupPersonDni.trim()) {
+      setError("Ingresá el DNI de la persona que retira.");
+      return;
+    }
 
     if (!quantity || quantity <= 0) {
       setError("Ingresá una cantidad válida.");
@@ -94,6 +112,10 @@ function Products() {
       await createReservation({
         product_id: selectedProduct.id,
         quantity_reserved: quantity,
+        pickup_person_name: pickupPersonName.trim(),
+        pickup_person_dni: pickupPersonDni.trim(),
+        pickup_person_phone: pickupPersonPhone.trim(),
+        pickup_notes: pickupNotes.trim(),
       });
 
       setSuccess("Reserva creada correctamente.");
@@ -458,6 +480,50 @@ function Products() {
                   max={selectedProduct.quantity}
                   value={reservationQuantity}
                   onChange={(e) => setReservationQuantity(e.target.value)}
+                />
+              </div>
+
+              <div style={styles.inputGroup}>
+                <label style={styles.inputLabel}>Nombre de la persona que retira</label>
+                <input
+                  style={styles.input}
+                  type="text"
+                  value={pickupPersonName}
+                  onChange={(e) => setPickupPersonName(e.target.value)}
+                />
+              </div>
+
+              <div style={styles.inputGroup}>
+                <label style={styles.inputLabel}>DNI de la persona que retira</label>
+                <input
+                  style={styles.input}
+                  type="text"
+                  value={pickupPersonDni}
+                  onChange={(e) => setPickupPersonDni(e.target.value)}
+                />
+              </div>
+
+              <div style={styles.inputGroup}>
+                <label style={styles.inputLabel}>Teléfono de la persona que retira (opcional)</label>
+                <input
+                  style={styles.input}
+                  type="text"
+                  value={pickupPersonPhone}
+                  onChange={(e) => setPickupPersonPhone(e.target.value)}
+                />
+              </div>
+
+              <div style={styles.inputGroup}>
+                <label style={styles.inputLabel}>Notas de retiro (opcional)</label>
+                <textarea
+                  style={{
+                    ...styles.input,
+                    minHeight: "110px",
+                    padding: "14px 16px",
+                    resize: "vertical",
+                  }}
+                  value={pickupNotes}
+                  onChange={(e) => setPickupNotes(e.target.value)}
                 />
               </div>
 
