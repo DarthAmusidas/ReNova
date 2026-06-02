@@ -56,6 +56,7 @@ const createReservation = async (req, res) => {
       pickup_person_dni,
       pickup_person_phone,
       pickup_notes,
+      pickup_time,
     } = req.body || {};
     const ongId = req.user.id;
     const userRole = req.user.role;
@@ -176,9 +177,10 @@ const createReservation = async (req, res) => {
           pickup_person_name,
           pickup_person_dni,
           pickup_person_phone,
-          pickup_notes
+          pickup_notes,
+          pickup_time
         )
-      VALUES ($1, $2, $3, 'PENDING', false, false, $4, $5, $6, $7, $8)
+      VALUES ($1, $2, $3, 'PENDING', false, false, $4, $5, $6, $7, $8, $9)
       RETURNING *
       `,
       [
@@ -190,6 +192,7 @@ const createReservation = async (req, res) => {
         pickup_person_dni,
         pickup_person_phone || null,
         pickup_notes || null,
+        pickup_time || null,
       ]
     );
 
@@ -262,6 +265,7 @@ const getReservations = async (req, res) => {
           r.pickup_person_dni,
           r.pickup_person_phone,
           r.pickup_notes,
+          r.pickup_time,
           p.name AS product_name,
           p.description AS product_description,
           p.category AS product_category,
@@ -271,8 +275,10 @@ const getReservations = async (req, res) => {
           p.supermarket_id,
           ong.name AS ong_name,
           ong.email AS ong_email,
+          ong.organization_type,
           supermarket.name AS supermarket_name,
-          supermarket.email AS supermarket_email
+          supermarket.email AS supermarket_email,
+          supermarket.organization_type AS supermarket_organization_type
         FROM reservations r
         INNER JOIN products p ON p.id = r.product_id
         INNER JOIN users ong ON ong.id = r.ong_id
@@ -299,6 +305,7 @@ const getReservations = async (req, res) => {
           r.pickup_person_dni,
           r.pickup_person_phone,
           r.pickup_notes,
+          r.pickup_time,
           p.name AS product_name,
           p.description AS product_description,
           p.category AS product_category,
@@ -308,8 +315,10 @@ const getReservations = async (req, res) => {
           p.supermarket_id,
           ong.name AS ong_name,
           ong.email AS ong_email,
+          ong.organization_type,
           supermarket.name AS supermarket_name,
-          supermarket.email AS supermarket_email
+          supermarket.email AS supermarket_email,
+          supermarket.organization_type AS supermarket_organization_type
         FROM reservations r
         INNER JOIN products p ON p.id = r.product_id
         INNER JOIN users ong ON ong.id = r.ong_id
@@ -336,6 +345,7 @@ const getReservations = async (req, res) => {
           r.pickup_person_dni,
           r.pickup_person_phone,
           r.pickup_notes,
+          r.pickup_time,
           p.name AS product_name,
           p.description AS product_description,
           p.category AS product_category,
@@ -345,8 +355,10 @@ const getReservations = async (req, res) => {
           p.supermarket_id,
           ong.name AS ong_name,
           ong.email AS ong_email,
+          ong.organization_type,
           supermarket.name AS supermarket_name,
-          supermarket.email AS supermarket_email
+          supermarket.email AS supermarket_email,
+          supermarket.organization_type AS supermarket_organization_type
         FROM reservations r
         INNER JOIN products p ON p.id = r.product_id
         INNER JOIN users ong ON ong.id = r.ong_id
@@ -556,7 +568,46 @@ const updateReservationStatus = async (req, res) => {
         });
       }
 
-      if (isReservationSupermarket && userRole === "SUPERMARKET") {
+      // ONG confirms pickup first
+      if (isReservationOng && userRole === "ONG") {
+        if (reservation.ong_completed) {
+          await client.query("ROLLBACK");
+
+          return res.status(400).json({
+            error: "La ONG ya confirmó el retiro",
+          });
+        }
+
+        const partialResult = await client.query(
+          `
+          UPDATE reservations
+          SET ong_completed = true
+          WHERE id = $1
+          RETURNING *
+          `,
+          [id]
+        );
+
+        updatedReservation = partialResult.rows[0];
+
+        await createNotification(
+          client,
+          reservation.supermarket_id,
+          "Retiro confirmado",
+          `La ONG confirmó el retiro del producto "${reservation.product_name}". Por favor, confirmá que realizaste la entrega.`,
+          "RESERVATION_UPDATE"
+        );
+      } 
+      // Supermarket confirms delivery (only after ONG confirms pickup)
+      else if (isReservationSupermarket && userRole === "SUPERMARKET") {
+        if (!reservation.ong_completed) {
+          await client.query("ROLLBACK");
+
+          return res.status(400).json({
+            error: "El supermercado solo puede confirmar entrega después de que la ONG confirme el retiro",
+          });
+        }
+
         if (reservation.supermarket_completed) {
           await client.query("ROLLBACK");
 
@@ -580,43 +631,15 @@ const updateReservationStatus = async (req, res) => {
         await createNotification(
           client,
           reservation.ong_id,
-          "Producto entregado",
-          `El supermercado marcó como entregado el producto "${reservation.product_name}". Confirmá la recepción para cerrar la reserva.`,
-          "RESERVATION_UPDATE"
-        );
-      } else if (isReservationOng && userRole === "ONG") {
-        if (reservation.ong_completed) {
-          await client.query("ROLLBACK");
-
-          return res.status(400).json({
-            error: "La ONG ya confirmó la recepción",
-          });
-        }
-
-        const partialResult = await client.query(
-          `
-          UPDATE reservations
-          SET ong_completed = true
-          WHERE id = $1
-          RETURNING *
-          `,
-          [id]
-        );
-
-        updatedReservation = partialResult.rows[0];
-
-        await createNotification(
-          client,
-          reservation.supermarket_id,
-          "Producto recibido",
-          `La ONG marcó como recibido el producto "${reservation.product_name}".`,
+          "Entrega confirmada",
+          `El supermercado confirmó la entrega del producto "${reservation.product_name}". La reserva está completa.`,
           "RESERVATION_UPDATE"
         );
       } else {
         await client.query("ROLLBACK");
 
         return res.status(403).json({
-          error: "No tenés permisos para completar esta reserva",
+          error: "No tenés permisos para confirmar esta reserva",
         });
       }
 

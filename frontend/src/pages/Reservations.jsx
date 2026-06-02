@@ -94,9 +94,212 @@ function Reservations() {
     }
   };
 
-  const formatDate = (date) => {
-    if (!date) return "-";
-    return new Date(date).toLocaleDateString("es-AR");
+  const handlePrintReceipt = (reservation) => {
+    const printWindow = window.open('', '', 'width=600,height=800');
+    
+    const orderCode = reservation.order_code || String(reservation.id).slice(0, 8);
+    const productName = getProductName(reservation);
+    const quantity = reservation.quantity_reserved || 0;
+    const ongName = getOngName(reservation);
+    const supermarketName = getSupermarketName(reservation);
+    const pickupPersonName = reservation.pickup_person_name || '-';
+    const pickupPersonDni = reservation.pickup_person_dni || '-';
+    const pickupPersonPhone = reservation.pickup_person_phone || '-';
+    const pickupTime = reservation.pickup_time || '-';
+    const pickupNotes = reservation.pickup_notes || '-';
+    const reservedDate = formatDate(reservation.reserved_at || reservation.created_at);
+    const status = getStatusLabel(reservation.status || 'PENDING');
+
+    const receiptHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Comprobante de Reserva - ReNova</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0;
+            padding: 20px;
+            background: white;
+            color: #333;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 2px solid #2f9728;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+          }
+          .header h1 {
+            margin: 0;
+            color: #2f9728;
+            font-size: 24px;
+          }
+          .header p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 12px;
+          }
+          .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+          }
+          .section-title {
+            font-weight: bold;
+            color: #2f9728;
+            margin-bottom: 10px;
+            font-size: 14px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 8px;
+          }
+          .field {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+          }
+          .field-label {
+            font-weight: bold;
+            color: #555;
+          }
+          .field-value {
+            color: #333;
+            text-align: right;
+            flex-grow: 1;
+            margin-left: 20px;
+          }
+          .footer {
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 20px;
+            margin-top: 20px;
+            font-size: 11px;
+            color: #999;
+          }
+          .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 12px;
+            margin-top: 10px;
+          }
+          .status-pending {
+            background: #fff3cd;
+            color: #856404;
+          }
+          .status-confirmed {
+            background: #d4edda;
+            color: #155724;
+          }
+          .status-completed {
+            background: #d4edda;
+            color: #155724;
+          }
+          .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+          }
+          @media print {
+            body { margin: 0; padding: 10px; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>🌱 ReNova</h1>
+          <p>Comprobante de Reserva</p>
+          <p>Pedido: <strong>${orderCode}</strong></p>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Información del Producto</div>
+          <div class="field">
+            <span class="field-label">Producto:</span>
+            <span class="field-value">${productName}</span>
+          </div>
+          <div class="field">
+            <span class="field-label">Cantidad:</span>
+            <span class="field-value">${quantity}</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Organizaciones</div>
+          <div class="field">
+            <span class="field-label">Organización que reserva:</span>
+            <span class="field-value">${ongName}</span>
+          </div>
+          <div class="field">
+            <span class="field-label">Comercio donante:</span>
+            <span class="field-value">${supermarketName}</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Datos de Retiro</div>
+          <div class="field">
+            <span class="field-label">Persona que retira:</span>
+            <span class="field-value">${pickupPersonName}</span>
+          </div>
+          <div class="field">
+            <span class="field-label">DNI:</span>
+            <span class="field-value">${pickupPersonDni}</span>
+          </div>
+          ${pickupPersonPhone !== '-' ? `
+          <div class="field">
+            <span class="field-label">Teléfono:</span>
+            <span class="field-value">${pickupPersonPhone}</span>
+          </div>
+          ` : ''}
+          ${pickupTime !== '-' ? `
+          <div class="field">
+            <span class="field-label">Horario de retiro:</span>
+            <span class="field-value">${pickupTime}</span>
+          </div>
+          ` : ''}
+          ${pickupNotes !== '-' ? `
+          <div class="field">
+            <span class="field-label">Notas:</span>
+            <span class="field-value">${pickupNotes}</span>
+          </div>
+          ` : ''}
+        </div>
+
+        <div class="section">
+          <div class="section-title">Información de la Reserva</div>
+          <div class="field">
+            <span class="field-label">Fecha de reserva:</span>
+            <span class="field-value">${reservedDate}</span>
+          </div>
+          <div class="field">
+            <span class="field-label">Estado actual:</span>
+            <span class="field-value">
+              <div class="status-badge status-${status.toLowerCase().replace('á', 'a').replace(' ', '-')}">
+                ${status}
+              </div>
+            </span>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>Comprobante generado automáticamente por ReNova</p>
+          <p>Plataforma solidaria de donación de productos</p>
+          <p>Fecha de impresión: ${new Date().toLocaleDateString('es-AR')}</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(receiptHTML);
+    printWindow.document.close();
+    printWindow.focus();
+    
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
   };
 
   const getStatusLabel = (status) => {
@@ -149,6 +352,9 @@ function Reservations() {
   };
 
   const getSupermarketName = (reservation) => {
+    if (reservation.supermarket_organization_type) {
+      return `${reservation.supermarket_name} (${reservation.supermarket_organization_type})`;
+    }
     return (
       reservation.supermarket_name ||
       reservation.supermarket?.name ||
@@ -158,6 +364,9 @@ function Reservations() {
   };
 
   const getOngName = (reservation) => {
+    if (reservation.organization_type) {
+      return `${reservation.ong_name} (${reservation.organization_type})`;
+    }
     return (
       reservation.ong_name ||
       reservation.ong?.name ||
@@ -233,17 +442,6 @@ function Reservations() {
     if (status === "CONFIRMED") {
       return (
         <>
-          {isSupermarket && !reservation.supermarket_completed && (
-            <button
-              type="button"
-              style={styles.primaryButton}
-              disabled={isUpdating}
-              onClick={() => handleUpdateStatus(reservation.id, "COMPLETED")}
-            >
-              Confirmé entrega
-            </button>
-          )}
-
           {isOng && !reservation.ong_completed && (
             <button
               type="button"
@@ -251,19 +449,41 @@ function Reservations() {
               disabled={isUpdating}
               onClick={() => handleUpdateStatus(reservation.id, "COMPLETED")}
             >
-              Confirmé recepción
+              Confirmar retiro
             </button>
           )}
 
-          {isSupermarket && reservation.supermarket_completed && (
-            <button type="button" style={styles.disabledButton} disabled>
-              Entrega registrada
+          {isSupermarket && !reservation.ong_completed && (
+            <button
+              type="button"
+              style={styles.disabledButton}
+              disabled
+              title="Esperando confirmación de retiro de la organización"
+            >
+              Esperando confirmación de retiro
             </button>
           )}
 
-          {isOng && reservation.ong_completed && (
+          {isSupermarket && reservation.ong_completed && !reservation.supermarket_completed && (
+            <button
+              type="button"
+              style={styles.primaryButton}
+              disabled={isUpdating}
+              onClick={() => handleUpdateStatus(reservation.id, "COMPLETED")}
+            >
+              Confirmar entrega
+            </button>
+          )}
+
+          {isOng && reservation.ong_completed && !reservation.supermarket_completed && (
             <button type="button" style={styles.disabledButton} disabled>
-              Recepción registrada
+              Retiro confirmado, esperando entrega
+            </button>
+          )}
+
+          {reservation.ong_completed && reservation.supermarket_completed && (
+            <button type="button" style={styles.disabledButton} disabled>
+              Entrega completada
             </button>
           )}
 
@@ -538,6 +758,15 @@ function Reservations() {
                           </div>
                         )}
 
+                        {reservation.pickup_time && (
+                          <div style={localStyles.pickupItem}>
+                            <span style={styles.metaLabel}>Horario de retiro</span>
+                            <span style={styles.metaValue}>
+                              {reservation.pickup_time}
+                            </span>
+                          </div>
+                        )}
+
                         {reservation.pickup_notes && (
                           <div style={localStyles.pickupItem}>
                             <span style={styles.metaLabel}>Notas</span>
@@ -582,6 +811,16 @@ function Reservations() {
 
                   <div style={styles.cardActions}>
                     {renderActions(reservation, status, isUpdating)}
+                    <button
+                      type="button"
+                      style={{
+                        ...styles.secondaryButton,
+                        marginLeft: "10px"
+                      }}
+                      onClick={() => handlePrintReceipt(reservation)}
+                    >
+                      🖨️ Imprimir comprobante
+                    </button>
                   </div>
                 </article>
               );

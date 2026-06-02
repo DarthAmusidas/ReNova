@@ -189,6 +189,13 @@ function AdminUsers() {
                     </span>
                   </div>
 
+                  {item.organization_type && (
+                    <div style={styles.metaItem}>
+                      <span style={styles.metaLabel}>Tipo de organización</span>
+                      <span style={styles.metaValue}>{item.organization_type}</span>
+                    </div>
+                  )}
+
                   <div style={styles.metaItemWide}>
                     <span style={styles.metaLabel}>Dirección</span>
                     <span style={styles.metaValue}>{item.address || "-"}</span>

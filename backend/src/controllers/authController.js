@@ -11,6 +11,20 @@ const pool = new Pool({
 // Roles permitidos por el sistema
 const allowedRoles = ["SUPERMARKET", "ONG", "ADMIN"];
 
+// Map organization_type to internal role
+const mapOrganizationTypeToRole = (organizationType) => {
+  const ongTypes = ["Comedor", "Merendero", "Voluntariado"];
+  const supermarketTypes = ["Supermercado", "Almacén", "Verdulería", "Ferretería"];
+
+  if (ongTypes.includes(organizationType)) {
+    return "ONG";
+  }
+  if (supermarketTypes.includes(organizationType)) {
+    return "SUPERMARKET";
+  }
+  return null;
+};
+
 // Registra un nuevo usuario en la base de datos
 const register = async (req, res) => {
   try {
@@ -22,21 +36,37 @@ const register = async (req, res) => {
       password,
       role,
       phone,
-      address
+      address,
+      organization_type
     } = req.body || {};
 
     // Valida campos obligatorios
-    if (!name || !email || !password || !role) {
+    if (!name || !email || !password) {
       return res.status(400).json({
-        error: "Nombre, email, contraseña y rol son obligatorios"
+        error: "Nombre, email y contraseña son obligatorios"
       });
     }
 
-    // Valida que el rol enviado sea uno de los permitidos
-    if (!allowedRoles.includes(role)) {
+    // Determine role: if organization_type is provided, map it to role; otherwise use provided role
+    let finalRole = role;
+    if (organization_type) {
+      const mappedRole = mapOrganizationTypeToRole(organization_type);
+      if (!mappedRole) {
+        return res.status(400).json({
+          error: "Tipo de organización no válido"
+        });
+      }
+      finalRole = mappedRole;
+    } else if (!finalRole) {
       return res.status(400).json({
-        error: "Rol inválido",
-        allowedRoles
+        error: "Rol u organización requerida"
+      });
+    }
+
+    // Valida que el rol sea uno de los permitidos (no allow ADMIN from signup)
+    if (!allowedRoles.includes(finalRole) || finalRole === "ADMIN") {
+      return res.status(400).json({
+        error: "Rol inválido"
       });
     }
 
@@ -65,16 +95,17 @@ const register = async (req, res) => {
     // Inserta el nuevo usuario en la base de datos
     const result = await pool.query(
       `INSERT INTO users
-      (name, email, password, role, phone, address)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING id, name, email, role, phone, address, created_at`,
+      (name, email, password, role, phone, address, organization_type)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING id, name, email, role, phone, address, organization_type, created_at`,
       [
         name,
         email,
         hashedPassword,
-        role,
+        finalRole,
         phone || null,
-        address || null
+        address || null,
+        organization_type || null
       ]
     );
 
@@ -152,7 +183,8 @@ const login = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        organization_type: user.organization_type
       }
     });
   } catch (error) {

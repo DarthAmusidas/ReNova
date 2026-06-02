@@ -12,7 +12,7 @@ function Register() {
     password: "",
     phone: "",
     address: "",
-    role: "ONG",
+    organization_type: "Comedor",
   });
 
   const [error, setError] = useState("");
@@ -30,7 +30,7 @@ function Register() {
   const handleRoleChange = (role) => {
     setFormData((currentData) => ({
       ...currentData,
-      role,
+      organization_type: role,
     }));
   };
 
@@ -144,25 +144,78 @@ function Register() {
               <button
                 type="button"
                 className={`role-option-card ${
-                  formData.role === "ONG" ? "active" : ""
+                  formData.organization_type === "Comedor" ? "active" : ""
                 }`}
-                onClick={() => handleRoleChange("ONG")}
+                onClick={() => handleRoleChange("Comedor")}
               >
-                <span>🤝</span>
-                <strong>ONG</strong>
-                <small>Reservar productos</small>
+                <span>🍽️</span>
+                <strong>Comedor</strong>
               </button>
 
               <button
                 type="button"
                 className={`role-option-card ${
-                  formData.role === "SUPERMARKET" ? "active" : ""
+                  formData.organization_type === "Merendero" ? "active" : ""
                 }`}
-                onClick={() => handleRoleChange("SUPERMARKET")}
+                onClick={() => handleRoleChange("Merendero")}
+              >
+                <span>🥗</span>
+                <strong>Merendero</strong>
+              </button>
+
+              <button
+                type="button"
+                className={`role-option-card ${
+                  formData.organization_type === "Voluntariado" ? "active" : ""
+                }`}
+                onClick={() => handleRoleChange("Voluntariado")}
+              >
+                <span>🤲</span>
+                <strong>Voluntariado</strong>
+              </button>
+
+              <button
+                type="button"
+                className={`role-option-card ${
+                  formData.organization_type === "Supermercado" ? "active" : ""
+                }`}
+                onClick={() => handleRoleChange("Supermercado")}
               >
                 <span>🛒</span>
                 <strong>Supermercado</strong>
-                <small>Publicar productos</small>
+              </button>
+
+              <button
+                type="button"
+                className={`role-option-card ${
+                  formData.organization_type === "Almacén" ? "active" : ""
+                }`}
+                onClick={() => handleRoleChange("Almacén")}
+              >
+                <span>📦</span>
+                <strong>Almacén</strong>
+              </button>
+
+              <button
+                type="button"
+                className={`role-option-card ${
+                  formData.organization_type === "Verdulería" ? "active" : ""
+                }`}
+                onClick={() => handleRoleChange("Verdulería")}
+              >
+                <span>🥬</span>
+                <strong>Verdulería</strong>
+              </button>
+
+              <button
+                type="button"
+                className={`role-option-card ${
+                  formData.organization_type === "Ferretería" ? "active" : ""
+                }`}
+                onClick={() => handleRoleChange("Ferretería")}
+              >
+                <span>🔨</span>
+                <strong>Ferretería</strong>
               </button>
             </div>
 

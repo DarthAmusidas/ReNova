@@ -27,6 +27,7 @@ const getUsers = async (req, res) => {
         role,
         phone,
         address,
+        organization_type,
         created_at
       FROM users
       ORDER BY created_at DESC

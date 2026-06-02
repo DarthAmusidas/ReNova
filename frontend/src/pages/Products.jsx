@@ -17,6 +17,7 @@ function Products() {
   const [pickupPersonDni, setPickupPersonDni] = useState("");
   const [pickupPersonPhone, setPickupPersonPhone] = useState("");
   const [pickupNotes, setPickupNotes] = useState("");
+  const [pickupTime, setPickupTime] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("ALL");
@@ -81,6 +82,7 @@ function Products() {
     setPickupPersonDni("");
     setPickupPersonPhone("");
     setPickupNotes("");
+    setPickupTime("");
     setError("");
     setSuccess("");
   };
@@ -121,6 +123,7 @@ function Products() {
         pickup_person_dni: pickupPersonDni.trim(),
         pickup_person_phone: pickupPersonPhone.trim(),
         pickup_notes: pickupNotes.trim(),
+        pickup_time: pickupTime.trim(),
       });
 
       setSuccess("Reserva creada correctamente.");
@@ -558,6 +561,17 @@ function Products() {
                   type="text"
                   value={pickupPersonPhone}
                   onChange={(e) => setPickupPersonPhone(e.target.value)}
+                />
+              </div>
+
+              <div style={styles.inputGroup}>
+                <label style={styles.inputLabel}>Horario estimado de retiro (opcional)</label>
+                <input
+                  style={styles.input}
+                  type="text"
+                  placeholder="Ej: Entre las 10:00 y las 13:00"
+                  value={pickupTime}
+                  onChange={(e) => setPickupTime(e.target.value)}
                 />
               </div>
 
