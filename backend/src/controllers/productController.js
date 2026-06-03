@@ -112,10 +112,15 @@ const getProducts = async (req, res) => {
     // Si es supermercado, ve únicamente sus propios productos
     if (userRole === "SUPERMARKET") {
       result = await pool.query(
-        `SELECT *
-         FROM products
-         WHERE supermarket_id = $1
-         ORDER BY expiration_date ASC NULLS LAST, created_at DESC`,
+        `SELECT
+             p.*,
+             s.name AS supermarket_name,
+             s.organization_type AS supermarket_organization_type,
+             s.role AS supermarket_role
+           FROM products p
+           LEFT JOIN users s ON p.supermarket_id = s.id
+           WHERE p.supermarket_id = $1
+           ORDER BY p.expiration_date ASC NULLS LAST, p.created_at DESC`,
         [userId]
       );
     }
@@ -123,10 +128,15 @@ const getProducts = async (req, res) => {
     // Si es ONG, ve los productos disponibles de todos los supermercados
     else if (userRole === "ONG") {
       result = await pool.query(
-        `SELECT *
-         FROM products
-         WHERE status = $1
-         ORDER BY expiration_date ASC NULLS LAST, created_at DESC`,
+        `SELECT
+             p.*,
+             s.name AS supermarket_name,
+             s.organization_type AS supermarket_organization_type,
+             s.role AS supermarket_role
+           FROM products p
+           LEFT JOIN users s ON p.supermarket_id = s.id
+           WHERE p.status = $1
+           ORDER BY p.expiration_date ASC NULLS LAST, p.created_at DESC`,
         ["AVAILABLE"]
       );
     }
@@ -134,9 +144,14 @@ const getProducts = async (req, res) => {
     // Si es ADMIN, ve todos los productos
     else if (userRole === "ADMIN") {
       result = await pool.query(
-        `SELECT *
-         FROM products
-         ORDER BY expiration_date ASC NULLS LAST, created_at DESC`
+        `SELECT
+             p.*,
+             s.name AS supermarket_name,
+             s.organization_type AS supermarket_organization_type,
+             s.role AS supermarket_role
+           FROM products p
+           LEFT JOIN users s ON p.supermarket_id = s.id
+           ORDER BY p.expiration_date ASC NULLS LAST, p.created_at DESC`
       );
     }
 

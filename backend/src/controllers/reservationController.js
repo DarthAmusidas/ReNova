@@ -151,6 +151,28 @@ const createReservation = async (req, res) => {
       });
     }
 
+    // Enforce 50% reservation limit
+    const availableQuantity = Number(product.quantity);
+    let maxAllowedQuantity;
+
+    if (availableQuantity === 1) {
+      maxAllowedQuantity = 1;
+    } else {
+      maxAllowedQuantity = Math.floor(availableQuantity * 0.5);
+      if (maxAllowedQuantity < 1) {
+        maxAllowedQuantity = 1;
+      }
+    }
+
+    if (quantity > maxAllowedQuantity) {
+      await client.query("ROLLBACK");
+      transactionStarted = false;
+
+      return res.status(400).json({
+        error: "No se puede reservar más del 50% del stock disponible.",
+      });
+    }
+
     let orderCode;
     try {
       orderCode = await generateUniqueOrderCode(client);
