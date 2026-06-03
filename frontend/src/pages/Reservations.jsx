@@ -94,19 +94,31 @@ function Reservations() {
     }
   };
 
+  const formatDate = (dateValue) => {
+    if (!dateValue) return "Sin fecha";
+
+    const date = new Date(dateValue);
+
+    if (Number.isNaN(date.getTime())) {
+      return "Sin fecha";
+    }
+
+    return date.toLocaleDateString("es-AR");
+  };
+
   const handlePrintReceipt = (reservation) => {
     const printWindow = window.open('', '', 'width=600,height=800');
     
     const orderCode = reservation.order_code || String(reservation.id).slice(0, 8);
     const productName = getProductName(reservation);
-    const quantity = reservation.quantity_reserved || 0;
-    const ongName = getOngName(reservation);
-    const supermarketName = getSupermarketName(reservation);
-    const pickupPersonName = reservation.pickup_person_name || '-';
-    const pickupPersonDni = reservation.pickup_person_dni || '-';
-    const pickupPersonPhone = reservation.pickup_person_phone || '-';
-    const pickupTime = reservation.pickup_time || '-';
-    const pickupNotes = reservation.pickup_notes || '-';
+    const quantity = reservation.quantity_reserved || reservation.quantity || 0;
+    const ongName = getOngName(reservation) || "No informado";
+    const supermarketName = getSupermarketName(reservation) || "No informado";
+    const pickupPersonName = reservation.pickup_person_name || "No informado";
+    const pickupPersonDni = reservation.pickup_person_dni || "No informado";
+    const pickupPersonPhone = reservation.pickup_person_phone || "No informado";
+    const pickupTime = reservation.pickup_time || "No informado";
+    const pickupNotes = reservation.pickup_notes || "No informado";
     const reservedDate = formatDate(reservation.reserved_at || reservation.created_at);
     const status = getStatusLabel(reservation.status || 'PENDING');
 
@@ -373,6 +385,32 @@ function Reservations() {
       reservation.organization_name ||
       "Organización"
     );
+  };
+
+  const getTraceabilityInfo = (reservation) => {
+    const items = [];
+
+    // If SUPERMARKET role: show who reserved
+    if (isSupermarket) {
+      const ongDisplay = getOngName(reservation) || "No informado";
+      items.push({ label: "Reservado por:", value: ongDisplay });
+    }
+
+    // If ONG role: show who publishes
+    if (isOng) {
+      const supermarketDisplay = getSupermarketName(reservation) || "No informado";
+      items.push({ label: "Publicado por:", value: supermarketDisplay });
+    }
+
+    // If ADMIN role: show both
+    if (isAdmin) {
+      const ongDisplay = getOngName(reservation) || "No informado";
+      const supermarketDisplay = getSupermarketName(reservation) || "No informado";
+      items.push({ label: "Reservado por:", value: ongDisplay });
+      items.push({ label: "Publicado por:", value: supermarketDisplay });
+    }
+
+    return items.length > 0 ? items : null;
   };
 
   const getPageTitle = () => {
@@ -660,6 +698,21 @@ function Reservations() {
                           ? "Reserva solicitada por una organización."
                           : "Reserva realizada a un supermercado."}
                       </p>
+
+                      {getTraceabilityInfo(reservation) && (
+                        <div style={localStyles.traceabilityInfo}>
+                          {getTraceabilityInfo(reservation).map((item, idx) => (
+                            <div key={idx} style={localStyles.traceabilityItem}>
+                              <span style={localStyles.traceabilityLabel}>
+                                {item.label}
+                              </span>
+                              <span style={localStyles.traceabilityValue}>
+                                {item.value}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     <div style={styles.cardIcon}>📋</div>
@@ -923,6 +976,30 @@ const localStyles = {
     border: "1px solid #e1eadc",
     borderRadius: "16px",
     padding: "12px 14px",
+  },
+
+  traceabilityInfo: {
+    marginTop: "8px",
+    paddingTop: "8px",
+    borderTop: "1px solid #e1eadc",
+  },
+
+  traceabilityItem: {
+    display: "flex",
+    gap: "6px",
+    alignItems: "flex-start",
+    flexWrap: "wrap",
+    marginBottom: "4px",
+    fontSize: "0.9rem",
+  },
+
+  traceabilityLabel: {
+    fontWeight: 600,
+    color: "#647066",
+  },
+
+  traceabilityValue: {
+    color: "#647066",
   },
 };
 
