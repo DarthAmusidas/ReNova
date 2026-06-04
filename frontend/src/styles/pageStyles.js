@@ -133,6 +133,8 @@ export const pageStyles = {
     alignItems: "center",
     gap: "16px",
     paddingTop: "30px",
+    flexWrap: "wrap",
+    justifyContent: "flex-end",
   },
 
   userCard: {
@@ -196,6 +198,19 @@ export const pageStyles = {
 
   bellWrapper: {
     transform: "scale(1.05)",
+  },
+
+  topLogoutButton: {
+    minHeight: "46px",
+    border: "1px solid #d6e4d0",
+    borderRadius: "15px",
+    background: "#ffffff",
+    color: "#223025",
+    padding: "0 18px",
+    fontWeight: 900,
+    fontSize: "0.92rem",
+    boxShadow: "0 14px 34px rgba(31,77,28,0.06)",
+    whiteSpace: "nowrap",
   },
 
   topActions: {

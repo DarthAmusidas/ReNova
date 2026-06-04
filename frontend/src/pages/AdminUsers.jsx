@@ -108,9 +108,6 @@ function AdminUsers() {
           </button>
         </nav>
 
-        <button style={styles.logoutButton} onClick={handleLogout}>
-          Cerrar sesión
-        </button>
       </aside>
 
       <main style={styles.main}>
@@ -139,6 +136,14 @@ function AdminUsers() {
             <div style={styles.bellWrapper}>
               <NotificationBell />
             </div>
+
+            <button
+              type="button"
+              style={styles.topLogoutButton}
+              onClick={handleLogout}
+            >
+              Cerrar sesión
+            </button>
           </div>
         </header>
 

@@ -2,6 +2,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { register } from "../services/authService";
 
+const organizationTypes = [
+  "Comedor",
+  "Merendero",
+  "Voluntariado",
+  "Supermercado",
+  "Almacén",
+  "Verdulería",
+  "Ferretería",
+];
 
 function Register() {
   const navigate = useNavigate();
@@ -12,7 +21,7 @@ function Register() {
     password: "",
     phone: "",
     address: "",
-    organization_type: "Comedor",
+    organization_type: "",
   });
 
   const [error, setError] = useState("");
@@ -24,13 +33,6 @@ function Register() {
     setFormData((currentData) => ({
       ...currentData,
       [name]: value,
-    }));
-  };
-
-  const handleRoleChange = (role) => {
-    setFormData((currentData) => ({
-      ...currentData,
-      organization_type: role,
     }));
   };
 
@@ -140,83 +142,27 @@ function Register() {
           {success && <div className="success-message-modern">{success}</div>}
 
           <form onSubmit={handleSubmit}>
-            <div className="register-role-grid">
-              <button
-                type="button"
-                className={`role-option-card ${
-                  formData.organization_type === "Comedor" ? "active" : ""
-                }`}
-                onClick={() => handleRoleChange("Comedor")}
-              >
-                <span>🍽️</span>
-                <strong>Comedor</strong>
-              </button>
+            <div className="input-group-modern">
+              <label>Tipo de organización</label>
+              <div className="input-with-icon">
+                <span>🏷️</span>
+                <select
+                  name="organization_type"
+                  value={formData.organization_type}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="" disabled>
+                    Seleccioná un tipo
+                  </option>
 
-              <button
-                type="button"
-                className={`role-option-card ${
-                  formData.organization_type === "Merendero" ? "active" : ""
-                }`}
-                onClick={() => handleRoleChange("Merendero")}
-              >
-                <span>🥗</span>
-                <strong>Merendero</strong>
-              </button>
-
-              <button
-                type="button"
-                className={`role-option-card ${
-                  formData.organization_type === "Voluntariado" ? "active" : ""
-                }`}
-                onClick={() => handleRoleChange("Voluntariado")}
-              >
-                <span>🤲</span>
-                <strong>Voluntariado</strong>
-              </button>
-
-              <button
-                type="button"
-                className={`role-option-card ${
-                  formData.organization_type === "Supermercado" ? "active" : ""
-                }`}
-                onClick={() => handleRoleChange("Supermercado")}
-              >
-                <span>🛒</span>
-                <strong>Supermercado</strong>
-              </button>
-
-              <button
-                type="button"
-                className={`role-option-card ${
-                  formData.organization_type === "Almacén" ? "active" : ""
-                }`}
-                onClick={() => handleRoleChange("Almacén")}
-              >
-                <span>📦</span>
-                <strong>Almacén</strong>
-              </button>
-
-              <button
-                type="button"
-                className={`role-option-card ${
-                  formData.organization_type === "Verdulería" ? "active" : ""
-                }`}
-                onClick={() => handleRoleChange("Verdulería")}
-              >
-                <span>🥬</span>
-                <strong>Verdulería</strong>
-              </button>
-
-              <button
-                type="button"
-                className={`role-option-card ${
-                  formData.organization_type === "Ferretería" ? "active" : ""
-                }`}
-                onClick={() => handleRoleChange("Ferretería")}
-              >
-                <span>🔨</span>
-                <strong>Ferretería</strong>
-              </button>
+                  {organizationTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="input-group-modern">

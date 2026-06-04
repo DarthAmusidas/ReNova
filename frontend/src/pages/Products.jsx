@@ -19,6 +19,7 @@ function Products() {
   const [pickupNotes, setPickupNotes] = useState("");
   const [pickupTime, setPickupTime] = useState("");
   const [error, setError] = useState("");
+  const [reservationError, setReservationError] = useState("");
   const [success, setSuccess] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("ALL");
 
@@ -83,6 +84,7 @@ function Products() {
     setPickupPersonPhone("");
     setPickupNotes("");
     setPickupTime("");
+    setReservationError("");
     setError("");
     setSuccess("");
   };
@@ -93,26 +95,27 @@ function Products() {
     const quantity = Number(reservationQuantity);
 
     if (!pickupPersonName.trim()) {
-      setError("Ingresá el nombre de la persona que retira.");
+      setReservationError("Ingresá el nombre de la persona que retira.");
       return;
     }
 
     if (!pickupPersonDni.trim()) {
-      setError("Ingresá el DNI de la persona que retira.");
+      setReservationError("Ingresá el DNI de la persona que retira.");
       return;
     }
 
     if (!quantity || quantity <= 0) {
-      setError("Ingresá una cantidad válida.");
+      setReservationError("Ingresá una cantidad válida.");
       return;
     }
 
     if (quantity > selectedProduct.quantity) {
-      setError("La cantidad solicitada supera el stock disponible.");
+      setReservationError("La cantidad solicitada supera el stock disponible.");
       return;
     }
 
     try {
+      setReservationError("");
       setError("");
       setSuccess("");
 
@@ -127,11 +130,12 @@ function Products() {
       });
 
       setSuccess("Reserva creada correctamente.");
+      setReservationError("");
       setSelectedProduct(null);
       await loadProducts();
     } catch (err) {
       console.error("Error creando reserva:", err);
-      setError(
+      setReservationError(
         err.response?.data?.error ||
           err.response?.data?.message ||
           "No se pudo crear la reserva."
@@ -252,6 +256,19 @@ function Products() {
     return "Consultá productos disponibles y realizá reservas para tu organización.";
   };
 
+  const getPublisherDisplay = (product) => {
+    // Use backend-provided fields: supermarket_name, supermarket_organization_type, supermarket_role
+    const name = product.supermarket_name;
+    const type = product.supermarket_organization_type || product.supermarket_role;
+
+    // If neither name nor type available, don't render the publisher line
+    if (!name && !type) return null;
+
+    const displayName = name || "No informado";
+
+    return type ? `${displayName} (${type})` : displayName;
+  };
+
   return (
     <div style={styles.layout}>
       <aside style={styles.sidebar}>
@@ -284,9 +301,6 @@ function Products() {
           )}
         </nav>
 
-        <button style={styles.logoutButton} onClick={handleLogout}>
-          Cerrar sesión
-        </button>
       </aside>
 
       <main style={styles.main}>
@@ -315,6 +329,14 @@ function Products() {
             <div style={styles.bellWrapper}>
               <NotificationBell />
             </div>
+
+            <button
+              type="button"
+              style={styles.topLogoutButton}
+              onClick={handleLogout}
+            >
+              Cerrar sesión
+            </button>
           </div>
         </header>
 
@@ -444,6 +466,15 @@ function Products() {
                     </div>
                   </div>
 
+                  {getPublisherDisplay(product) && (
+                    <div style={localStyles.publisherInfo}>
+                      <span style={localStyles.publisherLabel}>Publicado por:</span>
+                      <span style={localStyles.publisherValue}>
+                        {getPublisherDisplay(product)}
+                      </span>
+                    </div>
+                  )}
+
                   <div style={styles.cardActions}>
                     {isAdmin && (
                       <button type="button" style={styles.disabledButton} disabled>
@@ -522,6 +553,10 @@ function Products() {
                 .
               </p>
 
+              {reservationError && (
+                <div style={localStyles.modalErrorBox}>{reservationError}</div>
+              )}
+
               <div style={styles.inputGroup}>
                 <label style={styles.inputLabel}>Cantidad a reservar</label>
                 <input
@@ -530,7 +565,10 @@ function Products() {
                   min="1"
                   max={selectedProduct.quantity}
                   value={reservationQuantity}
-                  onChange={(e) => setReservationQuantity(e.target.value)}
+                  onChange={(e) => {
+                    setReservationQuantity(e.target.value);
+                    setReservationError("");
+                  }}
                 />
               </div>
 
@@ -540,7 +578,10 @@ function Products() {
                   style={styles.input}
                   type="text"
                   value={pickupPersonName}
-                  onChange={(e) => setPickupPersonName(e.target.value)}
+                  onChange={(e) => {
+                    setPickupPersonName(e.target.value);
+                    setReservationError("");
+                  }}
                 />
               </div>
 
@@ -550,7 +591,10 @@ function Products() {
                   style={styles.input}
                   type="text"
                   value={pickupPersonDni}
-                  onChange={(e) => setPickupPersonDni(e.target.value)}
+                  onChange={(e) => {
+                    setPickupPersonDni(e.target.value);
+                    setReservationError("");
+                  }}
                 />
               </div>
 
@@ -560,7 +604,10 @@ function Products() {
                   style={styles.input}
                   type="text"
                   value={pickupPersonPhone}
-                  onChange={(e) => setPickupPersonPhone(e.target.value)}
+                  onChange={(e) => {
+                    setPickupPersonPhone(e.target.value);
+                    setReservationError("");
+                  }}
                 />
               </div>
 
@@ -571,7 +618,10 @@ function Products() {
                   type="text"
                   placeholder="Ej: Entre las 10:00 y las 13:00"
                   value={pickupTime}
-                  onChange={(e) => setPickupTime(e.target.value)}
+                  onChange={(e) => {
+                    setPickupTime(e.target.value);
+                    setReservationError("");
+                  }}
                 />
               </div>
 
@@ -585,7 +635,10 @@ function Products() {
                     resize: "vertical",
                   }}
                   value={pickupNotes}
-                  onChange={(e) => setPickupNotes(e.target.value)}
+                  onChange={(e) => {
+                    setPickupNotes(e.target.value);
+                    setReservationError("");
+                  }}
                 />
               </div>
 
@@ -593,7 +646,10 @@ function Products() {
                 <button
                   type="button"
                   style={styles.secondaryButton}
-                  onClick={() => setSelectedProduct(null)}
+                  onClick={() => {
+                    setReservationError("");
+                    setSelectedProduct(null);
+                  }}
                 >
                   Cancelar
                 </button>
@@ -697,6 +753,38 @@ const localStyles = {
 
   spacer: {
     height: "18px",
+  },
+
+  publisherInfo: {
+    marginTop: "12px",
+    paddingTop: "12px",
+    borderTop: "1px solid #e1eadc",
+    display: "flex",
+    gap: "6px",
+    alignItems: "flex-start",
+    flexWrap: "wrap",
+  },
+
+  publisherLabel: {
+    fontSize: "0.9rem",
+    fontWeight: 600,
+    color: "#647066",
+  },
+
+  publisherValue: {
+    fontSize: "0.9rem",
+    color: "#647066",
+  },
+
+  modalErrorBox: {
+    background: "#fdeaea",
+    color: "#a32727",
+    border: "1px solid #f3b7b7",
+    borderRadius: "14px",
+    padding: "12px 14px",
+    marginBottom: "16px",
+    fontWeight: 800,
+    fontSize: "0.9rem",
   },
 };
 

@@ -16,6 +16,9 @@ function Reservations() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("ALL");
+  const [deliveryReservation, setDeliveryReservation] = useState(null);
+  const [validationCode, setValidationCode] = useState("");
+  const [deliveryError, setDeliveryError] = useState("");
 
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
@@ -65,13 +68,13 @@ function Reservations() {
     navigate("/login");
   };
 
-  const handleUpdateStatus = async (reservationId, status) => {
+  const handleUpdateStatus = async (reservationId, status, extraData = {}) => {
     try {
       setUpdatingId(reservationId);
       setError("");
       setSuccess("");
 
-      await updateReservationStatus(reservationId, status);
+      await updateReservationStatus(reservationId, status, extraData);
 
       let message = "";
       if (status === "CONFIRMED") message = "Reserva confirmada correctamente.";
@@ -88,6 +91,55 @@ function Reservations() {
         err.response?.data?.error ||
           err.response?.data?.message ||
           "No se pudo actualizar la reserva."
+      );
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleOpenDeliveryModal = (reservation) => {
+    setDeliveryReservation(reservation);
+    setValidationCode("");
+    setDeliveryError("");
+    setError("");
+    setSuccess("");
+  };
+
+  const handleCloseDeliveryModal = () => {
+    setDeliveryReservation(null);
+    setValidationCode("");
+    setDeliveryError("");
+  };
+
+  const handleConfirmDelivery = async () => {
+    if (!deliveryReservation) return;
+
+    const code = validationCode.trim();
+
+    if (!code) {
+      setDeliveryError("Debe ingresar el código de validación.");
+      return;
+    }
+
+    try {
+      setDeliveryError("");
+      setUpdatingId(deliveryReservation.id);
+      setError("");
+      setSuccess("");
+
+      await updateReservationStatus(deliveryReservation.id, "COMPLETED", {
+        validation_code: code,
+      });
+
+      setSuccess("Confirmación registrada correctamente.");
+      await loadReservations();
+      handleCloseDeliveryModal();
+    } catch (err) {
+      console.error("Error confirmando entrega:", err);
+      setDeliveryError(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          "No se pudo confirmar la entrega."
       );
     } finally {
       setUpdatingId(null);
@@ -121,6 +173,7 @@ function Reservations() {
     const pickupNotes = reservation.pickup_notes || "No informado";
     const reservedDate = formatDate(reservation.reserved_at || reservation.created_at);
     const status = getStatusLabel(reservation.status || 'PENDING');
+    const validationCode = reservation.order_code || "No disponible";
 
     const receiptHTML = `
       <!DOCTYPE html>
@@ -293,6 +346,10 @@ function Reservations() {
                 ${status}
               </div>
             </span>
+          </div>
+          <div class="field">
+            <span class="field-label">Código de validación / Pedido:</span>
+            <span class="field-value">${validationCode}</span>
           </div>
         </div>
 
@@ -507,7 +564,7 @@ function Reservations() {
               type="button"
               style={styles.primaryButton}
               disabled={isUpdating}
-              onClick={() => handleUpdateStatus(reservation.id, "COMPLETED")}
+              onClick={() => handleOpenDeliveryModal(reservation)}
             >
               Confirmar entrega
             </button>
@@ -579,9 +636,6 @@ function Reservations() {
           )}
         </nav>
 
-        <button style={styles.logoutButton} onClick={handleLogout}>
-          Cerrar sesión
-        </button>
       </aside>
 
       <main style={styles.main}>
@@ -606,6 +660,14 @@ function Reservations() {
             <div style={styles.bellWrapper}>
               <NotificationBell />
             </div>
+
+            <button
+              type="button"
+              style={styles.topLogoutButton}
+              onClick={handleLogout}
+            >
+              Cerrar sesión
+            </button>
           </div>
         </header>
 
@@ -880,6 +942,56 @@ function Reservations() {
             })}
           </section>
         )}
+
+        {deliveryReservation && (
+          <div style={styles.modalOverlay}>
+            <div style={styles.modalCard}>
+              <h2 style={styles.modalTitle}>Confirmar entrega</h2>
+
+              <p style={styles.modalText}>
+                Ingresá el código que figura en el comprobante de la reserva.
+              </p>
+
+              {deliveryError && (
+                <div style={localStyles.modalErrorBox}>{deliveryError}</div>
+              )}
+
+              <div style={styles.inputGroup}>
+                <label style={styles.inputLabel}>Código de validación</label>
+                <input
+                  style={styles.input}
+                  type="text"
+                  value={validationCode}
+                  onChange={(e) => {
+                    setValidationCode(e.target.value);
+                    setDeliveryError("");
+                  }}
+                  autoFocus
+                />
+              </div>
+
+              <div style={styles.modalActions}>
+                <button
+                  type="button"
+                  style={styles.secondaryButton}
+                  onClick={handleCloseDeliveryModal}
+                  disabled={updatingId === deliveryReservation.id}
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="button"
+                  style={styles.primaryButton}
+                  onClick={handleConfirmDelivery}
+                  disabled={updatingId === deliveryReservation.id}
+                >
+                  Confirmar entrega
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
@@ -1000,6 +1112,17 @@ const localStyles = {
 
   traceabilityValue: {
     color: "#647066",
+  },
+
+  modalErrorBox: {
+    background: "#fdeaea",
+    color: "#a32727",
+    border: "1px solid #f3b7b7",
+    borderRadius: "14px",
+    padding: "12px 14px",
+    marginBottom: "16px",
+    fontWeight: 800,
+    fontSize: "0.9rem",
   },
 };
 

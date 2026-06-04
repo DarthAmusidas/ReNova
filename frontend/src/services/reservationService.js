@@ -10,9 +10,14 @@ export const getReservations = async () => {
   return response.data;
 };
 
-export const updateReservationStatus = async (reservationId, status) => {
+export const updateReservationStatus = async (
+  reservationId,
+  status,
+  extraData = {}
+) => {
   const response = await api.put(`/reservations/${reservationId}/status`, {
     status,
+    ...extraData,
   });
 
   return response.data;

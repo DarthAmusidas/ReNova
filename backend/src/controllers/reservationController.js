@@ -414,7 +414,7 @@ const updateReservationStatus = async (req, res) => {
     const userId = req.user.id;
     const userRole = req.user.role;
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, validation_code, delivery_code } = req.body || {};
 
     const allowedStatuses = ["CONFIRMED", "CANCELLED", "COMPLETED"];
 
@@ -635,6 +635,40 @@ const updateReservationStatus = async (req, res) => {
 
           return res.status(400).json({
             error: "El supermercado ya confirmó la entrega",
+          });
+        }
+
+        if (!reservation.order_code) {
+          await client.query("ROLLBACK");
+
+          return res.status(400).json({
+            error: "Esta reserva no tiene código de validación disponible.",
+          });
+        }
+
+        const submittedValidationCode = String(
+          validation_code || delivery_code || ""
+        )
+          .trim()
+          .toUpperCase();
+        const expectedValidationCode = String(reservation.order_code)
+          .trim()
+          .toUpperCase();
+
+        if (!submittedValidationCode) {
+          await client.query("ROLLBACK");
+
+          return res.status(400).json({
+            error: "Debe ingresar el código de validación.",
+          });
+        }
+
+        if (submittedValidationCode !== expectedValidationCode) {
+          await client.query("ROLLBACK");
+
+          return res.status(400).json({
+            error:
+              "El código ingresado no coincide con el comprobante de la reserva.",
           });
         }
 

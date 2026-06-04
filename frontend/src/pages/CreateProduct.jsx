@@ -118,9 +118,6 @@ function CreateProduct() {
           </button>
         </nav>
 
-        <button style={styles.logoutButton} onClick={handleLogout}>
-          Cerrar sesión
-        </button>
       </aside>
 
       <main style={styles.main}>
@@ -150,6 +147,14 @@ function CreateProduct() {
             <div style={styles.bellWrapper}>
               <NotificationBell />
             </div>
+
+            <button
+              type="button"
+              style={styles.topLogoutButton}
+              onClick={handleLogout}
+            >
+              Cerrar sesión
+            </button>
           </div>
         </header>
 
