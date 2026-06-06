@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getDashboardSummary } from "../services/dashboardService";
+import AppSidebar from "../components/AppSidebar";
+import HeaderUserCard from "../components/HeaderUserCard";
 import NotificationBell from "../components/NotificationBell";
 
 function Dashboard() {
@@ -14,6 +16,12 @@ function Dashboard() {
     completed: 0,
     cancelled: 0,
     unread: 0,
+    impact_level: 1,
+    impact_level_label: "Impacto inicial",
+    completed_count_for_level: 0,
+    next_level_target: 5,
+    level_progress_percentage: 0,
+    market_impact_report: null,
   });
 
   const [loading, setLoading] = useState(true);
@@ -28,20 +36,59 @@ function Dashboard() {
   const isOng = userRole === "ONG";
   const isAdmin = userRole === "ADMIN";
 
-  const roleLabel = isSupermarket
-    ? "Supermercado"
-    : isAdmin
-    ? "Administrador"
-    : "ONG";
-
-  const userIcon = isSupermarket ? "🛒" : isAdmin ? "🛡️" : "🤝";
-
   const pickNumber = (...values) => {
     const value = values.find(
       (item) => item !== undefined && item !== null && item !== ""
     );
 
     return Number(value || 0);
+  };
+
+  const getImpactLevel = (completedCount = 0) => {
+    const count = Number(completedCount) || 0;
+
+    if (count >= 75) {
+      return {
+        level: 5,
+        label: "Referente solidario",
+        progress: 100,
+        text: "Nivel máximo alcanzado",
+      };
+    }
+
+    if (count >= 35) {
+      return {
+        level: 4,
+        label: "Alto impacto",
+        progress: Math.min(100, (count / 75) * 100),
+        text: `${count} / 75 reservas confirmadas para Nivel 5`,
+      };
+    }
+
+    if (count >= 15) {
+      return {
+        level: 3,
+        label: "Impacto consolidado",
+        progress: Math.min(100, (count / 35) * 100),
+        text: `${count} / 35 reservas confirmadas para Nivel 4`,
+      };
+    }
+
+    if (count >= 5) {
+      return {
+        level: 2,
+        label: "Impacto en crecimiento",
+        progress: Math.min(100, (count / 15) * 100),
+        text: `${count} / 15 reservas confirmadas para Nivel 3`,
+      };
+    }
+
+    return {
+      level: 1,
+      label: "Impacto inicial",
+      progress: Math.min(100, (count / 5) * 100),
+      text: `${count} / 5 reservas confirmadas para Nivel 2`,
+    };
   };
 
   const loadDashboard = async () => {
@@ -69,18 +116,21 @@ function Dashboard() {
 
         pending: pickNumber(
           source.pending,
+          source.reservations_pending,
           source.pending_reservations,
           source.pendingReservations
         ),
 
         confirmed: pickNumber(
           source.confirmed,
+          source.reservations_confirmed,
           source.confirmed_reservations,
           source.confirmedReservations
         ),
 
         completed: pickNumber(
           source.completed,
+          source.reservations_completed,
           source.completed_reservations,
           source.completedReservations
         ),
@@ -88,6 +138,7 @@ function Dashboard() {
         cancelled: pickNumber(
           source.cancelled,
           source.canceled,
+          source.reservations_cancelled,
           source.cancelled_reservations,
           source.canceled_reservations,
           source.cancelledReservations,
@@ -100,6 +151,23 @@ function Dashboard() {
           source.unreadNotifications,
           source.notifications_unread
         ),
+
+        impact_level: pickNumber(source.impact_level, 1),
+        impact_level_label: source.impact_level_label || "Impacto inicial",
+        completed_count_for_level: pickNumber(
+          source.completed_count_for_level,
+          source.reservations_completed,
+          source.completed_reservations,
+          source.completed
+        ),
+        next_level_target:
+          source.next_level_target === null
+            ? null
+            : pickNumber(source.next_level_target, 5),
+        level_progress_percentage: pickNumber(
+          source.level_progress_percentage
+        ),
+        market_impact_report: source.market_impact_report || null,
       });
     } catch (error) {
       console.error("Error cargando dashboard:", error);
@@ -122,7 +190,7 @@ function Dashboard() {
     {
       label: "Productos disponibles",
       value: summary.products,
-      icon: "📦",
+      icon: "🥦",
     },
     {
       label: "Total reservas",
@@ -142,7 +210,7 @@ function Dashboard() {
     {
       label: "Completadas",
       value: summary.completed,
-      icon: "🏁",
+      icon: "📦",
     },
     {
       label: "Canceladas",
@@ -169,55 +237,107 @@ function Dashboard() {
     return "Resumen general de productos disponibles y reservas realizadas.";
   };
 
+  const impactLevel = getImpactLevel(summary.completed);
+  const marketImpactReport = summary.market_impact_report;
+  const hasMarketImpactReport = isSupermarket && marketImpactReport;
+
+  const formatReportNumber = (value, suffix = "") => {
+    const number = Number(value || 0);
+    const formatted = number.toLocaleString("es-AR", {
+      maximumFractionDigits: 2,
+    });
+
+    return suffix ? `${formatted} ${suffix}` : formatted;
+  };
+
+  const marketImpactCards = marketImpactReport
+    ? [
+        {
+          label: "Productos publicados",
+          value: formatReportNumber(
+            marketImpactReport.total_products_published
+          ),
+        },
+        {
+          label: "Reservas recibidas",
+          value: formatReportNumber(
+            marketImpactReport.total_reservations_received
+          ),
+        },
+        {
+          label: "Reservas completadas",
+          value: formatReportNumber(marketImpactReport.completed_reservations),
+        },
+        {
+          label: "Reservas pendientes",
+          value: formatReportNumber(marketImpactReport.pending_reservations),
+        },
+        {
+          label: "Reservas canceladas",
+          value: formatReportNumber(marketImpactReport.cancelled_reservations),
+        },
+        {
+          label: "ONG beneficiadas",
+          value: formatReportNumber(marketImpactReport.distinct_ongs_helped),
+        },
+        {
+          label: "Cantidad entregada",
+          value: formatReportNumber(
+            marketImpactReport.total_quantity_delivered
+          ),
+        },
+        {
+          label: "Kg recuperados estimados",
+          value: formatReportNumber(
+            marketImpactReport.estimated_kg_recovered,
+            "kg"
+          ),
+        },
+        {
+          label: "CO₂ evitado estimado",
+          value: formatReportNumber(
+            marketImpactReport.estimated_co2_avoided,
+            "kg"
+          ),
+        },
+        {
+          label: "Agua ahorrada estimada",
+          value: formatReportNumber(
+            marketImpactReport.estimated_water_saved,
+            "l"
+          ),
+        },
+        {
+          label: "Tasa de aprovechamiento",
+          value: formatReportNumber(marketImpactReport.utilization_rate, "%"),
+        },
+      ]
+    : [];
+
+  const monthlyDeliveries = Array.isArray(
+    marketImpactReport?.monthly_completed_deliveries
+  )
+    ? marketImpactReport.monthly_completed_deliveries
+    : [];
+
+  const maxMonthlyDeliveries = Math.max(
+    1,
+    ...monthlyDeliveries.map((item) => Number(item.completed_deliveries || 0))
+  );
+
+  const topOngs = Array.isArray(marketImpactReport?.top_ongs)
+    ? marketImpactReport.top_ongs
+    : [];
+
   return (
     <div style={styles.layout}>
-      <aside style={styles.sidebar}>
-        <div style={styles.logoBox}>
-          <div style={styles.logoIcon}>🌱</div>
-          <h2 style={styles.logoText}>ReNova</h2>
-        </div>
-
-        <nav style={styles.nav}>
-          <button
-            type="button"
-            style={styles.navButtonActive}
-            onClick={() => navigate("/dashboard")}
-          >
-            <span>📊</span>
-            Dashboard
-          </button>
-
-          <button
-            type="button"
-            style={styles.navButton}
-            onClick={() => navigate("/products")}
-          >
-            <span>🥬</span>
-            Productos
-          </button>
-
-          <button
-            type="button"
-            style={styles.navButton}
-            onClick={() => navigate("/reservations")}
-          >
-            <span>📋</span>
-            Reservas
-          </button>
-
-          {isAdmin && (
-            <button
-              type="button"
-              style={styles.navButton}
-              onClick={() => navigate("/users")}
-            >
-              <span>👥</span>
-              Usuarios
-            </button>
-          )}
-        </nav>
-
-      </aside>
+      <AppSidebar
+        active="dashboard"
+        user={user}
+        isAdmin={isAdmin}
+        navigate={navigate}
+        onLogout={handleLogout}
+      />
 
       <main style={styles.main}>
         <header style={styles.header}>
@@ -234,27 +354,11 @@ function Dashboard() {
           </div>
 
           <div style={styles.userArea}>
-            <div style={styles.userCard}>
-              <div style={styles.userAvatar}>{userIcon}</div>
-
-              <div style={styles.userInfo}>
-                <span style={styles.sessionText}>Sesión activa</span>
-                <strong style={styles.userName}>{userName}</strong>
-                <span style={styles.rolePill}>{roleLabel}</span>
-              </div>
-            </div>
+            <HeaderUserCard user={user} />
 
             <div style={styles.bellWrapper}>
               <NotificationBell />
             </div>
-
-            <button
-              type="button"
-              style={styles.topLogoutButton}
-              onClick={handleLogout}
-            >
-              Cerrar sesión
-            </button>
           </div>
         </header>
 
@@ -264,6 +368,25 @@ function Dashboard() {
           </section>
         ) : (
           <>
+            <section style={styles.levelPanel}>
+              <div>
+                <span style={styles.levelEyebrow}>Nivel de impacto</span>
+                <h2 style={styles.levelTitle}>
+                  Nivel {impactLevel.level} - {impactLevel.label}
+                </h2>
+                <p style={styles.levelText}>{impactLevel.text}</p>
+              </div>
+
+              <div style={styles.progressTrack}>
+                <div
+                  style={{
+                    ...styles.progressFill,
+                    width: `${impactLevel.progress}%`,
+                  }}
+                />
+              </div>
+            </section>
+
             <section style={styles.metricsGrid}>
               {metrics.map((metric) => (
                 <article
@@ -276,6 +399,114 @@ function Dashboard() {
                 </article>
               ))}
             </section>
+
+            {hasMarketImpactReport && (
+              <section style={styles.impactReportPanel}>
+                <div style={styles.impactReportHeader}>
+                  <div>
+                    <h2 style={styles.panelTitle}>Reporte de impacto</h2>
+                    <p style={styles.panelText}>
+                      Indicadores estimados a partir de tus productos y
+                      reservas completadas.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    style={styles.printReportButton}
+                    onClick={() => window.print()}
+                  >
+                    Imprimir reporte
+                  </button>
+                </div>
+
+                <div style={styles.impactReportGrid}>
+                  {marketImpactCards.map((item) => (
+                    <article key={item.label} style={styles.impactReportCard}>
+                      <span style={styles.impactReportLabel}>{item.label}</span>
+                      <strong style={styles.impactReportValue}>
+                        {item.value}
+                      </strong>
+                    </article>
+                  ))}
+                </div>
+
+                <div style={styles.reportColumns}>
+                  <div style={styles.reportSubpanel}>
+                    <h3 style={styles.reportSubtitle}>
+                      Top ONG beneficiadas
+                    </h3>
+
+                    {topOngs.length === 0 ? (
+                      <p style={styles.panelText}>
+                        Todavía no hay datos suficientes.
+                      </p>
+                    ) : (
+                      <div style={styles.topOngList}>
+                        {topOngs.map((ong) => (
+                          <div key={ong.id || ong.name} style={styles.topOngItem}>
+                            <div>
+                              <strong>{ong.name || "Sin nombre"}</strong>
+                              <span>
+                                {ong.organization_type || "ONG"} ·{" "}
+                                {formatReportNumber(
+                                  ong.completed_reservations
+                                )}{" "}
+                                completadas
+                              </span>
+                            </div>
+                            <b>
+                              {formatReportNumber(ong.total_reservations)}
+                            </b>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={styles.reportSubpanel}>
+                    <h3 style={styles.reportSubtitle}>
+                      Entregas completadas por mes
+                    </h3>
+
+                    {monthlyDeliveries.length === 0 ? (
+                      <p style={styles.panelText}>
+                        Todavía no hay datos suficientes.
+                      </p>
+                    ) : (
+                      <div style={styles.monthlyBars}>
+                        {monthlyDeliveries.map((item) => {
+                          const deliveries = Number(
+                            item.completed_deliveries || 0
+                          );
+
+                          return (
+                            <div key={item.month} style={styles.monthlyBarRow}>
+                              <span style={styles.monthlyBarLabel}>
+                                {item.month || "Sin fecha"}
+                              </span>
+                              <div style={styles.monthlyBarTrack}>
+                                <div
+                                  style={{
+                                    ...styles.monthlyBarFill,
+                                    width: `${
+                                      (deliveries / maxMonthlyDeliveries) * 100
+                                    }%`,
+                                  }}
+                                />
+                              </div>
+                              <strong style={styles.monthlyBarValue}>
+                                {formatReportNumber(deliveries)}
+                              </strong>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
+            )}
 
             <section style={styles.panel}>
               <h2 style={styles.panelTitle}>
@@ -294,7 +525,7 @@ function Dashboard() {
                   style={styles.quickActionCard}
                   onClick={() => navigate("/products")}
                 >
-                  <span style={styles.quickActionIcon}>🥬</span>
+                  <span style={styles.quickActionIcon}>🥦</span>
                   <strong>Ver productos</strong>
                   <small>
                     {isSupermarket
@@ -319,7 +550,7 @@ function Dashboard() {
                     style={styles.quickActionCard}
                     onClick={() => navigate("/products/create")}
                   >
-                    <span style={styles.quickActionIcon}>➕</span>
+                    <span style={styles.quickActionIcon}>+</span>
                     <strong>Cargar producto</strong>
                     <small>Publicar un nuevo producto disponible</small>
                   </button>
@@ -563,6 +794,54 @@ const styles = {
     whiteSpace: "nowrap",
   },
 
+  levelPanel: {
+    background: "#ffffff",
+    border: "1px solid #e1eadc",
+    borderRadius: "30px",
+    padding: "28px",
+    boxShadow: "0 18px 45px rgba(31,77,28,0.07)",
+    marginBottom: "26px",
+  },
+
+  levelEyebrow: {
+    display: "block",
+    color: "#21801f",
+    fontSize: "0.78rem",
+    fontWeight: 950,
+    textTransform: "uppercase",
+    letterSpacing: "0.6px",
+    marginBottom: "8px",
+  },
+
+  levelTitle: {
+    margin: "0 0 8px",
+    color: "#102018",
+    fontSize: "1.55rem",
+    fontWeight: 950,
+  },
+
+  levelText: {
+    margin: "0 0 18px",
+    color: "#536057",
+    fontSize: "1rem",
+    fontWeight: 800,
+  },
+
+  progressTrack: {
+    width: "100%",
+    height: "12px",
+    borderRadius: "999px",
+    background: "#e7eee2",
+    overflow: "hidden",
+  },
+
+  progressFill: {
+    height: "100%",
+    borderRadius: "999px",
+    background: "#2f9728",
+    transition: "width 0.25s ease",
+  },
+
   metricsGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(4, minmax(190px, 1fr))",
@@ -642,6 +921,136 @@ const styles = {
     maxWidth: "960px",
   },
 
+  impactReportPanel: {
+    background: "#ffffff",
+    border: "1px solid #e1eadc",
+    borderRadius: "32px",
+    padding: "34px",
+    boxShadow: "0 18px 45px rgba(31,77,28,0.07)",
+    marginBottom: "32px",
+  },
+
+  impactReportHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: "18px",
+    marginBottom: "24px",
+    flexWrap: "wrap",
+  },
+
+  printReportButton: {
+    border: "none",
+    borderRadius: "15px",
+    background: "#2f9728",
+    color: "#ffffff",
+    padding: "13px 19px",
+    fontWeight: 900,
+    fontSize: "0.95rem",
+    boxShadow: "0 14px 26px rgba(47,151,40,0.18)",
+  },
+
+  impactReportGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: "14px",
+    marginBottom: "24px",
+  },
+
+  impactReportCard: {
+    background: "#f7faf4",
+    border: "1px solid #e6efdf",
+    borderRadius: "18px",
+    padding: "16px",
+  },
+
+  impactReportLabel: {
+    display: "block",
+    color: "#617064",
+    fontSize: "0.82rem",
+    fontWeight: 900,
+    marginBottom: "10px",
+  },
+
+  impactReportValue: {
+    display: "block",
+    color: "#102018",
+    fontSize: "1.35rem",
+    lineHeight: 1.15,
+    fontWeight: 950,
+  },
+
+  reportColumns: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(280px, 1fr))",
+    gap: "18px",
+  },
+
+  reportSubpanel: {
+    background: "#ffffff",
+    border: "1px solid #e1eadc",
+    borderRadius: "24px",
+    padding: "22px",
+  },
+
+  reportSubtitle: {
+    margin: "0 0 16px",
+    color: "#102018",
+    fontSize: "1.15rem",
+    fontWeight: 950,
+  },
+
+  topOngList: {
+    display: "grid",
+    gap: "10px",
+  },
+
+  topOngItem: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: "14px",
+    padding: "13px 0",
+    borderBottom: "1px solid #edf2ea",
+  },
+
+  monthlyBars: {
+    display: "grid",
+    gap: "12px",
+  },
+
+  monthlyBarRow: {
+    display: "grid",
+    gridTemplateColumns: "70px 1fr 42px",
+    alignItems: "center",
+    gap: "10px",
+  },
+
+  monthlyBarLabel: {
+    color: "#536057",
+    fontSize: "0.86rem",
+    fontWeight: 900,
+  },
+
+  monthlyBarTrack: {
+    height: "12px",
+    background: "#e7eee2",
+    borderRadius: "999px",
+    overflow: "hidden",
+  },
+
+  monthlyBarFill: {
+    height: "100%",
+    minWidth: "4px",
+    background: "#2f9728",
+    borderRadius: "999px",
+  },
+
+  monthlyBarValue: {
+    color: "#102018",
+    fontSize: "0.9rem",
+    textAlign: "right",
+  },
+
   quickActionsGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(3, minmax(220px, 1fr))",
@@ -675,3 +1084,7 @@ const styles = {
 };
 
 export default Dashboard;
+
+
+
+

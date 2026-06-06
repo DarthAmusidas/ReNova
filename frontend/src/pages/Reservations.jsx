@@ -4,6 +4,8 @@ import {
   getReservations,
   updateReservationStatus,
 } from "../services/reservationService";
+import AppSidebar from "../components/AppSidebar";
+import HeaderUserCard from "../components/HeaderUserCard";
 import NotificationBell from "../components/NotificationBell";
 import { pageStyles as styles, getStatusStyle } from "../styles/pageStyles";
 
@@ -16,9 +18,11 @@ function Reservations() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("ALL");
-  const [deliveryReservation, setDeliveryReservation] = useState(null);
-  const [validationCode, setValidationCode] = useState("");
-  const [deliveryError, setDeliveryError] = useState("");
+  const [selectedReservationForDelivery, setSelectedReservationForDelivery] =
+    useState(null);
+  const [deliveryCode, setDeliveryCode] = useState("");
+  const [deliveryCodeError, setDeliveryCodeError] = useState("");
+  const [deliveryCodeLoading, setDeliveryCodeLoading] = useState(false);
 
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
@@ -35,8 +39,6 @@ function Reservations() {
     : isAdmin
     ? "Administrador"
     : "ONG";
-
-  const userIcon = isSupermarket ? "🛒" : isAdmin ? "🛡️" : "🤝";
 
   const loadReservations = useCallback(async () => {
     try {
@@ -98,50 +100,58 @@ function Reservations() {
   };
 
   const handleOpenDeliveryModal = (reservation) => {
-    setDeliveryReservation(reservation);
-    setValidationCode("");
-    setDeliveryError("");
+    setSelectedReservationForDelivery(reservation);
+    setDeliveryCode("");
+    setDeliveryCodeError("");
+    setDeliveryCodeLoading(false);
     setError("");
     setSuccess("");
   };
 
   const handleCloseDeliveryModal = () => {
-    setDeliveryReservation(null);
-    setValidationCode("");
-    setDeliveryError("");
+    setSelectedReservationForDelivery(null);
+    setDeliveryCode("");
+    setDeliveryCodeError("");
+    setDeliveryCodeLoading(false);
   };
 
   const handleConfirmDelivery = async () => {
-    if (!deliveryReservation) return;
+    if (!selectedReservationForDelivery) return;
 
-    const code = validationCode.trim();
+    const code = deliveryCode.trim();
 
     if (!code) {
-      setDeliveryError("Debe ingresar el código de validación.");
+      setDeliveryCodeError("Debe ingresar el código de entrega.");
       return;
     }
 
     try {
-      setDeliveryError("");
-      setUpdatingId(deliveryReservation.id);
+      setDeliveryCodeError("");
+      setDeliveryCodeLoading(true);
+      setUpdatingId(selectedReservationForDelivery.id);
       setError("");
       setSuccess("");
 
-      await updateReservationStatus(deliveryReservation.id, "COMPLETED", {
-        validation_code: code,
-      });
+      await updateReservationStatus(
+        selectedReservationForDelivery.id,
+        "COMPLETED",
+        {
+          delivery_code: code,
+        }
+      );
 
       setSuccess("Confirmación registrada correctamente.");
       await loadReservations();
       handleCloseDeliveryModal();
     } catch (err) {
       console.error("Error confirmando entrega:", err);
-      setDeliveryError(
+      setDeliveryCodeError(
         err.response?.data?.error ||
           err.response?.data?.message ||
           "No se pudo confirmar la entrega."
       );
     } finally {
+      setDeliveryCodeLoading(false);
       setUpdatingId(null);
     }
   };
@@ -156,6 +166,98 @@ function Reservations() {
     }
 
     return date.toLocaleDateString("es-AR");
+  };
+
+  const formatDateTime = (dateValue) => {
+    if (!dateValue) return "Sin fecha";
+
+    const date = new Date(dateValue);
+
+    if (Number.isNaN(date.getTime())) {
+      return "Sin fecha";
+    }
+
+    return date.toLocaleString("es-AR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getConfirmationDeadline = (reservation) => {
+    if (reservation.confirmation_deadline) {
+      return reservation.confirmation_deadline;
+    }
+
+    if (!reservation.reserved_at) return null;
+
+    const reservedDate = new Date(reservation.reserved_at);
+
+    if (Number.isNaN(reservedDate.getTime())) return null;
+
+    return new Date(reservedDate.getTime() + 48 * 60 * 60 * 1000).toISOString();
+  };
+
+  const isConfirmationExpired = (reservation) => {
+    if (!reservation || reservation.status !== "PENDING") return false;
+
+    if (reservation.is_confirmation_expired === true) return true;
+    if (reservation.is_confirmation_expired === "true") return true;
+
+    const deadline = getConfirmationDeadline(reservation);
+
+    if (!deadline) return false;
+
+    const deadlineDate = new Date(deadline);
+
+    if (Number.isNaN(deadlineDate.getTime())) return false;
+
+    return new Date() > deadlineDate;
+  };
+
+  const getConfirmationTimeRemainingMs = (reservation) => {
+    if (!reservation || reservation.status !== "PENDING") return null;
+
+    if (
+      reservation.confirmation_time_remaining_ms !== undefined &&
+      reservation.confirmation_time_remaining_ms !== null &&
+      reservation.confirmation_time_remaining_ms !== ""
+    ) {
+      return Number(reservation.confirmation_time_remaining_ms);
+    }
+
+    const deadline = getConfirmationDeadline(reservation);
+
+    if (!deadline) return null;
+
+    const deadlineDate = new Date(deadline);
+
+    if (Number.isNaN(deadlineDate.getTime())) return null;
+
+    return Math.max(0, deadlineDate.getTime() - Date.now());
+  };
+
+  const formatRemainingTime = (remainingMs) => {
+    const ms = Number(remainingMs);
+
+    if (!Number.isFinite(ms) || ms <= 0) return "Vencida";
+
+    const totalMinutes = Math.ceil(ms / (1000 * 60));
+    const days = Math.floor(totalMinutes / (60 * 24));
+    const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+    const minutes = totalMinutes % 60;
+
+    if (days >= 1) {
+      return `${days}d ${hours}h`;
+    }
+
+    if (hours >= 1) {
+      return `${hours}h ${minutes}m`;
+    }
+
+    return `${minutes}m`;
   };
 
   const handlePrintReceipt = (reservation) => {
@@ -173,7 +275,7 @@ function Reservations() {
     const pickupNotes = reservation.pickup_notes || "No informado";
     const reservedDate = formatDate(reservation.reserved_at || reservation.created_at);
     const status = getStatusLabel(reservation.status || 'PENDING');
-    const validationCode = reservation.order_code || "No disponible";
+    const deliveryCode = reservation.order_code || "No disponible";
 
     const receiptHTML = `
       <!DOCTYPE html>
@@ -274,7 +376,7 @@ function Reservations() {
       </head>
       <body>
         <div class="header">
-          <h1>🌱 ReNova</h1>
+          <h1>ReNova</h1>
           <p>Comprobante de Reserva</p>
           <p>Pedido: <strong>${orderCode}</strong></p>
         </div>
@@ -348,8 +450,8 @@ function Reservations() {
             </span>
           </div>
           <div class="field">
-            <span class="field-label">Código de validación / Pedido:</span>
-            <span class="field-value">${validationCode}</span>
+            <span class="field-label">Código de entrega:</span>
+            <span class="field-value">${deliveryCode}</span>
           </div>
         </div>
 
@@ -498,15 +600,21 @@ function Reservations() {
     }
 
     if (isSupermarket && status === "PENDING") {
+      const expired = isConfirmationExpired(reservation);
+
       return (
         <>
           <button
             type="button"
-            style={styles.primaryButton}
-            disabled={isUpdating}
-            onClick={() => handleUpdateStatus(reservation.id, "CONFIRMED")}
+            style={expired ? styles.disabledButton : styles.primaryButton}
+            disabled={isUpdating || expired}
+            onClick={() => {
+              if (!expired) {
+                handleUpdateStatus(reservation.id, "CONFIRMED");
+              }
+            }}
           >
-            Confirmar reserva
+            {expired ? "Confirmación vencida" : "Confirmar reserva"}
           </button>
 
           <button
@@ -603,40 +711,13 @@ function Reservations() {
 
   return (
     <div style={styles.layout}>
-      <aside style={styles.sidebar}>
-        <div style={styles.logoBox}>
-          <div style={styles.logoIcon}>🌱</div>
-          <h2 style={styles.logoText}>ReNova</h2>
-        </div>
-
-        <nav style={styles.nav}>
-          <button style={styles.navButton} onClick={() => navigate("/dashboard")}>
-            <span>📊</span>
-            Dashboard
-          </button>
-
-          <button style={styles.navButton} onClick={() => navigate("/products")}>
-            <span>🥬</span>
-            Productos
-          </button>
-
-          <button
-            style={styles.navButtonActive}
-            onClick={() => navigate("/reservations")}
-          >
-            <span>📋</span>
-            Reservas
-          </button>
-
-          {isAdmin && (
-            <button style={styles.navButton} onClick={() => navigate("/users")}>
-              <span>👥</span>
-              Usuarios
-            </button>
-          )}
-        </nav>
-
-      </aside>
+      <AppSidebar
+        active="reservations"
+        user={user}
+        isAdmin={isAdmin}
+        navigate={navigate}
+        onLogout={handleLogout}
+      />
 
       <main style={styles.main}>
         <header style={styles.header}>
@@ -647,27 +728,11 @@ function Reservations() {
           </div>
 
           <div style={styles.userArea}>
-            <div style={styles.userCard}>
-              <div style={styles.userAvatar}>{userIcon}</div>
-
-              <div style={styles.userInfo}>
-                <span style={styles.sessionText}>Sesión activa</span>
-                <strong style={styles.userName}>{userName}</strong>
-                <span style={styles.rolePill}>{roleLabel}</span>
-              </div>
-            </div>
+            <HeaderUserCard user={user} />
 
             <div style={styles.bellWrapper}>
               <NotificationBell />
             </div>
-
-            <button
-              type="button"
-              style={styles.topLogoutButton}
-              onClick={handleLogout}
-            >
-              Cerrar sesión
-            </button>
           </div>
         </header>
 
@@ -739,6 +804,10 @@ function Reservations() {
             {filteredReservations.map((reservation) => {
               const status = reservation.status || "PENDING";
               const isUpdating = updatingId === reservation.id;
+              const confirmationDeadline = getConfirmationDeadline(reservation);
+              const confirmationExpired = isConfirmationExpired(reservation);
+              const confirmationRemainingMs =
+                getConfirmationTimeRemainingMs(reservation);
               const hasPickupInfo =
                 reservation.pickup_person_name ||
                 reservation.pickup_person_dni ||
@@ -783,6 +852,35 @@ function Reservations() {
                   <span style={getStatusStyle(status)}>
                     {getStatusLabel(status)}
                   </span>
+
+                  {status === "PENDING" && (
+                    <div
+                      style={
+                        confirmationExpired
+                          ? localStyles.confirmationDeadlineExpired
+                          : localStyles.confirmationDeadline
+                      }
+                    >
+                      <span style={styles.metaLabel}>
+                        Plazo de confirmación
+                      </span>
+                      <strong>
+                        {formatDateTime(confirmationDeadline)}
+                      </strong>
+                      {confirmationExpired ? (
+                        <span style={localStyles.expiredBadge}>
+                          Vencida por falta de confirmación
+                        </span>
+                      ) : (
+                        <span style={localStyles.remainingTimeText}>
+                          Tiempo restante:{" "}
+                          <strong>
+                            {formatRemainingTime(confirmationRemainingMs)}
+                          </strong>
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   <div style={styles.metaGrid}>
                     {isAdmin ? (
@@ -934,7 +1032,7 @@ function Reservations() {
                       }}
                       onClick={() => handlePrintReceipt(reservation)}
                     >
-                      🖨️ Imprimir comprobante
+                      Imprimir comprobante
                     </button>
                   </div>
                 </article>
@@ -943,28 +1041,29 @@ function Reservations() {
           </section>
         )}
 
-        {deliveryReservation && (
+        {selectedReservationForDelivery && (
           <div style={styles.modalOverlay}>
             <div style={styles.modalCard}>
               <h2 style={styles.modalTitle}>Confirmar entrega</h2>
 
               <p style={styles.modalText}>
-                Ingresá el código que figura en el comprobante de la reserva.
+                Ingresá el código de entrega que figura en el comprobante de la reserva.
               </p>
 
-              {deliveryError && (
-                <div style={localStyles.modalErrorBox}>{deliveryError}</div>
+              {deliveryCodeError && (
+                <div style={localStyles.modalErrorBox}>{deliveryCodeError}</div>
               )}
 
               <div style={styles.inputGroup}>
-                <label style={styles.inputLabel}>Código de validación</label>
+                <label style={styles.inputLabel}>Código de entrega</label>
                 <input
                   style={styles.input}
                   type="text"
-                  value={validationCode}
+                  value={deliveryCode}
+                  placeholder="Ej: RN-2026-722062"
                   onChange={(e) => {
-                    setValidationCode(e.target.value);
-                    setDeliveryError("");
+                    setDeliveryCode(e.target.value);
+                    setDeliveryCodeError("");
                   }}
                   autoFocus
                 />
@@ -975,7 +1074,7 @@ function Reservations() {
                   type="button"
                   style={styles.secondaryButton}
                   onClick={handleCloseDeliveryModal}
-                  disabled={updatingId === deliveryReservation.id}
+                  disabled={deliveryCodeLoading}
                 >
                   Cancelar
                 </button>
@@ -984,7 +1083,7 @@ function Reservations() {
                   type="button"
                   style={styles.primaryButton}
                   onClick={handleConfirmDelivery}
-                  disabled={updatingId === deliveryReservation.id}
+                  disabled={deliveryCodeLoading}
                 >
                   Confirmar entrega
                 </button>
@@ -1062,6 +1161,48 @@ const localStyles = {
     marginTop: "8px",
   },
 
+  confirmationDeadline: {
+    marginTop: "14px",
+    background: "#f7faf4",
+    border: "1px solid #dfe8d7",
+    borderRadius: "16px",
+    padding: "12px 14px",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    flexWrap: "wrap",
+  },
+
+  confirmationDeadlineExpired: {
+    marginTop: "14px",
+    background: "#fde9e7",
+    border: "1px solid #f3b7b7",
+    borderRadius: "16px",
+    padding: "12px 14px",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    flexWrap: "wrap",
+  },
+
+  expiredBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    width: "fit-content",
+    padding: "7px 12px",
+    borderRadius: "999px",
+    background: "#d6453d",
+    color: "#ffffff",
+    fontSize: "0.78rem",
+    fontWeight: 950,
+  },
+
+  remainingTimeText: {
+    color: "#2f6f28",
+    fontSize: "0.9rem",
+    fontWeight: 850,
+  },
+
   pickupSection: {
     marginTop: "18px",
     background: "#f8f9f4",
@@ -1127,3 +1268,7 @@ const localStyles = {
 };
 
 export default Reservations;
+
+
+
+

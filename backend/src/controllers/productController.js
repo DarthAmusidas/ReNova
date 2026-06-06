@@ -7,6 +7,52 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+const createNotificationForOng = async (userId, productName) => {
+  const message = `Nuevo producto disponible: ${productName}`;
+  const title = "Nuevo producto disponible";
+
+  try {
+    await pool.query(
+      `INSERT INTO notifications
+        (user_id, title, message, type)
+       VALUES ($1, $2, $3, $4)`,
+      [userId, title, message, "NEW_PRODUCT"]
+    );
+  } catch (error) {
+    try {
+      await pool.query(
+        `INSERT INTO notifications
+          (user_id, title, message, type)
+         VALUES ($1, $2, $3, $4)`,
+        [userId, title, message, "SYSTEM"]
+      );
+    } catch (fallbackError) {
+      console.error("Error creating new product notifications", {
+        userId,
+        productName,
+        error: fallbackError,
+      });
+    }
+  }
+};
+
+const notifyOngUsersAboutProduct = async (productName) => {
+  try {
+    const ongResult = await pool.query(
+      `SELECT id
+       FROM users
+       WHERE role = $1`,
+      ["ONG"]
+    );
+
+    for (const user of ongResult.rows) {
+      await createNotificationForOng(user.id, productName);
+    }
+  } catch (error) {
+    console.error("Error creating new product notifications", error);
+  }
+};
+
 // Estados permitidos para productos
 const allowedProductStatuses = [
   "AVAILABLE",
@@ -85,6 +131,8 @@ const createProduct = async (req, res) => {
         "AVAILABLE"
       ]
     );
+
+    await notifyOngUsersAboutProduct(result.rows[0].name);
 
     // Responde con el producto creado
     res.status(201).json({

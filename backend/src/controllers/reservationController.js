@@ -20,6 +20,26 @@ const createNotification = async (client, userId, title, message, type) => {
   );
 };
 
+const getConfirmationDeadline = (reservedAt) => {
+  if (!reservedAt) return null;
+
+  const reservedDate = new Date(reservedAt);
+
+  if (Number.isNaN(reservedDate.getTime())) return null;
+
+  return new Date(reservedDate.getTime() + 48 * 60 * 60 * 1000);
+};
+
+const isConfirmationExpired = (reservation) => {
+  if (!reservation || reservation.status !== "PENDING") return false;
+
+  const deadline = getConfirmationDeadline(reservation.reserved_at);
+
+  if (!deadline) return false;
+
+  return new Date() > deadline;
+};
+
 const generateUniqueOrderCode = async (client) => {
   const maxAttempts = 5;
 
@@ -280,6 +300,24 @@ const getReservations = async (req, res) => {
           r.quantity_reserved,
           r.status,
           r.reserved_at,
+          CASE
+            WHEN r.reserved_at IS NULL THEN NULL
+            ELSE r.reserved_at + INTERVAL '48 hours'
+          END AS confirmation_deadline,
+          CASE
+            WHEN r.status = 'PENDING'
+             AND r.reserved_at IS NOT NULL
+             AND NOW() > r.reserved_at + INTERVAL '48 hours'
+            THEN true
+            ELSE false
+          END AS is_confirmation_expired,
+          CASE
+            WHEN r.reserved_at IS NULL THEN NULL
+            ELSE GREATEST(
+              0,
+              FLOOR(EXTRACT(EPOCH FROM (r.reserved_at + INTERVAL '48 hours' - NOW())) * 1000)
+            )::bigint
+          END AS confirmation_time_remaining_ms,
           r.supermarket_completed,
           r.ong_completed,
           r.order_code,
@@ -320,6 +358,24 @@ const getReservations = async (req, res) => {
           r.quantity_reserved,
           r.status,
           r.reserved_at,
+          CASE
+            WHEN r.reserved_at IS NULL THEN NULL
+            ELSE r.reserved_at + INTERVAL '48 hours'
+          END AS confirmation_deadline,
+          CASE
+            WHEN r.status = 'PENDING'
+             AND r.reserved_at IS NOT NULL
+             AND NOW() > r.reserved_at + INTERVAL '48 hours'
+            THEN true
+            ELSE false
+          END AS is_confirmation_expired,
+          CASE
+            WHEN r.reserved_at IS NULL THEN NULL
+            ELSE GREATEST(
+              0,
+              FLOOR(EXTRACT(EPOCH FROM (r.reserved_at + INTERVAL '48 hours' - NOW())) * 1000)
+            )::bigint
+          END AS confirmation_time_remaining_ms,
           r.supermarket_completed,
           r.ong_completed,
           r.order_code,
@@ -360,6 +416,24 @@ const getReservations = async (req, res) => {
           r.quantity_reserved,
           r.status,
           r.reserved_at,
+          CASE
+            WHEN r.reserved_at IS NULL THEN NULL
+            ELSE r.reserved_at + INTERVAL '48 hours'
+          END AS confirmation_deadline,
+          CASE
+            WHEN r.status = 'PENDING'
+             AND r.reserved_at IS NOT NULL
+             AND NOW() > r.reserved_at + INTERVAL '48 hours'
+            THEN true
+            ELSE false
+          END AS is_confirmation_expired,
+          CASE
+            WHEN r.reserved_at IS NULL THEN NULL
+            ELSE GREATEST(
+              0,
+              FLOOR(EXTRACT(EPOCH FROM (r.reserved_at + INTERVAL '48 hours' - NOW())) * 1000)
+            )::bigint
+          END AS confirmation_time_remaining_ms,
           r.supermarket_completed,
           r.ong_completed,
           r.order_code,
@@ -504,6 +578,14 @@ const updateReservationStatus = async (req, res) => {
         });
       }
 
+      if (isConfirmationExpired(reservation)) {
+        await client.query("ROLLBACK");
+
+        return res.status(400).json({
+          error: "La reserva superó el plazo de confirmación de 48 horas.",
+        });
+      }
+
       const result = await client.query(
         `
         UPDATE reservations
@@ -638,32 +720,33 @@ const updateReservationStatus = async (req, res) => {
           });
         }
 
+        const submittedDeliveryCode = String(
+          delivery_code ?? validation_code ?? ""
+        )
+          .trim()
+          .toUpperCase();
+
+        if (!submittedDeliveryCode) {
+          await client.query("ROLLBACK");
+
+          return res.status(400).json({
+            error: "Debe ingresar el código de entrega.",
+          });
+        }
+
         if (!reservation.order_code) {
           await client.query("ROLLBACK");
 
           return res.status(400).json({
-            error: "Esta reserva no tiene código de validación disponible.",
+            error: "Esta reserva no tiene código de entrega disponible.",
           });
         }
 
-        const submittedValidationCode = String(
-          validation_code || delivery_code || ""
-        )
-          .trim()
-          .toUpperCase();
-        const expectedValidationCode = String(reservation.order_code)
+        const expectedDeliveryCode = String(reservation.order_code)
           .trim()
           .toUpperCase();
 
-        if (!submittedValidationCode) {
-          await client.query("ROLLBACK");
-
-          return res.status(400).json({
-            error: "Debe ingresar el código de validación.",
-          });
-        }
-
-        if (submittedValidationCode !== expectedValidationCode) {
+        if (submittedDeliveryCode !== expectedDeliveryCode) {
           await client.query("ROLLBACK");
 
           return res.status(400).json({
@@ -671,7 +754,6 @@ const updateReservationStatus = async (req, res) => {
               "El código ingresado no coincide con el comprobante de la reserva.",
           });
         }
-
         const partialResult = await client.query(
           `
           UPDATE reservations

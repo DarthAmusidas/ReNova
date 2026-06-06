@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../services/authService";
+import renovaLogo from "../assets/renova-logo-transparent.png";
 
 function Login() {
   const navigate = useNavigate();
@@ -40,8 +41,7 @@ function Login() {
 
       <section className="login-left-modern">
         <div className="login-brand-modern">
-          <div className="brand-leaf">🌱</div>
-          <h1>ReNova</h1>
+          <img className="login-brand-logo" src={renovaLogo} alt="ReNova" />
         </div>
 
         <span className="green-badge">♡ Plataforma solidaria</span>
@@ -105,6 +105,7 @@ function Login() {
       <section className="login-right-modern">
         <div className="login-card-modern">
           <div className="login-lock-icon">🔒</div>
+          <img className="login-card-logo" src={renovaLogo} alt="ReNova" />
 
           <h2>Iniciar sesión</h2>
           <p>Ingresá con tu cuenta para acceder al panel de gestión.</p>

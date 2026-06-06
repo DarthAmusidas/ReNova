@@ -113,6 +113,7 @@ function NotificationBell() {
       <button type="button" style={styles.button} onClick={handleToggle}>
         🔔
 
+
         {unreadCount > 0 && (
           <span style={styles.badge}>{unreadCount}</span>
         )}

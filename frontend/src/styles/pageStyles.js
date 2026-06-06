@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useState } from "react";
 export const pageStyles = {
   layout: {
     minHeight: "100vh",
@@ -11,34 +10,37 @@ export const pageStyles = {
   sidebar: {
     background: "#102018",
     color: "#ffffff",
-    padding: "34px 22px 24px",
+    padding: "0 22px 24px",
     display: "flex",
     flexDirection: "column",
     minHeight: "100vh",
+    height: "100vh",
+    position: "sticky",
+    top: 0,
+    overflowY: "auto",
   },
 
-  logoBox: {
-    display: "flex",
-    alignItems: "center",
-    gap: "14px",
-    marginBottom: "42px",
-  },
-
-  logoIcon: {
-    width: "48px",
-    height: "48px",
-    borderRadius: "16px",
-    background: "#e8f4df",
+  sidebarLogoContainer: {
+    width: "100%",
+    minHeight: "105px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "24px",
+    padding: "18px 12px",
+    boxSizing: "border-box",
+    background: "transparent",
+    margin: "0 0 32px",
+    flexShrink: 0,
   },
 
-  logoText: {
-    margin: 0,
-    fontSize: "1.45rem",
-    fontWeight: 900,
+  sidebarLogoImage: {
+    width: "92%",
+    maxWidth: "200px",
+    height: "auto",
+    display: "block",
+    objectFit: "contain",
+    background: "transparent",
+    borderRadius: 0,
   },
 
   nav: {

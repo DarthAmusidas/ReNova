@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUsers } from "../services/userService";
+import AppSidebar from "../components/AppSidebar";
+import HeaderUserCard from "../components/HeaderUserCard";
 import NotificationBell from "../components/NotificationBell";
 import { pageStyles as baseStyles } from "../styles/pageStyles";
 
@@ -80,35 +82,13 @@ function AdminUsers() {
 
   return (
     <div style={styles.layout}>
-      <aside style={styles.sidebar}>
-        <div style={styles.logoBox}>
-          <div style={styles.logoIcon}>🌱</div>
-          <h2 style={styles.logoText}>ReNova</h2>
-        </div>
-
-        <nav style={styles.nav}>
-          <button style={styles.navButton} onClick={() => navigate("/dashboard")}>
-            <span>📊</span>
-            Dashboard
-          </button>
-
-          <button style={styles.navButton} onClick={() => navigate("/products")}>
-            <span>🥬</span>
-            Productos
-          </button>
-
-          <button style={styles.navButton} onClick={() => navigate("/reservations")}>
-            <span>📋</span>
-            Reservas
-          </button>
-
-          <button style={styles.navButtonActive} onClick={() => navigate("/users")}>
-            <span>👥</span>
-            Usuarios
-          </button>
-        </nav>
-
-      </aside>
+      <AppSidebar
+        active="users"
+        user={user}
+        isAdmin={isAdmin}
+        navigate={navigate}
+        onLogout={handleLogout}
+      />
 
       <main style={styles.main}>
         <header style={styles.header}>
@@ -123,27 +103,11 @@ function AdminUsers() {
           </div>
 
           <div style={styles.userArea}>
-            <div style={styles.userCard}>
-              <div style={styles.userAvatar}>🛡️</div>
-
-              <div style={styles.userInfo}>
-                <span style={styles.sessionText}>Sesión activa</span>
-                <strong style={styles.userName}>{userName}</strong>
-                <span style={styles.rolePill}>Administrador</span>
-              </div>
-            </div>
+            <HeaderUserCard user={user} />
 
             <div style={styles.bellWrapper}>
               <NotificationBell />
             </div>
-
-            <button
-              type="button"
-              style={styles.topLogoutButton}
-              onClick={handleLogout}
-            >
-              Cerrar sesión
-            </button>
           </div>
         </header>
 
@@ -277,3 +241,7 @@ const styles = {
 };
 
 export default AdminUsers;
+
+
+
+

@@ -1,6 +1,7 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createProduct } from "../services/productService";
+import AppSidebar from "../components/AppSidebar";
 import NotificationBell from "../components/NotificationBell";
 import { pageStyles as pageStyles } from "../styles/pageStyles";
 
@@ -28,9 +29,8 @@ function CreateProduct() {
   const userRole = user?.role || "";
 
   const isSupermarket = userRole === "SUPERMARKET";
+  const isAdmin = userRole === "ADMIN";
   const roleLabel = isSupermarket ? "Supermercado" : "ONG";
-  const userIcon = isSupermarket ? "🛒" : "🤝";
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -95,30 +95,13 @@ function CreateProduct() {
 
   return (
     <div style={styles.layout}>
-      <aside style={styles.sidebar}>
-        <div style={styles.logoBox}>
-          <div style={styles.logoIcon}>🌱</div>
-          <h2 style={styles.logoText}>ReNova</h2>
-        </div>
-
-        <nav style={styles.nav}>
-          <button style={styles.navButton} onClick={() => navigate("/dashboard")}>
-            <span>📊</span>
-            Dashboard
-          </button>
-
-          <button style={styles.navButtonActive} onClick={() => navigate("/products")}>
-            <span>🥬</span>
-            Productos
-          </button>
-
-          <button style={styles.navButton} onClick={() => navigate("/reservations")}>
-            <span>📋</span>
-            Reservas
-          </button>
-        </nav>
-
-      </aside>
+      <AppSidebar
+        active="products"
+        user={user}
+        isAdmin={isAdmin}
+        navigate={navigate}
+        onLogout={handleLogout}
+      />
 
       <main style={styles.main}>
         <header style={styles.header}>
@@ -134,27 +117,9 @@ function CreateProduct() {
           </div>
 
           <div style={styles.userArea}>
-            <div style={styles.userCard}>
-              <div style={styles.userAvatar}>{userIcon}</div>
-
-              <div style={styles.userInfo}>
-                <span style={styles.sessionText}>Sesión activa</span>
-                <strong style={styles.userName}>{userName}</strong>
-                <span style={styles.rolePill}>{roleLabel}</span>
-              </div>
-            </div>
-
             <div style={styles.bellWrapper}>
               <NotificationBell />
             </div>
-
-            <button
-              type="button"
-              style={styles.topLogoutButton}
-              onClick={handleLogout}
-            >
-              Cerrar sesión
-            </button>
           </div>
         </header>
 
@@ -168,7 +133,7 @@ function CreateProduct() {
               </p>
             </div>
 
-            <div style={styles.formIcon}>🥬</div>
+            <div style={styles.formIcon}>🥦</div>
           </div>
 
           {error && <div style={styles.errorBox}>{error}</div>}
@@ -396,3 +361,6 @@ const styles = {
 };
 
 export default CreateProduct;
+
+
+

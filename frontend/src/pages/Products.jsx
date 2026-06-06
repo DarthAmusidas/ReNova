@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getProducts, deleteProduct } from "../services/productService";
 import { createReservation } from "../services/reservationService";
+import AppSidebar from "../components/AppSidebar";
+import HeaderUserCard from "../components/HeaderUserCard";
 import NotificationBell from "../components/NotificationBell";
 import { pageStyles as styles, getStatusStyle } from "../styles/pageStyles";
 
@@ -38,8 +40,6 @@ function Products() {
     : isAdmin
     ? "Administrador"
     : "ONG";
-
-  const userIcon = isSupermarket ? "🛒" : isAdmin ? "🛡️" : "🤝";
 
   const loadProducts = async () => {
     try {
@@ -271,37 +271,13 @@ function Products() {
 
   return (
     <div style={styles.layout}>
-      <aside style={styles.sidebar}>
-        <div style={styles.logoBox}>
-          <div style={styles.logoIcon}>🌱</div>
-          <h2 style={styles.logoText}>ReNova</h2>
-        </div>
-
-        <nav style={styles.nav}>
-          <button style={styles.navButton} onClick={() => navigate("/dashboard")}>
-            <span>📊</span>
-            Dashboard
-          </button>
-
-          <button style={styles.navButtonActive} onClick={() => navigate("/products")}>
-            <span>🥬</span>
-            Productos
-          </button>
-
-          <button style={styles.navButton} onClick={() => navigate("/reservations")}>
-            <span>📋</span>
-            Reservas
-          </button>
-
-          {isAdmin && (
-            <button style={styles.navButton} onClick={() => navigate("/users")}>
-              <span>👥</span>
-              Usuarios
-            </button>
-          )}
-        </nav>
-
-      </aside>
+      <AppSidebar
+        active="products"
+        user={user}
+        isAdmin={isAdmin}
+        navigate={navigate}
+        onLogout={handleLogout}
+      />
 
       <main style={styles.main}>
         <header style={styles.header}>
@@ -316,27 +292,11 @@ function Products() {
           </div>
 
           <div style={styles.userArea}>
-            <div style={styles.userCard}>
-              <div style={styles.userAvatar}>{userIcon}</div>
-
-              <div style={styles.userInfo}>
-                <span style={styles.sessionText}>Sesión activa</span>
-                <strong style={styles.userName}>{userName}</strong>
-                <span style={styles.rolePill}>{roleLabel}</span>
-              </div>
-            </div>
+            <HeaderUserCard user={user} />
 
             <div style={styles.bellWrapper}>
               <NotificationBell />
             </div>
-
-            <button
-              type="button"
-              style={styles.topLogoutButton}
-              onClick={handleLogout}
-            >
-              Cerrar sesión
-            </button>
           </div>
         </header>
 
@@ -424,7 +384,7 @@ function Products() {
                       </p>
                     </div>
 
-                    <div style={styles.cardIcon}>🥬</div>
+                    <div style={styles.cardIcon}>🥦</div>
                   </div>
 
                   <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "18px" }}>
@@ -789,3 +749,7 @@ const localStyles = {
 };
 
 export default Products;
+
+
+
+
