@@ -241,6 +241,17 @@ function Dashboard() {
   const marketImpactReport = summary.market_impact_report;
   const hasMarketImpactReport = isSupermarket && marketImpactReport;
 
+  const getEffectiveKgRecovered = (report) => {
+    const measuredKgRecovered = Number(report?.measured_kg_recovered || 0);
+    const co2Avoided = Number(report?.estimated_co2_avoided || 0);
+    const co2Factor = Number(report?.co2_factor_per_kg || 0) || 2.5;
+
+    if (measuredKgRecovered > 0) return measuredKgRecovered;
+    if (co2Avoided > 0 && co2Factor > 0) return co2Avoided / co2Factor;
+
+    return 0;
+  };
+
   const formatReportNumber = (value, suffix = "") => {
     const number = Number(value || 0);
     const formatted = number.toLocaleString("es-AR", {
@@ -287,9 +298,9 @@ function Dashboard() {
           ),
         },
         {
-          label: "Kg recuperados estimados",
+          label: "Kg recuperados",
           value: formatReportNumber(
-            marketImpactReport.estimated_kg_recovered,
+            getEffectiveKgRecovered(marketImpactReport),
             "kg"
           ),
         },
@@ -298,13 +309,6 @@ function Dashboard() {
           value: formatReportNumber(
             marketImpactReport.estimated_co2_avoided,
             "kg"
-          ),
-        },
-        {
-          label: "Agua ahorrada estimada",
-          value: formatReportNumber(
-            marketImpactReport.estimated_water_saved,
-            "l"
           ),
         },
         {
@@ -406,7 +410,7 @@ function Dashboard() {
                   <div>
                     <h2 style={styles.panelTitle}>Reporte de impacto</h2>
                     <p style={styles.panelText}>
-                      Indicadores estimados a partir de tus productos y
+                      Indicadores principales a partir de tus productos y
                       reservas completadas.
                     </p>
                   </div>
@@ -414,9 +418,9 @@ function Dashboard() {
                   <button
                     type="button"
                     style={styles.printReportButton}
-                    onClick={() => window.print()}
+                    onClick={() => navigate("/impact")}
                   >
-                    Imprimir reporte
+                    Ver reporte completo
                   </button>
                 </div>
 
@@ -431,80 +435,14 @@ function Dashboard() {
                   ))}
                 </div>
 
-                <div style={styles.reportColumns}>
-                  <div style={styles.reportSubpanel}>
-                    <h3 style={styles.reportSubtitle}>
-                      Top ONG beneficiadas
-                    </h3>
-
-                    {topOngs.length === 0 ? (
-                      <p style={styles.panelText}>
-                        Todavía no hay datos suficientes.
-                      </p>
-                    ) : (
-                      <div style={styles.topOngList}>
-                        {topOngs.map((ong) => (
-                          <div key={ong.id || ong.name} style={styles.topOngItem}>
-                            <div>
-                              <strong>{ong.name || "Sin nombre"}</strong>
-                              <span>
-                                {ong.organization_type || "ONG"} ·{" "}
-                                {formatReportNumber(
-                                  ong.completed_reservations
-                                )}{" "}
-                                completadas
-                              </span>
-                            </div>
-                            <b>
-                              {formatReportNumber(ong.total_reservations)}
-                            </b>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div style={styles.reportSubpanel}>
-                    <h3 style={styles.reportSubtitle}>
-                      Entregas completadas por mes
-                    </h3>
-
-                    {monthlyDeliveries.length === 0 ? (
-                      <p style={styles.panelText}>
-                        Todavía no hay datos suficientes.
-                      </p>
-                    ) : (
-                      <div style={styles.monthlyBars}>
-                        {monthlyDeliveries.map((item) => {
-                          const deliveries = Number(
-                            item.completed_deliveries || 0
-                          );
-
-                          return (
-                            <div key={item.month} style={styles.monthlyBarRow}>
-                              <span style={styles.monthlyBarLabel}>
-                                {item.month || "Sin fecha"}
-                              </span>
-                              <div style={styles.monthlyBarTrack}>
-                                <div
-                                  style={{
-                                    ...styles.monthlyBarFill,
-                                    width: `${
-                                      (deliveries / maxMonthlyDeliveries) * 100
-                                    }%`,
-                                  }}
-                                />
-                              </div>
-                              <strong style={styles.monthlyBarValue}>
-                                {formatReportNumber(deliveries)}
-                              </strong>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <p style={styles.panelText}>
+                  El reporte formal, la metodología y las cantidades agrupadas
+                  por unidad ahora están disponibles en la sección Impacto.
+                </p>
+                <p style={styles.panelText}>
+                  Tasa de aprovechamiento: porcentaje de reservas recibidas que
+                  finalizaron como entregas completadas.
+                </p>
               </section>
             )}
 

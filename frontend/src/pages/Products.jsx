@@ -41,6 +41,15 @@ function Products() {
     ? "Administrador"
     : "ONG";
 
+  const getMaxReservableQuantity = (stock) => {
+    const availableStock = Number(stock || 0);
+
+    if (availableStock <= 0) return 0;
+    if (availableStock <= 10) return availableStock;
+
+    return Math.ceil(availableStock * 0.5);
+  };
+
   const loadProducts = async () => {
     try {
       setLoading(true);
@@ -109,7 +118,9 @@ function Products() {
       return;
     }
 
-    if (quantity > selectedProduct.quantity) {
+    const maxReservable = getMaxReservableQuantity(selectedProduct.quantity);
+
+    if (quantity > maxReservable) {
       setReservationError("La cantidad solicitada supera el stock disponible.");
       return;
     }
@@ -523,7 +534,7 @@ function Products() {
                   style={styles.input}
                   type="number"
                   min="1"
-                  max={selectedProduct.quantity}
+                  max={getMaxReservableQuantity(selectedProduct.quantity)}
                   value={reservationQuantity}
                   onChange={(e) => {
                     setReservationQuantity(e.target.value);

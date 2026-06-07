@@ -18,6 +18,7 @@ function Reservations() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("ALL");
+  const [now, setNow] = useState(Date.now());
   const [selectedReservationForDelivery, setSelectedReservationForDelivery] =
     useState(null);
   const [deliveryCode, setDeliveryCode] = useState("");
@@ -63,6 +64,14 @@ function Reservations() {
   useEffect(() => {
     loadReservations();
   }, [loadReservations]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setNow(Date.now());
+    }, 60 * 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -200,8 +209,17 @@ function Reservations() {
     return new Date(reservedDate.getTime() + 48 * 60 * 60 * 1000).toISOString();
   };
 
+  const isActiveOngReservation = (reservation) => {
+    if (!reservation) return false;
+
+    return (
+      ["PENDING", "CONFIRMED"].includes(reservation.status || "PENDING") &&
+      reservation.ong_completed !== true
+    );
+  };
+
   const isConfirmationExpired = (reservation) => {
-    if (!reservation || reservation.status !== "PENDING") return false;
+    if (!isActiveOngReservation(reservation)) return false;
 
     if (reservation.is_confirmation_expired === true) return true;
     if (reservation.is_confirmation_expired === "true") return true;
@@ -214,19 +232,11 @@ function Reservations() {
 
     if (Number.isNaN(deadlineDate.getTime())) return false;
 
-    return new Date() > deadlineDate;
+    return now > deadlineDate.getTime();
   };
 
   const getConfirmationTimeRemainingMs = (reservation) => {
-    if (!reservation || reservation.status !== "PENDING") return null;
-
-    if (
-      reservation.confirmation_time_remaining_ms !== undefined &&
-      reservation.confirmation_time_remaining_ms !== null &&
-      reservation.confirmation_time_remaining_ms !== ""
-    ) {
-      return Number(reservation.confirmation_time_remaining_ms);
-    }
+    if (!isActiveOngReservation(reservation)) return null;
 
     const deadline = getConfirmationDeadline(reservation);
 
@@ -236,7 +246,7 @@ function Reservations() {
 
     if (Number.isNaN(deadlineDate.getTime())) return null;
 
-    return Math.max(0, deadlineDate.getTime() - Date.now());
+    return Math.max(0, deadlineDate.getTime() - now);
   };
 
   const formatRemainingTime = (remainingMs) => {
@@ -643,16 +653,18 @@ function Reservations() {
     }
 
     if (status === "CONFIRMED") {
+      const confirmationExpired = isConfirmationExpired(reservation);
+
       return (
         <>
           {isOng && !reservation.ong_completed && (
             <button
               type="button"
-              style={styles.primaryButton}
-              disabled={isUpdating}
+              style={confirmationExpired ? styles.disabledButton : styles.primaryButton}
+              disabled={isUpdating || confirmationExpired}
               onClick={() => handleUpdateStatus(reservation.id, "COMPLETED")}
             >
-              Confirmar retiro
+              {confirmationExpired ? "Reserva vencida" : "Confirmar retiro"}
             </button>
           )}
 
@@ -808,6 +820,13 @@ function Reservations() {
               const confirmationExpired = isConfirmationExpired(reservation);
               const confirmationRemainingMs =
                 getConfirmationTimeRemainingMs(reservation);
+              const showConfirmationTimer =
+                isOng && isActiveOngReservation(reservation);
+              const hasConfirmationWarning =
+                showConfirmationTimer &&
+                !confirmationExpired &&
+                confirmationRemainingMs !== null &&
+                confirmationRemainingMs <= 6 * 60 * 60 * 1000;
               const hasPickupInfo =
                 reservation.pickup_person_name ||
                 reservation.pickup_person_dni ||
@@ -853,31 +872,40 @@ function Reservations() {
                     {getStatusLabel(status)}
                   </span>
 
-                  {status === "PENDING" && (
+                  {showConfirmationTimer && (
                     <div
                       style={
                         confirmationExpired
                           ? localStyles.confirmationDeadlineExpired
+                          : hasConfirmationWarning
+                          ? localStyles.confirmationDeadlineWarning
                           : localStyles.confirmationDeadline
                       }
                     >
                       <span style={styles.metaLabel}>
-                        Plazo de confirmación
+                        Tiempo restante para confirmar
                       </span>
-                      <strong>
-                        {formatDateTime(confirmationDeadline)}
-                      </strong>
                       {confirmationExpired ? (
                         <span style={localStyles.expiredBadge}>
-                          Vencida por falta de confirmación
+                          Reserva vencida. Debés realizar una nueva reserva.
                         </span>
                       ) : (
-                        <span style={localStyles.remainingTimeText}>
-                          Tiempo restante:{" "}
+                        <>
+                          <span style={localStyles.remainingTimeText}>
+                            Tiempo restante para confirmar:{" "}
+                            <strong>
+                              {formatRemainingTime(confirmationRemainingMs)}
+                            </strong>
+                          </span>
+                          {hasConfirmationWarning && (
+                            <span style={localStyles.warningText}>
+                              Quedan menos de 6 horas para confirmar esta reserva.
+                            </span>
+                          )}
                           <strong>
-                            {formatRemainingTime(confirmationRemainingMs)}
+                            Vence: {formatDateTime(confirmationDeadline)}
                           </strong>
-                        </span>
+                        </>
                       )}
                     </div>
                   )}
@@ -1185,6 +1213,18 @@ const localStyles = {
     flexWrap: "wrap",
   },
 
+  confirmationDeadlineWarning: {
+    marginTop: "14px",
+    background: "#fff7df",
+    border: "1px solid #efcf73",
+    borderRadius: "16px",
+    padding: "12px 14px",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    flexWrap: "wrap",
+  },
+
   expiredBadge: {
     display: "inline-flex",
     alignItems: "center",
@@ -1201,6 +1241,12 @@ const localStyles = {
     color: "#2f6f28",
     fontSize: "0.9rem",
     fontWeight: 850,
+  },
+
+  warningText: {
+    color: "#8a5d00",
+    fontSize: "0.86rem",
+    fontWeight: 900,
   },
 
   pickupSection: {

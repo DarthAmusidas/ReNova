@@ -7,9 +7,11 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-const createNotificationForOng = async (userId, productName) => {
-  const message = `Nuevo producto disponible: ${productName}`;
+const createNotificationForOng = async (userId, productName, supermarketName) => {
   const title = "Nuevo producto disponible";
+  const message = supermarketName
+    ? `Se publicó un nuevo producto: ${productName} por ${supermarketName}`
+    : `Se publicó un nuevo producto: ${productName}`;
 
   try {
     await pool.query(
@@ -36,8 +38,24 @@ const createNotificationForOng = async (userId, productName) => {
   }
 };
 
-const notifyOngUsersAboutProduct = async (productName) => {
+const notifyOngUsersAboutProduct = async (productName, supermarketId) => {
   try {
+    let supermarketName = "";
+
+    try {
+      const supermarketResult = await pool.query(
+        `SELECT name
+         FROM users
+         WHERE id = $1
+         LIMIT 1`,
+        [supermarketId]
+      );
+
+      supermarketName = supermarketResult.rows[0]?.name || "";
+    } catch (error) {
+      console.error("Error getting supermarket name for product notification", error);
+    }
+
     const ongResult = await pool.query(
       `SELECT id
        FROM users
@@ -46,7 +64,7 @@ const notifyOngUsersAboutProduct = async (productName) => {
     );
 
     for (const user of ongResult.rows) {
-      await createNotificationForOng(user.id, productName);
+      await createNotificationForOng(user.id, productName, supermarketName);
     }
   } catch (error) {
     console.error("Error creating new product notifications", error);
@@ -132,7 +150,7 @@ const createProduct = async (req, res) => {
       ]
     );
 
-    await notifyOngUsersAboutProduct(result.rows[0].name);
+    await notifyOngUsersAboutProduct(result.rows[0].name, supermarket_id);
 
     // Responde con el producto creado
     res.status(201).json({

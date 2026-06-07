@@ -6,6 +6,33 @@
   box-sizing: border-box;
 }
 
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .impact-report-print-area,
+  .impact-report-print-area * {
+    visibility: visible;
+  }
+
+  .impact-report-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: #ffffff;
+    padding: 32px !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+
 html,
 body,
 #root {

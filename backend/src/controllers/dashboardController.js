@@ -1,10 +1,11 @@
 // Controlador de dashboard / resumen general
 const { Pool } = require("pg");
 
-// Conexion a la base de datos PostgreSQL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
+
+const CO2_FACTOR_PER_KG = 2.5;
 
 const LEVELS = [
   { level: 1, min: 0, next: 5, label: "Impacto inicial" },
@@ -14,11 +15,59 @@ const LEVELS = [
   { level: 5, min: 75, next: null, label: "Referente solidario" },
 ];
 
+const toNumber = (value) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+};
+
+const roundMetric = (value, decimals = 2) => {
+  const number = toNumber(value);
+  return Number(number.toFixed(decimals));
+};
+
+const normalizeRole = (role) => String(role || "").trim().toUpperCase();
+
+const normalizeUnit = (unit) => {
+  const value = String(unit || "")
+    .trim()
+    .toLowerCase();
+
+  if (!value) return "sin unidad informada";
+
+  if (["kg", "kilo", "kilos", "kilogramo", "kilogramos"].includes(value)) {
+    return "kilos";
+  }
+
+  if (["unidad", "unidades", "u", "ud", "uds"].includes(value)) {
+    return "unidades";
+  }
+
+  if (["caja", "cajas"].includes(value)) {
+    return "cajas";
+  }
+
+  if (["paquete", "paquetes"].includes(value)) {
+    return "paquetes";
+  }
+
+  if (["bolsa", "bolsas"].includes(value)) {
+    return "bolsas";
+  }
+
+  if (["litro", "litros", "l"].includes(value)) {
+    return "litros";
+  }
+
+  return value;
+};
+
+const isWeightUnit = (unit) => normalizeUnit(unit) === "kilos";
+
 const calculateImpactLevel = (completedCount) => {
-  const completed = Number(completedCount || 0);
-  const currentLevel = [...LEVELS]
-    .reverse()
-    .find((item) => completed >= item.min);
+  const completed = toNumber(completedCount);
+
+  const currentLevel =
+    [...LEVELS].reverse().find((item) => completed >= item.min) || LEVELS[0];
 
   const nextTarget = currentLevel.next;
   const progressPercentage = nextTarget
@@ -31,19 +80,141 @@ const calculateImpactLevel = (completedCount) => {
     completed_count_for_level: completed,
     next_level_target: nextTarget,
     level_progress_percentage: progressPercentage,
+    impact_level_text: nextTarget
+      ? `${completed} / ${nextTarget} reservas confirmadas para Nivel ${
+          currentLevel.level + 1
+        }`
+      : "Nivel máximo alcanzado",
   };
 };
 
-const toNumber = (value) => Number(value || 0);
+const getUserId = (req) => {
+  return req.user?.id || req.user?.userId || req.user?.user_id || null;
+};
 
-const roundMetric = (value) => Math.round(Number(value || 0) * 100) / 100;
+const getUserInfo = async (userId) => {
+  if (!userId) return null;
 
-const getMarketImpactReport = async (supermarketId) => {
+  const result = await pool.query(
+    `SELECT id, name, email, role, organization_type
+     FROM users
+     WHERE id = $1
+     LIMIT 1`,
+    [userId]
+  );
+
+  return result.rows[0] || null;
+};
+
+const getUnreadNotificationsCount = async (userId) => {
+  if (!userId) return 0;
+
+  try {
+    const result = await pool.query(
+      `SELECT COUNT(*)::int AS unread_notifications
+       FROM notifications
+       WHERE user_id = $1
+         AND COALESCE(is_read, false) = false`,
+      [userId]
+    );
+
+    return toNumber(result.rows[0]?.unread_notifications);
+  } catch (error) {
+    console.error("Error getting unread notifications count:", error.message);
+    return 0;
+  }
+};
+
+const getReservationStats = async ({ role, userId }) => {
+  const normalizedRole = normalizeRole(role);
+
+  if (normalizedRole === "SUPERMARKET") {
+    const result = await pool.query(
+      `SELECT
+         COUNT(*)::int AS total_reservations,
+         COUNT(*) FILTER (WHERE r.status = 'PENDING')::int AS pending_reservations,
+         COUNT(*) FILTER (WHERE r.status = 'CONFIRMED')::int AS confirmed_reservations,
+         COUNT(*) FILTER (WHERE r.status = 'COMPLETED')::int AS completed_reservations,
+         COUNT(*) FILTER (WHERE r.status = 'CANCELLED')::int AS cancelled_reservations
+       FROM reservations r
+       INNER JOIN products p ON p.id = r.product_id
+       WHERE p.supermarket_id = $1`,
+      [userId]
+    );
+
+    return result.rows[0] || {};
+  }
+
+  if (normalizedRole === "ONG") {
+    const result = await pool.query(
+      `SELECT
+         COUNT(*)::int AS total_reservations,
+         COUNT(*) FILTER (WHERE status = 'PENDING')::int AS pending_reservations,
+         COUNT(*) FILTER (WHERE status = 'CONFIRMED')::int AS confirmed_reservations,
+         COUNT(*) FILTER (WHERE status = 'COMPLETED')::int AS completed_reservations,
+         COUNT(*) FILTER (WHERE status = 'CANCELLED')::int AS cancelled_reservations
+       FROM reservations
+       WHERE ong_id = $1`,
+      [userId]
+    );
+
+    return result.rows[0] || {};
+  }
+
+  const result = await pool.query(
+    `SELECT
+       COUNT(*)::int AS total_reservations,
+       COUNT(*) FILTER (WHERE status = 'PENDING')::int AS pending_reservations,
+       COUNT(*) FILTER (WHERE status = 'CONFIRMED')::int AS confirmed_reservations,
+       COUNT(*) FILTER (WHERE status = 'COMPLETED')::int AS completed_reservations,
+       COUNT(*) FILTER (WHERE status = 'CANCELLED')::int AS cancelled_reservations
+     FROM reservations`
+  );
+
+  return result.rows[0] || {};
+};
+
+const getProductsAvailableCount = async ({ role, userId }) => {
+  const normalizedRole = normalizeRole(role);
+
+  if (normalizedRole === "SUPERMARKET") {
+    const result = await pool.query(
+      `SELECT COUNT(*)::int AS products_available
+       FROM products
+       WHERE supermarket_id = $1
+         AND COALESCE(quantity, 0) > 0`,
+      [userId]
+    );
+
+    return toNumber(result.rows[0]?.products_available);
+  }
+
+  const result = await pool.query(
+    `SELECT COUNT(*)::int AS products_available
+     FROM products
+     WHERE COALESCE(quantity, 0) > 0`
+  );
+
+  return toNumber(result.rows[0]?.products_available);
+};
+
+const getImpactScopeClause = (supermarketId) => {
+  return supermarketId ? "WHERE p.supermarket_id = $1" : "";
+};
+
+const getImpactParams = (supermarketId) => {
+  return supermarketId ? [supermarketId] : [];
+};
+
+const getImpactReport = async (supermarketId = null) => {
+  const scopeClause = getImpactScopeClause(supermarketId);
+  const params = getImpactParams(supermarketId);
+
   const productsResult = await pool.query(
     `SELECT COUNT(*)::int AS total_products_published
      FROM products
-     WHERE supermarket_id = $1`,
-    [supermarketId]
+     ${supermarketId ? "WHERE supermarket_id = $1" : ""}`,
+    params
   );
 
   const reservationsResult = await pool.query(
@@ -52,13 +223,59 @@ const getMarketImpactReport = async (supermarketId) => {
        COUNT(*) FILTER (WHERE r.status = 'COMPLETED')::int AS completed_reservations,
        COUNT(*) FILTER (WHERE r.status = 'PENDING')::int AS pending_reservations,
        COUNT(*) FILTER (WHERE r.status = 'CANCELLED')::int AS cancelled_reservations,
-       COUNT(DISTINCT r.ong_id) FILTER (WHERE r.status = 'COMPLETED')::int AS distinct_ongs_helped,
-       COALESCE(SUM(r.quantity_reserved) FILTER (WHERE r.status = 'COMPLETED'), 0)::numeric AS total_quantity_delivered
+       COUNT(DISTINCT r.ong_id) FILTER (WHERE r.status = 'COMPLETED')::int AS distinct_ongs_helped
      FROM reservations r
      INNER JOIN products p ON p.id = r.product_id
-     WHERE p.supermarket_id = $1`,
-    [supermarketId]
+     ${scopeClause}`,
+    params
   );
+
+  const completedDeliveriesResult = await pool.query(
+    `SELECT
+       COALESCE(r.quantity_reserved, 0)::numeric AS quantity_reserved,
+       p.unit AS unit
+     FROM reservations r
+     INNER JOIN products p ON p.id = r.product_id
+     ${scopeClause}
+     ${scopeClause ? "AND" : "WHERE"} r.status = 'COMPLETED'`,
+    params
+  );
+
+  const deliveredByUnitMap = new Map();
+  let totalQuantityDelivered = 0;
+  let measuredKgRecovered = 0;
+
+  completedDeliveriesResult.rows.forEach((row) => {
+    const quantity = toNumber(row.quantity_reserved);
+    const unit = normalizeUnit(row.unit);
+
+    totalQuantityDelivered += quantity;
+
+    deliveredByUnitMap.set(
+      unit,
+      roundMetric((deliveredByUnitMap.get(unit) || 0) + quantity)
+    );
+
+    if (isWeightUnit(unit)) {
+      measuredKgRecovered += quantity;
+    }
+  });
+
+  let deliveredByUnit = Array.from(deliveredByUnitMap.entries())
+    .map(([unit, quantity]) => ({
+      unit,
+      quantity: roundMetric(quantity),
+    }))
+    .sort((a, b) => b.quantity - a.quantity || a.unit.localeCompare(b.unit));
+
+  if (totalQuantityDelivered > 0 && deliveredByUnit.length === 0) {
+    deliveredByUnit = [
+      {
+        unit: "sin unidad informada",
+        quantity: roundMetric(totalQuantityDelivered),
+      },
+    ];
+  }
 
   const topOngsResult = await pool.query(
     `SELECT
@@ -71,11 +288,11 @@ const getMarketImpactReport = async (supermarketId) => {
      FROM reservations r
      INNER JOIN products p ON p.id = r.product_id
      INNER JOIN users u ON u.id = r.ong_id
-     WHERE p.supermarket_id = $1
+     ${scopeClause}
      GROUP BY u.id, u.name, u.organization_type
      ORDER BY completed_reservations DESC, total_reservations DESC, u.name ASC
      LIMIT 5`,
-    [supermarketId]
+    params
   );
 
   const monthlyResult = await pool.query(
@@ -85,19 +302,17 @@ const getMarketImpactReport = async (supermarketId) => {
        COALESCE(SUM(r.quantity_reserved), 0)::numeric AS total_quantity_delivered
      FROM reservations r
      INNER JOIN products p ON p.id = r.product_id
-     WHERE p.supermarket_id = $1
-       AND r.status = 'COMPLETED'
+     ${scopeClause}
+     ${scopeClause ? "AND" : "WHERE"} r.status = 'COMPLETED'
        AND r.reserved_at IS NOT NULL
      GROUP BY DATE_TRUNC('month', r.reserved_at)
      ORDER BY DATE_TRUNC('month', r.reserved_at) ASC`,
-    [supermarketId]
+    params
   );
 
   const stats = reservationsResult.rows[0] || {};
   const totalReservations = toNumber(stats.total_reservations_received);
   const completedReservations = toNumber(stats.completed_reservations);
-  const totalQuantityDelivered = toNumber(stats.total_quantity_delivered);
-  const estimatedKgRecovered = totalQuantityDelivered * 0.5;
 
   return {
     total_products_published: toNumber(
@@ -108,14 +323,21 @@ const getMarketImpactReport = async (supermarketId) => {
     pending_reservations: toNumber(stats.pending_reservations),
     cancelled_reservations: toNumber(stats.cancelled_reservations),
     distinct_ongs_helped: toNumber(stats.distinct_ongs_helped),
+
     total_quantity_delivered: roundMetric(totalQuantityDelivered),
-    estimated_kg_recovered: roundMetric(estimatedKgRecovered),
-    estimated_co2_avoided: roundMetric(estimatedKgRecovered * 2),
-    estimated_water_saved: roundMetric(estimatedKgRecovered * 4),
+    delivered_by_unit: deliveredByUnit,
+
+    measured_kg_recovered: roundMetric(measuredKgRecovered),
+    co2_factor_per_kg: CO2_FACTOR_PER_KG,
+    estimated_co2_avoided: roundMetric(
+      measuredKgRecovered * CO2_FACTOR_PER_KG
+    ),
+
     utilization_rate:
       totalReservations === 0
         ? 0
         : roundMetric((completedReservations / totalReservations) * 100),
+
     top_ongs: topOngsResult.rows.map((ong) => ({
       id: ong.id,
       name: ong.name || "Sin nombre",
@@ -124,6 +346,7 @@ const getMarketImpactReport = async (supermarketId) => {
       completed_reservations: toNumber(ong.completed_reservations),
       total_quantity_delivered: roundMetric(ong.total_quantity_delivered),
     })),
+
     monthly_completed_deliveries: monthlyResult.rows.map((row) => ({
       month: row.month || "Sin fecha",
       completed_deliveries: toNumber(row.completed_deliveries),
@@ -132,159 +355,112 @@ const getMarketImpactReport = async (supermarketId) => {
   };
 };
 
-// Obtiene el resumen del dashboard segun el rol del usuario autenticado
-const getDashboardSummary = async (req, res) => {
+const getDashboard = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const userRole = req.user.role;
-    let summary = {};
+    const userId = getUserId(req);
+    const authRole = req.user?.role;
 
-    if (userRole === "SUPERMARKET") {
-      const productsResult = await pool.query(
-        `SELECT COUNT(*)::int AS products_available
-         FROM products
-         WHERE supermarket_id = $1
-         AND status = 'AVAILABLE'`,
-        [userId]
-      );
+    const user = await getUserInfo(userId);
+    const role = normalizeRole(user?.role || authRole);
 
-      const reservationsResult = await pool.query(
-        `SELECT
-          COUNT(*)::int AS total_reservations,
-          COUNT(*) FILTER (WHERE r.status = 'PENDING')::int AS reservations_pending,
-          COUNT(*) FILTER (WHERE r.status = 'CONFIRMED')::int AS reservations_confirmed,
-          COUNT(*) FILTER (WHERE r.status = 'COMPLETED')::int AS reservations_completed,
-          COUNT(*) FILTER (WHERE r.status = 'CANCELLED')::int AS reservations_cancelled
-        FROM reservations r
-        INNER JOIN products p ON p.id = r.product_id
-        WHERE p.supermarket_id = $1`,
-        [userId]
-      );
+    const reservationStats = await getReservationStats({ role, userId });
+    const productsAvailable = await getProductsAvailableCount({ role, userId });
+    const unreadNotifications = await getUnreadNotificationsCount(userId);
 
-      const notificationsResult = await pool.query(
-        `SELECT COUNT(*)::int AS unread_notifications
-         FROM notifications
-         WHERE user_id = $1
-         AND is_read = false`,
-        [userId]
-      );
+    const completedReservations = toNumber(
+      reservationStats.completed_reservations
+    );
 
-      const completedCount = reservationsResult.rows[0].reservations_completed;
-      const marketImpactReport = await getMarketImpactReport(userId);
+    const impactLevel = calculateImpactLevel(completedReservations);
 
-      summary = {
-        role: userRole,
-        products_available: productsResult.rows[0].products_available,
-        total_reservations: reservationsResult.rows[0].total_reservations,
-        reservations_pending: reservationsResult.rows[0].reservations_pending,
-        reservations_confirmed:
-          reservationsResult.rows[0].reservations_confirmed,
-        reservations_completed: completedCount,
-        reservations_cancelled:
-          reservationsResult.rows[0].reservations_cancelled,
-        unread_notifications: notificationsResult.rows[0].unread_notifications,
-        market_impact_report: marketImpactReport,
-        ...calculateImpactLevel(completedCount),
-      };
-    } else if (userRole === "ONG") {
-      const productsResult = await pool.query(
-        `SELECT COUNT(*)::int AS products_available
-         FROM products
-         WHERE status = 'AVAILABLE'`
-      );
+    let impactReport = null;
 
-      const reservationsResult = await pool.query(
-        `SELECT
-          COUNT(*)::int AS total_reservations,
-          COUNT(*) FILTER (WHERE status = 'PENDING')::int AS reservations_pending,
-          COUNT(*) FILTER (WHERE status = 'CONFIRMED')::int AS reservations_confirmed,
-          COUNT(*) FILTER (WHERE status = 'COMPLETED')::int AS reservations_completed,
-          COUNT(*) FILTER (WHERE status = 'CANCELLED')::int AS reservations_cancelled
-        FROM reservations
-        WHERE ong_id = $1`,
-        [userId]
-      );
-
-      const notificationsResult = await pool.query(
-        `SELECT COUNT(*)::int AS unread_notifications
-         FROM notifications
-         WHERE user_id = $1
-         AND is_read = false`,
-        [userId]
-      );
-
-      const completedCount = reservationsResult.rows[0].reservations_completed;
-
-      summary = {
-        role: userRole,
-        products_available: productsResult.rows[0].products_available,
-        total_reservations: reservationsResult.rows[0].total_reservations,
-        reservations_pending: reservationsResult.rows[0].reservations_pending,
-        reservations_confirmed:
-          reservationsResult.rows[0].reservations_confirmed,
-        reservations_completed: completedCount,
-        reservations_cancelled:
-          reservationsResult.rows[0].reservations_cancelled,
-        unread_notifications: notificationsResult.rows[0].unread_notifications,
-        ...calculateImpactLevel(completedCount),
-      };
-    } else if (userRole === "ADMIN") {
-      const productsResult = await pool.query(
-        `SELECT COUNT(*)::int AS products_available
-         FROM products
-         WHERE status = 'AVAILABLE'`
-      );
-
-      const reservationsResult = await pool.query(
-        `SELECT
-          COUNT(*)::int AS total_reservations,
-          COUNT(*) FILTER (WHERE status = 'PENDING')::int AS reservations_pending,
-          COUNT(*) FILTER (WHERE status = 'CONFIRMED')::int AS reservations_confirmed,
-          COUNT(*) FILTER (WHERE status = 'COMPLETED')::int AS reservations_completed,
-          COUNT(*) FILTER (WHERE status = 'CANCELLED')::int AS reservations_cancelled
-        FROM reservations`
-      );
-
-      const notificationsResult = await pool.query(
-        `SELECT COUNT(*)::int AS unread_notifications
-         FROM notifications
-         WHERE is_read = false`
-      );
-
-      const completedCount = reservationsResult.rows[0].reservations_completed;
-
-      summary = {
-        role: userRole,
-        products_available: productsResult.rows[0].products_available,
-        total_reservations: reservationsResult.rows[0].total_reservations,
-        reservations_pending: reservationsResult.rows[0].reservations_pending,
-        reservations_confirmed:
-          reservationsResult.rows[0].reservations_confirmed,
-        reservations_completed: completedCount,
-        reservations_cancelled:
-          reservationsResult.rows[0].reservations_cancelled,
-        unread_notifications: notificationsResult.rows[0].unread_notifications,
-        ...calculateImpactLevel(completedCount),
-      };
-    } else {
-      return res.status(403).json({
-        error: "Rol no autorizado para ver el resumen",
-      });
+    if (role === "SUPERMARKET") {
+      impactReport = await getImpactReport(userId);
     }
 
-    res.json({
-      message: "Resumen obtenido correctamente",
-      summary,
+    if (role === "ADMIN") {
+      impactReport = await getImpactReport(null);
+    }
+
+    const payload = {
+      success: true,
+
+      user: user || {
+        id: userId,
+        role,
+      },
+
+      role,
+
+      products_available: productsAvailable,
+      total_reservations: toNumber(reservationStats.total_reservations),
+      pending_reservations: toNumber(reservationStats.pending_reservations),
+      confirmed_reservations: toNumber(
+        reservationStats.confirmed_reservations
+      ),
+      completed_reservations: completedReservations,
+      cancelled_reservations: toNumber(
+        reservationStats.cancelled_reservations
+      ),
+      unread_notifications: unreadNotifications,
+
+      ...impactLevel,
+
+      impact_report: impactReport,
+      market_impact_report: impactReport,
+    };
+
+    return res.json(payload);
+  } catch (error) {
+    console.error("Error getting dashboard:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error obteniendo dashboard",
+      error: error.message,
+    });
+  }
+};
+
+const getImpactReportController = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    const authRole = req.user?.role;
+
+    const user = await getUserInfo(userId);
+    const role = normalizeRole(user?.role || authRole);
+
+    let report = null;
+
+    if (role === "SUPERMARKET") {
+      report = await getImpactReport(userId);
+    } else if (role === "ADMIN") {
+      report = await getImpactReport(null);
+    } else {
+      report = null;
+    }
+
+    return res.json({
+      success: true,
+      user,
+      role,
+      impact_report: report,
+      market_impact_report: report,
     });
   } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      error: "Error al obtener resumen del dashboard",
+    console.error("Error getting impact report:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error obteniendo reporte de impacto",
+      error: error.message,
     });
   }
 };
 
 module.exports = {
-  getDashboardSummary,
+  getDashboard,
+  getDashboardSummary: getDashboard,
+  getDashboardData: getDashboard,
+  getImpactReport: getImpactReportController,
+  getImpactReportController,
 };

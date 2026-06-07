@@ -1,9 +1,17 @@
 import { pageStyles as styles } from "../styles/pageStyles";
 import renovaLogo from "../assets/renova-logo-tr-verde.png";
 
-function AppSidebar({ active = "dashboard", isAdmin = false, navigate, onLogout }) {
+function AppSidebar({
+  active = "dashboard",
+  user = null,
+  isAdmin = false,
+  navigate,
+  onLogout,
+}) {
   const getButtonStyle = (key) =>
     active === key ? styles.navButtonActive : styles.navButton;
+  const canViewImpact =
+    isAdmin || user?.role === "ADMIN" || user?.role === "SUPERMARKET";
 
   return (
     <aside style={styles.sidebar}>
@@ -38,6 +46,17 @@ function AppSidebar({ active = "dashboard", isAdmin = false, navigate, onLogout 
           <span>📋</span>
           Reservas
         </button>
+
+        {canViewImpact && (
+          <button
+            type="button"
+            style={getButtonStyle("impact")}
+            onClick={() => navigate("/impact")}
+          >
+            <span>📈</span>
+            Impacto
+          </button>
+        )}
 
         {isAdmin && (
           <button

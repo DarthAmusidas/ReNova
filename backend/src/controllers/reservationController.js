@@ -30,14 +30,80 @@ const getConfirmationDeadline = (reservedAt) => {
   return new Date(reservedDate.getTime() + 48 * 60 * 60 * 1000);
 };
 
+const EXPIRATION_ERROR =
+  "La reserva venció porque pasaron más de 48 horas. Debés realizar una nueva reserva.";
+
 const isConfirmationExpired = (reservation) => {
-  if (!reservation || reservation.status !== "PENDING") return false;
+  if (
+    !reservation ||
+    !["PENDING", "CONFIRMED"].includes(reservation.status) ||
+    reservation.ong_completed === true
+  ) {
+    return false;
+  }
 
   const deadline = getConfirmationDeadline(reservation.reserved_at);
 
   if (!deadline) return false;
 
   return new Date() > deadline;
+};
+
+const expireOldOngReservations = async () => {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const expiredResult = await client.query(
+      `
+      SELECT
+        r.id,
+        r.product_id,
+        r.quantity_reserved,
+        p.quantity AS product_quantity
+      FROM reservations r
+      INNER JOIN products p ON p.id = r.product_id
+      WHERE r.status IN ('PENDING', 'CONFIRMED')
+        AND COALESCE(r.ong_completed, false) = false
+        AND r.reserved_at IS NOT NULL
+        AND NOW() > r.reserved_at + INTERVAL '48 hours'
+      FOR UPDATE OF r, p
+      `
+    );
+
+    for (const reservation of expiredResult.rows) {
+      const restoredQuantity =
+        Number(reservation.product_quantity || 0) +
+        Number(reservation.quantity_reserved || 0);
+
+      await client.query(
+        `
+        UPDATE products
+        SET quantity = $1,
+            status = 'AVAILABLE'
+        WHERE id = $2
+        `,
+        [restoredQuantity, reservation.product_id]
+      );
+
+      await client.query(
+        `
+        UPDATE reservations
+        SET status = 'CANCELLED'
+        WHERE id = $1
+        `,
+        [reservation.id]
+      );
+    }
+
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("Error expiring old ONG reservations:", error);
+  } finally {
+    client.release();
+  }
 };
 
 const generateUniqueOrderCode = async (client) => {
@@ -171,17 +237,16 @@ const createReservation = async (req, res) => {
       });
     }
 
-    // Enforce 50% reservation limit
+    // Enforce reservation quantity limit
     const availableQuantity = Number(product.quantity);
     let maxAllowedQuantity;
 
-    if (availableQuantity === 1) {
-      maxAllowedQuantity = 1;
+    if (availableQuantity <= 0) {
+      maxAllowedQuantity = 0;
+    } else if (availableQuantity <= 10) {
+      maxAllowedQuantity = availableQuantity;
     } else {
-      maxAllowedQuantity = Math.floor(availableQuantity * 0.5);
-      if (maxAllowedQuantity < 1) {
-        maxAllowedQuantity = 1;
-      }
+      maxAllowedQuantity = Math.ceil(availableQuantity * 0.5);
     }
 
     if (quantity > maxAllowedQuantity) {
@@ -189,7 +254,7 @@ const createReservation = async (req, res) => {
       transactionStarted = false;
 
       return res.status(400).json({
-        error: "No se puede reservar más del 50% del stock disponible.",
+        error: `No se puede reservar más de ${maxAllowedQuantity} ${product.unit || "unidades"} del stock disponible.`,
       });
     }
 
@@ -285,6 +350,8 @@ const createReservation = async (req, res) => {
 
 const getReservations = async (req, res) => {
   try {
+    await expireOldOngReservations();
+
     const userId = req.user.id;
     const userRole = req.user.role;
 
@@ -305,7 +372,8 @@ const getReservations = async (req, res) => {
             ELSE r.reserved_at + INTERVAL '48 hours'
           END AS confirmation_deadline,
           CASE
-            WHEN r.status = 'PENDING'
+            WHEN r.status IN ('PENDING', 'CONFIRMED')
+             AND COALESCE(r.ong_completed, false) = false
              AND r.reserved_at IS NOT NULL
              AND NOW() > r.reserved_at + INTERVAL '48 hours'
             THEN true
@@ -363,7 +431,8 @@ const getReservations = async (req, res) => {
             ELSE r.reserved_at + INTERVAL '48 hours'
           END AS confirmation_deadline,
           CASE
-            WHEN r.status = 'PENDING'
+            WHEN r.status IN ('PENDING', 'CONFIRMED')
+             AND COALESCE(r.ong_completed, false) = false
              AND r.reserved_at IS NOT NULL
              AND NOW() > r.reserved_at + INTERVAL '48 hours'
             THEN true
@@ -421,7 +490,8 @@ const getReservations = async (req, res) => {
             ELSE r.reserved_at + INTERVAL '48 hours'
           END AS confirmation_deadline,
           CASE
-            WHEN r.status = 'PENDING'
+            WHEN r.status IN ('PENDING', 'CONFIRMED')
+             AND COALESCE(r.ong_completed, false) = false
              AND r.reserved_at IS NOT NULL
              AND NOW() > r.reserved_at + INTERVAL '48 hours'
             THEN true
@@ -498,6 +568,8 @@ const updateReservationStatus = async (req, res) => {
       });
     }
 
+    await expireOldOngReservations();
+
     await client.query("BEGIN");
 
     const reservationResult = await client.query(
@@ -551,6 +623,26 @@ const updateReservationStatus = async (req, res) => {
       });
     }
 
+    const deadline = getConfirmationDeadline(reservation.reserved_at);
+    const wasCancelledByExpiration =
+      reservation.status === "CANCELLED" &&
+      reservation.ong_completed !== true &&
+      deadline &&
+      new Date() > deadline;
+
+    if (
+      status === "COMPLETED" &&
+      isReservationOng &&
+      userRole === "ONG" &&
+      wasCancelledByExpiration
+    ) {
+      await client.query("ROLLBACK");
+
+      return res.status(400).json({
+        error: EXPIRATION_ERROR,
+      });
+    }
+
     if (reservation.status === "CANCELLED") {
       await client.query("ROLLBACK");
 
@@ -582,7 +674,7 @@ const updateReservationStatus = async (req, res) => {
         await client.query("ROLLBACK");
 
         return res.status(400).json({
-          error: "La reserva superó el plazo de confirmación de 48 horas.",
+          error: EXPIRATION_ERROR,
         });
       }
 
@@ -664,6 +756,14 @@ const updateReservationStatus = async (req, res) => {
     }
 
     if (status === "COMPLETED") {
+      if (isConfirmationExpired(reservation)) {
+        await client.query("ROLLBACK");
+
+        return res.status(400).json({
+          error: EXPIRATION_ERROR,
+        });
+      }
+
       if (reservation.status !== "CONFIRMED") {
         await client.query("ROLLBACK");
 

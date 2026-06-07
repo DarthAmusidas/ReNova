@@ -5,6 +5,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import Reservations from "./pages/Reservations";
+import ImpactReport from "./pages/ImpactReport";
 import CreateProduct from "./pages/CreateProduct";
 import EditProduct from "./pages/EditProduct";
 import AdminUsers from "./pages/AdminUsers";
@@ -70,6 +71,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Reservations />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/impact"
+          element={
+            <ProtectedRoute>
+              <ImpactReport />
             </ProtectedRoute>
           }
         />
