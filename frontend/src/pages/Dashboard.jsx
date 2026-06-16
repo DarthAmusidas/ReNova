@@ -372,7 +372,7 @@ function Dashboard() {
           </section>
         ) : (
           <>
-            {!isOng && (
+            {isSupermarket && (
               <section style={styles.levelPanel}>
                 <div>
                   <span style={styles.levelEyebrow}>Nivel de impacto</span>
