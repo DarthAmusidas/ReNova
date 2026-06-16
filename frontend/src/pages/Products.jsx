@@ -339,7 +339,6 @@ function Products() {
           {[
             { key: "ALL", label: "Todas", count: productCounts.ALL },
             { key: "AVAILABLE", label: "Disponibles", count: productCounts.AVAILABLE },
-            { key: "UNAVAILABLE", label: "No disponibles", count: productCounts.UNAVAILABLE },
             { key: "LOW_ROTATION", label: "Baja rotación", count: productCounts.LOW_ROTATION, title: "Productos con poco movimiento de venta" },
             { key: "SOON_TO_EXPIRE", label: "Próx. a vencer", count: productCounts.SOON_TO_EXPIRE, title: "Productos que vencen en los próximos 7 días" },
             { key: "EXPIRED", label: "Vencidos", count: productCounts.EXPIRED, title: "Productos cuyo vencimiento ya pasó" },

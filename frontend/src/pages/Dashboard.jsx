@@ -372,24 +372,26 @@ function Dashboard() {
           </section>
         ) : (
           <>
-            <section style={styles.levelPanel}>
-              <div>
-                <span style={styles.levelEyebrow}>Nivel de impacto</span>
-                <h2 style={styles.levelTitle}>
-                  Nivel {impactLevel.level} - {impactLevel.label}
-                </h2>
-                <p style={styles.levelText}>{impactLevel.text}</p>
-              </div>
+            {!isOng && (
+              <section style={styles.levelPanel}>
+                <div>
+                  <span style={styles.levelEyebrow}>Nivel de impacto</span>
+                  <h2 style={styles.levelTitle}>
+                    Nivel {impactLevel.level} - {impactLevel.label}
+                  </h2>
+                  <p style={styles.levelText}>{impactLevel.text}</p>
+                </div>
 
-              <div style={styles.progressTrack}>
-                <div
-                  style={{
-                    ...styles.progressFill,
-                    width: `${impactLevel.progress}%`,
-                  }}
-                />
-              </div>
-            </section>
+                <div style={styles.progressTrack}>
+                  <div
+                    style={{
+                      ...styles.progressFill,
+                      width: `${impactLevel.progress}%`,
+                    }}
+                  />
+                </div>
+              </section>
+            )}
 
             <section style={styles.metricsGrid}>
               {metrics.map((metric) => (
