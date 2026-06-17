@@ -120,8 +120,8 @@ a {
 }
 
 .login-brand-logo {
-  width: 180px;
-  max-width: 70%;
+  width: 560px;
+  max-width: 90%;
   height: auto;
   display: block;
   object-fit: contain;
@@ -161,7 +161,7 @@ a {
 
 .login-main-title {
   margin: 0;
-  font-size: clamp(2.6rem, 5vw, 4.7rem);
+  font-size: clamp(2.25rem, 4.2vw, 3.9rem);
   line-height: 1.02;
   letter-spacing: -2px;
   color: #102018;
@@ -299,7 +299,7 @@ a {
 }
 
 .login-card-logo {
-  width: 124px;
+  width: 162px;
   max-width: 80%;
   height: auto;
   display: block;

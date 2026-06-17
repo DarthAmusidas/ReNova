@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../services/authService";
-import renovaLogo from "../assets/renova-logo-transparent.png";
+import renovaLogo from "../assets/renova-logo-login.png";
 
 function Login() {
   const navigate = useNavigate();
