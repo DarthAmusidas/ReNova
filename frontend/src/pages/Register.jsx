@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { register } from "../services/authService";
+import renovaLogo from "../assets/renova-logo-login.png";
 
 const organizationTypes = [
   "Comedor",
@@ -66,8 +67,7 @@ function Register() {
 
       <section className="login-left-modern">
         <div className="login-brand-modern">
-          <div className="brand-leaf">🌱</div>
-          <h1>ReNova</h1>
+          <img className="login-brand-logo" src={renovaLogo} alt="ReNova" />
         </div>
 
         <span className="green-badge">♡ Plataforma solidaria</span>
@@ -130,6 +130,7 @@ function Register() {
       <section className="login-right-modern">
         <div className="login-card-modern register-card-modern">
           <div className="login-lock-icon">📝</div>
+          <img className="login-card-logo" src={renovaLogo} alt="ReNova" />
 
           <h2>Crear cuenta</h2>
 
