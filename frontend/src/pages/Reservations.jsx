@@ -6,7 +6,6 @@ import {
 } from "../services/reservationService";
 import AppSidebar from "../components/AppSidebar";
 import HeaderUserCard from "../components/HeaderUserCard";
-import NotificationBell from "../components/NotificationBell";
 import { pageStyles as styles, getStatusStyle } from "../styles/pageStyles";
 
 const RESERVATIONS_PER_PAGE = 4;
@@ -806,7 +805,6 @@ function Reservations() {
 
           <div style={styles.userArea} className="renova-header-actions renova-page-header-actions">
             <HeaderUserCard user={user} />
-            <NotificationBell />
           </div>
         </header>
 

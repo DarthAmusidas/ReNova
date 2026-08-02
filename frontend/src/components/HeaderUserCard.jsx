@@ -1,4 +1,6 @@
-﻿function HeaderUserCard({ user = null }) {
+import NotificationBell from "./NotificationBell";
+
+function HeaderUserCard({ user = null }) {
   const userName = user?.name || "Usuario";
 
   const roleLabel =
@@ -18,15 +20,21 @@
       .toUpperCase();
 
   return (
-    <div className="renova-user-summary renova-header-user-card">
-      <div className="renova-user-avatar">
-        {getInitials(userName)}
+    <div className="renova-user-summary renova-header-user-card renova-user-summary-with-bell">
+      <div className="renova-user-main">
+        <div className="renova-user-avatar">
+          {getInitials(userName)}
+        </div>
+
+        <div className="renova-user-meta">
+          <span>Usuario</span>
+          <strong>{userName}</strong>
+          <small>{roleLabel}</small>
+        </div>
       </div>
 
-      <div className="renova-user-meta">
-        <span>Usuario</span>
-        <strong>{userName}</strong>
-        <small>{roleLabel}</small>
+      <div className="renova-user-notification">
+        <NotificationBell />
       </div>
     </div>
   );

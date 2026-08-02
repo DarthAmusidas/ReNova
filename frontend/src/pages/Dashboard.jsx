@@ -2,7 +2,7 @@
 import { useNavigate } from "react-router-dom";
 import { getDashboardSummary } from "../services/dashboardService";
 import AppSidebar from "../components/AppSidebar";
-import NotificationBell from "../components/NotificationBell";
+import HeaderUserCard from "../components/HeaderUserCard";
 
 function DashboardIcon({ type }) {
   const commonProps = {
@@ -468,19 +468,7 @@ function Dashboard() {
           </div>
 
           <div className="renova-header-actions">
-            <div className="renova-user-summary renova-dashboard-user-card">
-              <div className="renova-user-avatar">
-                {getUserInitials(userName)}
-              </div>
-
-              <div className="renova-user-meta">
-                <span>Usuario</span>
-                <strong>{userName}</strong>
-                <small>{roleLabel}</small>
-              </div>
-            </div>
-
-            <NotificationBell />
+            <HeaderUserCard user={user} />
           </div>
         </header>
 

@@ -4,7 +4,6 @@ import { getProducts, deleteProduct } from "../services/productService";
 import { createReservation } from "../services/reservationService";
 import AppSidebar from "../components/AppSidebar";
 import HeaderUserCard from "../components/HeaderUserCard";
-import NotificationBell from "../components/NotificationBell";
 import { pageStyles as styles } from "../styles/pageStyles";
 
 const PRODUCTS_PER_PAGE = 4;
@@ -514,7 +513,6 @@ function Products() {
           </div>
           <div className="renova-header-actions">
             <HeaderUserCard user={user} />
-            <NotificationBell />
           </div>
         </header>
 
