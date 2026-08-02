@@ -2977,3 +2977,180 @@ a {
     padding: 42px 32px !important;
   }
 }
+
+/* =========================================
+   LOGIN MOBILE FIX - BETA SAFE
+   Desktop queda igual. Mobile prioriza usabilidad.
+========================================= */
+
+@media (max-width: 900px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden !important;
+  }
+
+  .login-page-modern {
+    width: 100% !important;
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding: 18px !important;
+    background:
+      radial-gradient(circle at 80% 0%, rgba(130, 190, 70, 0.20), transparent 28%),
+      radial-gradient(circle at 8% 100%, rgba(120, 185, 80, 0.14), transparent 30%),
+      linear-gradient(135deg, #fbfcf3 0%, #eef8e9 52%, #f7fbf2 100%) !important;
+  }
+
+  /* En mobile sacamos el hero visual para que no rompa */
+  .login-left-modern {
+    display: none !important;
+  }
+
+  .login-right-modern {
+    width: 100% !important;
+    min-height: calc(100vh - 36px) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .login-card-modern {
+    width: 100% !important;
+    max-width: 430px !important;
+    min-height: auto !important;
+    padding: 34px 24px 28px !important;
+    margin: 0 auto !important;
+    border-radius: 28px !important;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.82) 0%,
+        rgba(247, 253, 242, 0.68) 100%
+      ) !important;
+    border: 1px solid rgba(255, 255, 255, 0.72) !important;
+    box-shadow:
+      0 24px 56px rgba(30, 80, 35, 0.16),
+      inset 0 1px 0 rgba(255, 255, 255, 0.82) !important;
+    backdrop-filter: blur(18px) saturate(130%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(130%) !important;
+  }
+
+  .login-card-logo {
+    width: 150px !important;
+    margin: 0 auto 22px !important;
+  }
+
+  .login-card-modern h2 {
+    font-size: 2rem !important;
+    line-height: 1.08 !important;
+    letter-spacing: -0.7px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .login-card-modern > p {
+    max-width: 320px !important;
+    font-size: 0.94rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 26px !important;
+  }
+
+  .input-group-modern {
+    margin-bottom: 17px !important;
+  }
+
+  .input-group-modern label {
+    font-size: 0.92rem !important;
+    margin-bottom: 8px !important;
+  }
+
+  .input-with-icon {
+    min-height: 56px !important;
+    border-radius: 16px !important;
+  }
+
+  .input-with-icon input {
+    font-size: 0.96rem !important;
+  }
+
+  .login-options {
+    margin: 8px 0 22px !important;
+    gap: 12px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .remember-me,
+  .forgot-link {
+    font-size: 0.88rem !important;
+  }
+
+  .btn-login-modern {
+    min-height: 58px !important;
+    border-radius: 17px !important;
+    font-size: 1rem !important;
+  }
+
+  .login-separator {
+    margin: 23px 0 16px !important;
+  }
+
+  .login-register-text {
+    font-size: 0.92rem !important;
+  }
+
+  .leaf-shape,
+  .login-illustration-wrap,
+  .login-grocery-image,
+  .login-benefits,
+  .login-badge,
+  .login-title,
+  .login-description,
+  .login-main-logo {
+    display: none !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .login-page-modern {
+    padding: 12px !important;
+  }
+
+  .login-right-modern {
+    min-height: calc(100vh - 24px) !important;
+  }
+
+  .login-card-modern {
+    max-width: 100% !important;
+    padding: 30px 20px 24px !important;
+    border-radius: 24px !important;
+  }
+
+  .login-card-logo {
+    width: 138px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .login-card-modern h2 {
+    font-size: 1.75rem !important;
+  }
+
+  .login-card-modern > p {
+    font-size: 0.9rem !important;
+  }
+
+  .input-with-icon {
+    min-height: 54px !important;
+  }
+
+  .btn-login-modern {
+    min-height: 56px !important;
+  }
+}
