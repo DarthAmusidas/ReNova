@@ -1,110 +1,121 @@
-﻿const getFrontendUrl = () =>
-  process.env.FRONTEND_URL || "http://localhost:5173";
+﻿const dns = require("dns");
+const nodemailer = require("nodemailer");
 
-const getFromAddress = () =>
-  process.env.SMTP_FROM || "ReNova <no-reply@renova.com>";
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder("ipv4first");
+}
 
-const buildFrontendLink = (path, token) => {
-  const baseUrl = getFrontendUrl().replace(/\/$/, "");
-  return `${baseUrl}${path}?token=${encodeURIComponent(token)}`;
-};
+const dnsPromises = dns.promises;
 
-const getTransporter = () => {
-  if (!process.env.SMTP_HOST) {
+function getFrontendUrl() {
+  return process.env.FRONTEND_URL || "http://localhost:5173";
+}
+
+function buildFrontendLink(path, token) {
+  const frontendUrl = getFrontendUrl().replace(/\/$/, "");
+  return `${frontendUrl}${path}?token=${encodeURIComponent(token)}`;
+}
+
+async function resolveSmtpHost() {
+  const host = process.env.SMTP_HOST;
+
+  if (!host) {
     return null;
   }
 
-  const nodemailer = require("nodemailer");
+  try {
+    const addresses = await dnsPromises.resolve4(host);
+
+    if (addresses && addresses.length > 0) {
+      console.log(`SMTP IPv4 resolved: ${host} -> ${addresses[0]}`);
+      return addresses[0];
+    }
+  } catch (error) {
+    console.warn(`No se pudo resolver SMTP por IPv4, usando host original: ${error.message}`);
+  }
+
+  return host;
+}
+
+async function createTransporter() {
+  const smtpHost = process.env.SMTP_HOST;
+
+  if (!smtpHost) {
+    return null;
+  }
+
+  const resolvedHost = await resolveSmtpHost();
 
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
+    host: resolvedHost,
     port: Number(process.env.SMTP_PORT || 587),
-    secure: String(process.env.SMTP_SECURE || "false") === "true",
-    auth: process.env.SMTP_USER && process.env.SMTP_PASS
-      ? {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        }
-      : undefined,
+    secure: String(process.env.SMTP_SECURE).toLowerCase() === "true",
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+    tls: {
+      servername: smtpHost,
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+    dnsTimeout: 10000,
   });
-};
+}
 
-const sendEmail = async ({ to, subject, html, text }) => {
-  const transporter = getTransporter();
+async function sendMail({ to, subject, text, html }) {
+  const transporter = await createTransporter();
 
   if (!transporter) {
-    console.log("\n================ EMAIL MOCK ================");
+    console.log("================ EMAIL MOCK ================");
     console.log("To:", to);
     console.log("Subject:", subject);
     console.log(text);
-    console.log("===========================================\n");
-
-    return {
-      sent: false,
-      mock: true,
-    };
+    console.log("===========================================");
+    return;
   }
 
   await transporter.sendMail({
-    from: getFromAddress(),
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
     to,
     subject,
-    html,
     text,
+    html,
   });
+}
 
-  return {
-    sent: true,
-    mock: false,
-  };
-};
+async function sendVerificationEmail({ to, name, token }) {
+  const link = buildFrontendLink("/verify-email", token);
 
-const sendVerificationEmail = async ({ to, name, token }) => {
-  const verificationLink = buildFrontendLink("/verify-email", token);
-
-  return sendEmail({
+  await sendMail({
     to,
-    subject: "Verificá tu email en ReNova",
-    text: `Hola ${name || ""}. Verificá tu email ingresando a este link: ${verificationLink}`,
+    subject: "Verificá tu cuenta de ReNova",
+    text: `Hola ${name || ""}. Verificá tu cuenta entrando a este enlace: ${link}`,
     html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.5;">
-        <h2>Verificá tu email en ReNova</h2>
-        <p>Hola ${name || ""}, gracias por registrarte en ReNova.</p>
-        <p>Para activar tu cuenta, ingresá al siguiente enlace:</p>
-        <p>
-          <a href="${verificationLink}" style="display:inline-block;padding:12px 18px;background:#16831e;color:#fff;text-decoration:none;border-radius:10px;font-weight:bold;">
-            Verificar email
-          </a>
-        </p>
-        <p>Este enlace vence en 24 horas.</p>
-      </div>
+      <p>Hola ${name || ""},</p>
+      <p>Para verificar tu cuenta de ReNova, ingresá al siguiente enlace:</p>
+      <p><a href="${link}">${link}</a></p>
     `,
   });
-};
+}
 
-const sendPasswordResetEmail = async ({ to, name, token }) => {
-  const resetLink = buildFrontendLink("/reset-password", token);
+async function sendPasswordResetEmail({ to, name, token }) {
+  const link = buildFrontendLink("/reset-password", token);
 
-  return sendEmail({
+  await sendMail({
     to,
-    subject: "Recuperá tu contraseña de ReNova",
-    text: `Hola ${name || ""}. Para recuperar tu contraseña ingresá a este link: ${resetLink}`,
+    subject: "Recuperar contraseña de ReNova",
+    text: `Hola ${name || ""}. Para recuperar tu contraseña, ingresá a este enlace: ${link}`,
     html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.5;">
-        <h2>Recuperá tu contraseña</h2>
-        <p>Hola ${name || ""}, recibimos una solicitud para restablecer tu contraseña.</p>
-        <p>Ingresá al siguiente enlace para definir una nueva contraseña:</p>
-        <p>
-          <a href="${resetLink}" style="display:inline-block;padding:12px 18px;background:#16831e;color:#fff;text-decoration:none;border-radius:10px;font-weight:bold;">
-            Restablecer contraseña
-          </a>
-        </p>
-        <p>Este enlace vence en 30 minutos.</p>
-        <p>Si no solicitaste este cambio, podés ignorar este mensaje.</p>
-      </div>
+      <p>Hola ${name || ""},</p>
+      <p>Recibimos una solicitud para recuperar tu contraseña de ReNova.</p>
+      <p>Ingresá al siguiente enlace para crear una nueva contraseña:</p>
+      <p><a href="${link}">${link}</a></p>
+      <p>Si no solicitaste este cambio, podés ignorar este correo.</p>
     `,
   });
-};
+}
 
 module.exports = {
   buildFrontendLink,
