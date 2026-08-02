@@ -10121,3 +10121,474 @@ html.renova-dark-mode .renova-impact-actions p {
     font-size: 0.74rem !important;
   }
 }
+
+/* =========================================
+   IMPACT LIGHT MODE FINAL POLISH
+   Más contraste y profundidad en modo claro
+========================================= */
+
+html:not(.renova-dark-mode) .renova-impact-main {
+  background:
+    radial-gradient(circle at 88% 0%, rgba(105, 178, 55, 0.22), transparent 28%),
+    radial-gradient(circle at 12% 92%, rgba(88, 160, 65, 0.13), transparent 32%),
+    linear-gradient(135deg, #fbfdf6 0%, #edf8e6 52%, #f7fbf2 100%) !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-report-card {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.94), rgba(250,253,247,0.88)) !important;
+  border: 1px solid rgba(126, 174, 98, 0.20) !important;
+  box-shadow:
+    0 28px 70px rgba(39, 91, 35, 0.11),
+    inset 0 1px 0 rgba(255,255,255,0.92) !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-metric-card,
+html:not(.renova-dark-mode) .renova-impact-visual-card,
+html:not(.renova-dark-mode) .renova-impact-panel,
+html:not(.renova-dark-mode) .renova-impact-environment-card,
+html:not(.renova-dark-mode) .renova-impact-formula-box {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.96), rgba(247,251,244,0.92)) !important;
+  border: 1px solid rgba(126, 174, 98, 0.18) !important;
+  box-shadow: 0 14px 34px rgba(39, 91, 35, 0.07) !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-metric-icon,
+html:not(.renova-dark-mode) .renova-impact-panel-title > span {
+  background: #e4f5dc !important;
+  color: #16831e !important;
+  box-shadow: inset 0 0 0 1px rgba(47, 151, 40, 0.08) !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-header h1,
+html:not(.renova-dark-mode) .renova-impact-metric-card strong,
+html:not(.renova-dark-mode) .renova-impact-panel-title h3,
+html:not(.renova-dark-mode) .renova-impact-environment-card strong,
+html:not(.renova-dark-mode) .renova-impact-legend-item strong {
+  color: #102018 !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-header p,
+html:not(.renova-dark-mode) .renova-impact-visual-copy p,
+html:not(.renova-dark-mode) .renova-impact-panel-title p,
+html:not(.renova-dark-mode) .renova-impact-environment-card p,
+html:not(.renova-dark-mode) .renova-impact-formula-box {
+  color: #536057 !important;
+}
+
+/* Donut y ring en claro: centro menos oscuro, más elegante */
+html:not(.renova-dark-mode) .renova-impact-progress-ring > div,
+html:not(.renova-dark-mode) .renova-impact-donut > div {
+  background:
+    radial-gradient(circle at 30% 20%, #1c3d25 0%, #102018 70%) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06) !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-progress-ring {
+  box-shadow:
+    0 18px 38px rgba(47,151,40,0.15),
+    0 0 0 1px rgba(47,151,40,0.04) !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-donut {
+  box-shadow:
+    0 18px 38px rgba(47,151,40,0.12),
+    0 0 0 1px rgba(47,151,40,0.04) !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-progress-track,
+html:not(.renova-dark-mode) .renova-impact-environment-card > div {
+  background: rgba(84, 136, 74, 0.16) !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-actions {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.92), rgba(247,251,244,0.88)) !important;
+  border: 1px solid rgba(126, 174, 98, 0.18) !important;
+  box-shadow: 0 14px 34px rgba(39, 91, 35, 0.07) !important;
+}
+
+/* Un poco más de aire entre bloques en claro */
+html:not(.renova-dark-mode) .renova-impact-summary-grid {
+  margin-bottom: 24px !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-visual-grid {
+  gap: 20px !important;
+}
+
+/* =========================================
+   IMPACT LIGHT MODE - CHART CONTRAST FIX
+   Mejora contraste de gráficos en modo claro
+========================================= */
+
+html:not(.renova-dark-mode) .renova-impact-visual-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f4faef 100%) !important;
+  border: 1px solid rgba(101, 150, 88, 0.18) !important;
+  box-shadow:
+    0 16px 40px rgba(42, 88, 36, 0.08),
+    inset 0 1px 0 rgba(255,255,255,0.9) !important;
+}
+
+/* Donut / anillo: más presencia */
+html:not(.renova-dark-mode) .renova-impact-progress-ring,
+html:not(.renova-dark-mode) .renova-impact-donut {
+  box-shadow:
+    0 14px 30px rgba(47, 151, 40, 0.18),
+    0 0 0 8px rgba(233, 245, 227, 0.95) !important;
+}
+
+/* Centro más oscuro para separar bien del fondo claro */
+html:not(.renova-dark-mode) .renova-impact-progress-ring > div,
+html:not(.renova-dark-mode) .renova-impact-donut > div {
+  background:
+    radial-gradient(circle at 30% 20%, #1d3a23 0%, #102018 72%) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.06),
+    0 8px 18px rgba(16,32,24,0.10) !important;
+}
+
+/* Texto dentro del donut */
+html:not(.renova-dark-mode) .renova-impact-progress-ring strong,
+html:not(.renova-dark-mode) .renova-impact-donut strong {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.22) !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-progress-ring span,
+html:not(.renova-dark-mode) .renova-impact-donut span {
+  color: #d9f4d0 !important;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.18) !important;
+}
+
+/* Track del progress bar más visible */
+html:not(.renova-dark-mode) .renova-impact-progress-track {
+  background: #d6e3d0 !important;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.06) !important;
+}
+
+/* Barra verde más intensa */
+html:not(.renova-dark-mode) .renova-impact-progress-fill {
+  background: linear-gradient(90deg, #39b92f 0%, #2f9728 100%) !important;
+  box-shadow: 0 4px 10px rgba(47,151,40,0.22) !important;
+}
+
+/* Leyendas del gráfico */
+html:not(.renova-dark-mode) .renova-impact-legend-item {
+  color: #243328 !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-legend-item strong {
+  color: #102018 !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-legend-item span {
+  color: #5a675d !important;
+}
+
+/* Puntitos / indicadores de leyenda más definidos */
+html:not(.renova-dark-mode) .renova-impact-legend-dot {
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.75) !important;
+}
+
+/* Caja de fórmula / nota bajo gráficos */
+html:not(.renova-dark-mode) .renova-impact-formula-box {
+  background: linear-gradient(180deg, #fbfdf9 0%, #f1f7ec 100%) !important;
+  border: 1px solid rgba(101, 150, 88, 0.16) !important;
+  color: #4d5b51 !important;
+}
+
+/* Títulos y textos dentro de tarjetas visuales */
+html:not(.renova-dark-mode) .renova-impact-visual-card h3,
+html:not(.renova-dark-mode) .renova-impact-visual-card strong {
+  color: #102018 !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-visual-card p {
+  color: #536057 !important;
+}
+
+/* =========================================
+   IMPACT CHARTS SOBER FIX
+   Mejor contraste sin romper proporciones
+========================================= */
+
+/* Módulos visuales en modo claro: apenas diferenciados, no tan lavados */
+html:not(.renova-dark-mode) .renova-impact-visual-card {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(72, 171, 55, 0.07), transparent 32%),
+    linear-gradient(180deg, rgba(255,255,255,0.98), rgba(247,252,244,0.94)) !important;
+  border: 1px solid rgba(103, 150, 88, 0.20) !important;
+  box-shadow:
+    0 18px 42px rgba(37, 86, 32, 0.08),
+    inset 0 1px 0 rgba(255,255,255,0.95) !important;
+}
+
+/* Ring de aprovechamiento: no agrandar el texto */
+.renova-impact-progress-ring > div {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  padding: 14px !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
+}
+
+.renova-impact-progress-ring strong {
+  display: block !important;
+  margin: 0 !important;
+  color: #ffffff !important;
+  font-size: 1.55rem !important;
+  line-height: 1 !important;
+  letter-spacing: -0.04em !important;
+  white-space: nowrap !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.22) !important;
+}
+
+.renova-impact-progress-ring span {
+  display: block !important;
+  margin: 0 !important;
+  max-width: 112px !important;
+  color: #dff4d7 !important;
+  font-size: 0.72rem !important;
+  line-height: 1.15 !important;
+  font-weight: 900 !important;
+  white-space: normal !important;
+  text-align: center !important;
+}
+
+/* Centro de donuts más contrastado pero sin exagerar */
+html:not(.renova-dark-mode) .renova-impact-progress-ring > div,
+html:not(.renova-dark-mode) .renova-impact-donut > div {
+  background:
+    radial-gradient(circle at 30% 20%, #1c3f27 0%, #102018 72%) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.06),
+    0 8px 18px rgba(16,32,24,0.12) !important;
+}
+
+/* El donut de distribución también legible */
+.renova-impact-donut > div {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  text-align: center !important;
+}
+
+.renova-impact-donut strong {
+  margin: 0 !important;
+  color: #ffffff !important;
+  font-size: 1.35rem !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.renova-impact-donut span {
+  margin: 0 !important;
+  color: #dff4d7 !important;
+  font-size: 0.78rem !important;
+  font-weight: 900 !important;
+}
+
+/* Borde/sombra de gráficos más sutil */
+html:not(.renova-dark-mode) .renova-impact-progress-ring,
+html:not(.renova-dark-mode) .renova-impact-donut {
+  box-shadow:
+    0 0 0 7px rgba(230, 245, 224, 0.95),
+    0 14px 28px rgba(47, 151, 40, 0.13) !important;
+}
+
+/* Track y barras más visibles */
+html:not(.renova-dark-mode) .renova-impact-progress-track,
+html:not(.renova-dark-mode) .renova-impact-environment-card > div {
+  background: #d9e6d3 !important;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05) !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-progress-track > div,
+html:not(.renova-dark-mode) .renova-impact-environment-card > div > span {
+  background: linear-gradient(90deg, #39bd33 0%, #238f25 100%) !important;
+  box-shadow: 0 3px 8px rgba(47,151,40,0.20) !important;
+}
+
+/* Leyenda más legible */
+html:not(.renova-dark-mode) .renova-impact-legend-item strong {
+  color: #102018 !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-legend-item small {
+  color: #425047 !important;
+  font-weight: 850 !important;
+}
+
+/* Caja de fórmula menos input, más nota */
+html:not(.renova-dark-mode) .renova-impact-formula-box {
+  background: rgba(248, 252, 245, 0.86) !important;
+  border: 1px solid rgba(103, 150, 88, 0.16) !important;
+  color: #4f5f52 !important;
+}
+
+/* Evita que al seleccionar texto se vea azul fuerte */
+.renova-impact-main ::selection {
+  background: rgba(47, 151, 40, 0.22) !important;
+  color: inherit !important;
+}
+
+@media (max-width: 760px) {
+  .renova-impact-progress-ring strong {
+    font-size: 1.45rem !important;
+  }
+
+  .renova-impact-progress-ring span {
+    font-size: 0.7rem !important;
+  }
+}
+
+/* =========================================
+   IMPACT RING / DONUT TEXT FINAL FIX
+   Fuerza contraste del texto interno de gráficos
+========================================= */
+
+/* Centro del anillo de aprovechamiento */
+.renova-impact-main .renova-impact-progress-ring > div strong,
+html:not(.renova-dark-mode) .renova-impact-main .renova-impact-progress-ring > div strong,
+html.renova-dark-mode .renova-impact-main .renova-impact-progress-ring > div strong {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  font-size: 1.52rem !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+  letter-spacing: -0.04em !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.35) !important;
+}
+
+.renova-impact-main .renova-impact-progress-ring > div span,
+html:not(.renova-dark-mode) .renova-impact-main .renova-impact-progress-ring > div span,
+html.renova-dark-mode .renova-impact-main .renova-impact-progress-ring > div span {
+  color: #e3f7dc !important;
+  opacity: 1 !important;
+  font-size: 0.72rem !important;
+  line-height: 1.15 !important;
+  font-weight: 950 !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.28) !important;
+}
+
+/* Centro del donut de distribución */
+.renova-impact-main .renova-impact-donut > div strong,
+html:not(.renova-dark-mode) .renova-impact-main .renova-impact-donut > div strong,
+html.renova-dark-mode .renova-impact-main .renova-impact-donut > div strong {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  font-size: 1.35rem !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.35) !important;
+}
+
+.renova-impact-main .renova-impact-donut > div span,
+html:not(.renova-dark-mode) .renova-impact-main .renova-impact-donut > div span,
+html.renova-dark-mode .renova-impact-main .renova-impact-donut > div span {
+  color: #e3f7dc !important;
+  opacity: 1 !important;
+  font-size: 0.76rem !important;
+  line-height: 1.1 !important;
+  font-weight: 950 !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.28) !important;
+}
+
+/* Asegurar centro oscuro consistente en claro */
+html:not(.renova-dark-mode) .renova-impact-main .renova-impact-progress-ring > div,
+html:not(.renova-dark-mode) .renova-impact-main .renova-impact-donut > div {
+  background:
+    radial-gradient(circle at 30% 20%, #173d25 0%, #0c2215 76%) !important;
+}
+
+/* Asegurar centro oscuro consistente en dark */
+html.renova-dark-mode .renova-impact-main .renova-impact-progress-ring > div,
+html.renova-dark-mode .renova-impact-main .renova-impact-donut > div {
+  background:
+    radial-gradient(circle at 30% 20%, #18492d 0%, #07190f 78%) !important;
+}
+
+/* Evitar que al seleccionar accidentalmente se vea azul */
+.renova-impact-progress-ring ::selection,
+.renova-impact-donut ::selection {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+/* =========================================
+   AUTH RECOVERY PAGES
+========================================= */
+
+.auth-recovery-page {
+  min-height: 100vh;
+}
+
+.auth-recovery-center {
+  width: 100%;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-recovery-card {
+  max-width: 480px;
+}
+
+.success-message-modern {
+  display: grid;
+  gap: 6px;
+  margin: 16px 0;
+  padding: 13px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(47, 151, 40, 0.22);
+  background: rgba(230, 247, 224, 0.92);
+  color: #14551b;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.success-message-modern small {
+  color: #4b654e;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.auth-secondary-action {
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.auth-secondary-action button {
+  font-weight: 900;
+}
+
+html.renova-dark-mode .success-message-modern {
+  background: rgba(39, 96, 47, 0.22);
+  border-color: rgba(86, 202, 87, 0.26);
+  color: #dff7d8;
+}
+
+html.renova-dark-mode .success-message-modern small {
+  color: #bad0bc;
+}
+
+.auth-dev-link {
+  border: none;
+  background: transparent;
+  color: #08751a;
+  font-weight: 950;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+html.renova-dark-mode .auth-dev-link {
+  color: #9df28f;
+}

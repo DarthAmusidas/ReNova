@@ -139,7 +139,7 @@ function Login() {
                   Recordarme
                 </label>
 
-                <button type="button" className="forgot-link">
+                <button type="button" className="forgot-link" onClick={() => navigate("/forgot-password")}>
                   &iquest;Olvidaste tu contrase&ntilde;a?
                 </button>
               </div>
@@ -175,5 +175,6 @@ function Login() {
 }
 
 export default Login;
+
 
 
