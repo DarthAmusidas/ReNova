@@ -2,8 +2,112 @@
 import { useNavigate } from "react-router-dom";
 import { getDashboardSummary } from "../services/dashboardService";
 import AppSidebar from "../components/AppSidebar";
-import HeaderUserCard from "../components/HeaderUserCard";
 import NotificationBell from "../components/NotificationBell";
+
+function DashboardIcon({ type }) {
+  const commonProps = {
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": "true",
+  };
+
+  if (type === "products") {
+    return (
+      <svg {...commonProps}>
+        <path d="M21 8.5 12 3 3 8.5" />
+        <path d="M21 8.5v7L12 21l-9-5.5v-7" />
+        <path d="M12 12 3 8.5" />
+        <path d="M12 12l9-3.5" />
+        <path d="M12 12v9" />
+      </svg>
+    );
+  }
+
+  if (type === "reservations") {
+    return (
+      <svg {...commonProps}>
+        <rect x="4" y="5" width="16" height="16" rx="3" />
+        <path d="M8 3v4" />
+        <path d="M16 3v4" />
+        <path d="M4 10h16" />
+        <path d="m9 15 2 2 4-4" />
+      </svg>
+    );
+  }
+
+  if (type === "pending") {
+    return (
+      <svg {...commonProps}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 2" />
+      </svg>
+    );
+  }
+
+  if (type === "confirmed") {
+    return (
+      <svg {...commonProps}>
+        <path d="M20 6 9 17l-5-5" />
+        <path d="M21 12a9 9 0 1 1-6.7-8.7" />
+      </svg>
+    );
+  }
+
+  if (type === "completed") {
+    return (
+      <svg {...commonProps}>
+        <path d="M21 8.5 12 3 3 8.5" />
+        <path d="M21 8.5v7L12 21l-9-5.5v-7" />
+        <path d="M12 12v9" />
+      </svg>
+    );
+  }
+
+  if (type === "cancelled") {
+    return (
+      <svg {...commonProps}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="m15 9-6 6" />
+        <path d="m9 9 6 6" />
+      </svg>
+    );
+  }
+
+  if (type === "notifications") {
+    return (
+      <svg {...commonProps}>
+        <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </svg>
+    );
+  }
+
+  if (type === "plus") {
+    return (
+      <svg {...commonProps}>
+        <path d="M12 5v14" />
+        <path d="M5 12h14" />
+      </svg>
+    );
+  }
+
+  if (type === "users") {
+    return (
+      <svg {...commonProps}>
+        <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+        <circle cx="9.5" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    );
+  }
+
+  return null;
+}
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -33,8 +137,22 @@ function Dashboard() {
   const userRole = user?.role || "";
 
   const isSupermarket = userRole === "SUPERMARKET";
-  const isOng = userRole === "ONG";
   const isAdmin = userRole === "ADMIN";
+
+  const roleLabel = isSupermarket
+    ? "Supermercado"
+    : isAdmin
+    ? "Administrador"
+    : "Comedor";
+
+  const getUserInitials = (name = "Usuario") =>
+    name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase();
 
   const pickNumber = (...values) => {
     const value = values.find(
@@ -94,7 +212,6 @@ function Dashboard() {
   const loadDashboard = async () => {
     try {
       const data = await getDashboardSummary();
-
       const source = data?.summary || data?.dashboard || data?.data || data || {};
 
       setSummary({
@@ -164,9 +281,7 @@ function Dashboard() {
           source.next_level_target === null
             ? null
             : pickNumber(source.next_level_target, 5),
-        level_progress_percentage: pickNumber(
-          source.level_progress_percentage
-        ),
+        level_progress_percentage: pickNumber(source.level_progress_percentage),
         market_impact_report: source.market_impact_report || null,
       });
     } catch (error) {
@@ -185,45 +300,6 @@ function Dashboard() {
     localStorage.removeItem("user");
     navigate("/login");
   };
-
-  const metrics = [
-    {
-      label: "Productos disponibles",
-      value: summary.products,
-      icon: "🥦",
-    },
-    {
-      label: "Total reservas",
-      value: summary.reservations,
-      icon: "📋",
-    },
-    {
-      label: "Pendientes",
-      value: summary.pending,
-      icon: "⏳",
-    },
-    {
-      label: "Confirmadas",
-      value: summary.confirmed,
-      icon: "✅",
-    },
-    {
-      label: "Completadas",
-      value: summary.completed,
-      icon: "📦",
-    },
-    {
-      label: "Canceladas",
-      value: summary.cancelled,
-      icon: "❌",
-    },
-    {
-      label: "Notificaciones no leídas",
-      value: summary.unread,
-      icon: "🔔",
-      wide: true,
-    },
-  ];
 
   const getSubtitle = () => {
     if (isAdmin) {
@@ -261,13 +337,64 @@ function Dashboard() {
     return suffix ? `${formatted} ${suffix}` : formatted;
   };
 
+  const metrics = [
+    {
+      label: "Productos disponibles",
+      value: summary.products,
+      helper: "Listos para reservar",
+      type: "products",
+      tone: "green",
+    },
+    {
+      label: "Total reservas",
+      value: summary.reservations,
+      helper: "Reservas generadas",
+      type: "reservations",
+      tone: "green",
+    },
+    {
+      label: "Pendientes",
+      value: summary.pending,
+      helper: "Requieren seguimiento",
+      type: "pending",
+      tone: "orange",
+    },
+    {
+      label: "Confirmadas",
+      value: summary.confirmed,
+      helper: "A la espera de retiro",
+      type: "confirmed",
+      tone: "green",
+    },
+    {
+      label: "Completadas",
+      value: summary.completed,
+      helper: "Entregas finalizadas",
+      type: "completed",
+      tone: "green",
+    },
+    {
+      label: "Canceladas",
+      value: summary.cancelled,
+      helper: "No concretadas",
+      type: "cancelled",
+      tone: "danger",
+    },
+    {
+      label: "Notificaciones no leídas",
+      value: summary.unread,
+      helper: "Pendientes de revisión",
+      type: "notifications",
+      tone: "warning",
+      wide: true,
+    },
+  ];
+
   const marketImpactCards = marketImpactReport
     ? [
         {
           label: "Productos publicados",
-          value: formatReportNumber(
-            marketImpactReport.total_products_published
-          ),
+          value: formatReportNumber(marketImpactReport.total_products_published),
         },
         {
           label: "Reservas recibidas",
@@ -293,9 +420,7 @@ function Dashboard() {
         },
         {
           label: "Cantidad entregada",
-          value: formatReportNumber(
-            marketImpactReport.total_quantity_delivered
-          ),
+          value: formatReportNumber(marketImpactReport.total_quantity_delivered),
         },
         {
           label: "Kg recuperados",
@@ -318,23 +443,8 @@ function Dashboard() {
       ]
     : [];
 
-  const monthlyDeliveries = Array.isArray(
-    marketImpactReport?.monthly_completed_deliveries
-  )
-    ? marketImpactReport.monthly_completed_deliveries
-    : [];
-
-  const maxMonthlyDeliveries = Math.max(
-    1,
-    ...monthlyDeliveries.map((item) => Number(item.completed_deliveries || 0))
-  );
-
-  const topOngs = Array.isArray(marketImpactReport?.top_ongs)
-    ? marketImpactReport.top_ongs
-    : [];
-
   return (
-    <div style={styles.layout}>
+    <div className="renova-app-shell">
       <AppSidebar
         active="dashboard"
         user={user}
@@ -343,75 +453,92 @@ function Dashboard() {
         onLogout={handleLogout}
       />
 
-      <main style={styles.main}>
-        <header style={styles.header}>
+      <main className="renova-dashboard-main">
+        <header className="renova-dashboard-header">
           <div>
-            <span style={styles.badge}>
+            <span className="renova-section-badge">
               {isAdmin ? "Administración" : "Panel de gestión"}
             </span>
 
-            <h1 style={styles.title}>
-              Hola, <span style={styles.titleHighlight}>{userName}</span>
+            <h1>
+              Hola, <span>{userName}</span>
             </h1>
 
-            <p style={styles.subtitle}>{getSubtitle()}</p>
+            <p>{getSubtitle()}</p>
           </div>
 
-          <div style={styles.userArea}>
-            <HeaderUserCard user={user} />
+          <div className="renova-header-actions">
+            <div className="renova-user-summary renova-dashboard-user-card">
+              <div className="renova-user-avatar">
+                {getUserInitials(userName)}
+              </div>
 
-            <div style={styles.bellWrapper}>
-              <NotificationBell />
+              <div className="renova-user-meta">
+                <span>Usuario</span>
+                <strong>{userName}</strong>
+                <small>{roleLabel}</small>
+              </div>
             </div>
+
+            <NotificationBell />
           </div>
         </header>
 
         {loading ? (
-          <section style={styles.panel}>
-            <p style={styles.panelText}>Cargando información del dashboard...</p>
+          <section className="renova-dashboard-panel">
+            <h2>Cargando información...</h2>
+            <p>Estamos consultando los indicadores principales del dashboard.</p>
           </section>
         ) : (
           <>
             {isSupermarket && (
-              <section style={styles.levelPanel}>
+              <section className="renova-dashboard-level-panel">
                 <div>
-                  <span style={styles.levelEyebrow}>Nivel de impacto</span>
-                  <h2 style={styles.levelTitle}>
-                    Nivel {impactLevel.level} - {impactLevel.label}
+                  <span>Nivel de impacto</span>
+                  <h2>
+                    Nivel {impactLevel.level} · {impactLevel.label}
                   </h2>
-                  <p style={styles.levelText}>{impactLevel.text}</p>
+                  <p>{impactLevel.text}</p>
                 </div>
 
-                <div style={styles.progressTrack}>
+                <div className="renova-dashboard-progress-track">
                   <div
-                    style={{
-                      ...styles.progressFill,
-                      width: `${impactLevel.progress}%`,
-                    }}
+                    className="renova-dashboard-progress-fill"
+                    style={{ width: `${impactLevel.progress}%` }}
                   />
                 </div>
               </section>
             )}
 
-            <section style={styles.metricsGrid}>
+            <section className="renova-dashboard-metrics">
               {metrics.map((metric) => (
                 <article
                   key={metric.label}
-                  style={metric.wide ? styles.metricCardWide : styles.metricCard}
+                  className={
+                    metric.wide
+                      ? `renova-dashboard-metric-card renova-dashboard-metric-wide ${metric.tone}`
+                      : `renova-dashboard-metric-card ${metric.tone}`
+                  }
                 >
-                  <div style={styles.metricIcon}>{metric.icon}</div>
-                  <p style={styles.metricLabel}>{metric.label}</p>
-                  <strong style={styles.metricValue}>{metric.value}</strong>
+                  <div className="renova-dashboard-metric-icon">
+                    <DashboardIcon type={metric.type} />
+                  </div>
+
+                  <div>
+                    <strong>{metric.value}</strong>
+                    <span>{metric.label}</span>
+                    <p>{metric.helper}</p>
+                  </div>
                 </article>
               ))}
             </section>
 
             {hasMarketImpactReport && (
-              <section style={styles.impactReportPanel}>
-                <div style={styles.impactReportHeader}>
+              <section className="renova-dashboard-panel">
+                <div className="renova-dashboard-panel-header">
                   <div>
-                    <h2 style={styles.panelTitle}>Reporte de impacto</h2>
-                    <p style={styles.panelText}>
+                    <h2>Reporte de impacto</h2>
+                    <p>
                       Indicadores principales a partir de tus productos y
                       reservas completadas.
                     </p>
@@ -419,53 +546,54 @@ function Dashboard() {
 
                   <button
                     type="button"
-                    style={styles.printReportButton}
+                    className="renova-dashboard-primary-action"
                     onClick={() => navigate("/impact")}
                   >
                     Ver reporte completo
                   </button>
                 </div>
 
-                <div style={styles.impactReportGrid}>
+                <div className="renova-dashboard-impact-grid">
                   {marketImpactCards.map((item) => (
-                    <article key={item.label} style={styles.impactReportCard}>
-                      <span style={styles.impactReportLabel}>{item.label}</span>
-                      <strong style={styles.impactReportValue}>
-                        {item.value}
-                      </strong>
+                    <article key={item.label}>
+                      <span>{item.label}</span>
+                      <strong>{item.value}</strong>
                     </article>
                   ))}
                 </div>
 
-                <p style={styles.panelText}>
-                  El reporte formal, la metodología y las cantidades agrupadas
-                  por unidad ahora están disponibles en la sección Impacto.
-                </p>
-                <p style={styles.panelText}>
-                  Tasa de aprovechamiento: porcentaje de reservas recibidas que
-                  finalizaron como entregas completadas.
+                <p className="renova-dashboard-note">
+                  La tasa de aprovechamiento mide el porcentaje de reservas
+                  recibidas que finalizaron como entregas completadas.
                 </p>
               </section>
             )}
 
-            <section style={styles.panel}>
-              <h2 style={styles.panelTitle}>
-                {isAdmin ? "Accesos de administración" : "Accesos rápidos"}
-              </h2>
+            <section className="renova-dashboard-panel">
+              <div className="renova-dashboard-panel-header">
+                <div>
+                  <h2>
+                    {isAdmin ? "Accesos de administración" : "Accesos rápidos"}
+                  </h2>
 
-              <p style={styles.panelText}>
-                {isAdmin
-                  ? "Desde este panel podés consultar la información general de la plataforma."
-                  : "Continuá gestionando el flujo principal de ReNova desde acá."}
-              </p>
+                  <p>
+                    {isAdmin
+                      ? "Desde este panel podés consultar la información general de la plataforma."
+                      : "Continuá gestionando el flujo principal de ReNova desde acá."}
+                  </p>
+                </div>
+              </div>
 
-              <div style={styles.quickActionsGrid}>
+              <div className="renova-dashboard-actions-grid">
                 <button
                   type="button"
-                  style={styles.quickActionCard}
+                  className="renova-dashboard-action-card"
                   onClick={() => navigate("/products")}
                 >
-                  <span style={styles.quickActionIcon}>🥦</span>
+                  <span>
+                    <DashboardIcon type="products" />
+                  </span>
+
                   <strong>Ver productos</strong>
                   <small>
                     {isSupermarket
@@ -476,10 +604,13 @@ function Dashboard() {
 
                 <button
                   type="button"
-                  style={styles.quickActionCard}
+                  className="renova-dashboard-action-card"
                   onClick={() => navigate("/reservations")}
                 >
-                  <span style={styles.quickActionIcon}>📋</span>
+                  <span>
+                    <DashboardIcon type="reservations" />
+                  </span>
+
                   <strong>Ver reservas</strong>
                   <small>Consultar y gestionar reservas</small>
                 </button>
@@ -487,10 +618,13 @@ function Dashboard() {
                 {isSupermarket && (
                   <button
                     type="button"
-                    style={styles.quickActionCard}
+                    className="renova-dashboard-action-card"
                     onClick={() => navigate("/products/create")}
                   >
-                    <span style={styles.quickActionIcon}>+</span>
+                    <span>
+                      <DashboardIcon type="plus" />
+                    </span>
+
                     <strong>Cargar producto</strong>
                     <small>Publicar un nuevo producto disponible</small>
                   </button>
@@ -499,10 +633,13 @@ function Dashboard() {
                 {isAdmin && (
                   <button
                     type="button"
-                    style={styles.quickActionCard}
+                    className="renova-dashboard-action-card"
                     onClick={() => navigate("/users")}
                   >
-                    <span style={styles.quickActionIcon}>👥</span>
+                    <span>
+                      <DashboardIcon type="users" />
+                    </span>
+
                     <strong>Ver usuarios</strong>
                     <small>Consultar usuarios registrados</small>
                   </button>
@@ -516,515 +653,4 @@ function Dashboard() {
   );
 }
 
-const styles = {
-  layout: {
-    minHeight: "100vh",
-    display: "grid",
-    gridTemplateColumns: "270px 1fr",
-    background: "#f6f9f2",
-    color: "#102018",
-  },
-
-  sidebar: {
-    background: "#102018",
-    color: "#ffffff",
-    padding: "34px 22px 24px",
-    display: "flex",
-    flexDirection: "column",
-    minHeight: "100vh",
-  },
-
-  logoBox: {
-    display: "flex",
-    alignItems: "center",
-    gap: "14px",
-    marginBottom: "42px",
-  },
-
-  logoIcon: {
-    width: "48px",
-    height: "48px",
-    borderRadius: "16px",
-    background: "#e8f4df",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "24px",
-  },
-
-  logoText: {
-    margin: 0,
-    fontSize: "1.45rem",
-    fontWeight: 900,
-  },
-
-  nav: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-  },
-
-  navButton: {
-    border: "none",
-    borderRadius: "16px",
-    background: "transparent",
-    color: "rgba(255,255,255,0.8)",
-    padding: "15px 18px",
-    textAlign: "left",
-    fontWeight: 800,
-    fontSize: "0.98rem",
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-  },
-
-  navButtonActive: {
-    border: "none",
-    borderRadius: "16px",
-    background: "rgba(126, 191, 26, 0.24)",
-    color: "#ffffff",
-    padding: "15px 18px",
-    textAlign: "left",
-    fontWeight: 900,
-    fontSize: "0.98rem",
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-  },
-
-  logoutButton: {
-    marginTop: "auto",
-    width: "100%",
-    minHeight: "52px",
-    border: "none",
-    borderRadius: "16px",
-    background: "rgba(255,255,255,0.13)",
-    color: "#ffffff",
-    fontWeight: 900,
-    fontSize: "0.95rem",
-  },
-
-  main: {
-    padding: "42px 48px",
-    background:
-      "radial-gradient(circle at 95% 0%, rgba(126,191,26,0.08), transparent 28%), #f6f9f2",
-  },
-
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: "32px",
-    marginBottom: "34px",
-  },
-
-  badge: {
-    display: "inline-flex",
-    alignItems: "center",
-    width: "fit-content",
-    padding: "10px 18px",
-    borderRadius: "999px",
-    background: "#e8f4df",
-    color: "#21801f",
-    fontWeight: 900,
-    fontSize: "0.95rem",
-  },
-
-  title: {
-    margin: "26px 0 10px",
-    fontSize: "2.45rem",
-    lineHeight: 1.1,
-    letterSpacing: "-0.8px",
-    color: "#102018",
-  },
-
-  titleHighlight: {
-    color: "#2f9728",
-  },
-
-  subtitle: {
-    margin: 0,
-    color: "#647066",
-    fontSize: "1.05rem",
-    lineHeight: 1.6,
-  },
-
-  userArea: {
-    display: "flex",
-    alignItems: "center",
-    gap: "16px",
-    paddingTop: "30px",
-    flexWrap: "wrap",
-    justifyContent: "flex-end",
-  },
-
-  userCard: {
-    display: "flex",
-    alignItems: "center",
-    gap: "16px",
-    background: "#ffffff",
-    border: "1px solid #e1eadc",
-    borderRadius: "26px",
-    padding: "16px 20px",
-    minWidth: "290px",
-    boxShadow: "0 18px 45px rgba(31,77,28,0.08)",
-  },
-
-  userAvatar: {
-    width: "56px",
-    height: "56px",
-    borderRadius: "20px",
-    background: "#e8f4df",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "27px",
-    flexShrink: 0,
-  },
-
-  userInfo: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "4px",
-    minWidth: 0,
-  },
-
-  sessionText: {
-    color: "#7a867c",
-    fontSize: "0.78rem",
-    fontWeight: 900,
-    textTransform: "uppercase",
-    letterSpacing: "0.6px",
-  },
-
-  userName: {
-    color: "#102018",
-    fontSize: "1.08rem",
-    fontWeight: 950,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
-
-  rolePill: {
-    width: "fit-content",
-    marginTop: "3px",
-    padding: "5px 11px",
-    borderRadius: "999px",
-    background: "#f0f7ea",
-    color: "#21801f",
-    fontSize: "0.76rem",
-    fontWeight: 900,
-  },
-
-  bellWrapper: {
-    transform: "scale(1.05)",
-  },
-
-  topLogoutButton: {
-    minHeight: "46px",
-    border: "1px solid #d6e4d0",
-    borderRadius: "15px",
-    background: "#ffffff",
-    color: "#223025",
-    padding: "0 18px",
-    fontWeight: 900,
-    fontSize: "0.92rem",
-    boxShadow: "0 14px 34px rgba(31,77,28,0.06)",
-    whiteSpace: "nowrap",
-  },
-
-  levelPanel: {
-    background: "#ffffff",
-    border: "1px solid #e1eadc",
-    borderRadius: "30px",
-    padding: "28px",
-    boxShadow: "0 18px 45px rgba(31,77,28,0.07)",
-    marginBottom: "26px",
-  },
-
-  levelEyebrow: {
-    display: "block",
-    color: "#21801f",
-    fontSize: "0.78rem",
-    fontWeight: 950,
-    textTransform: "uppercase",
-    letterSpacing: "0.6px",
-    marginBottom: "8px",
-  },
-
-  levelTitle: {
-    margin: "0 0 8px",
-    color: "#102018",
-    fontSize: "1.55rem",
-    fontWeight: 950,
-  },
-
-  levelText: {
-    margin: "0 0 18px",
-    color: "#536057",
-    fontSize: "1rem",
-    fontWeight: 800,
-  },
-
-  progressTrack: {
-    width: "100%",
-    height: "12px",
-    borderRadius: "999px",
-    background: "#e7eee2",
-    overflow: "hidden",
-  },
-
-  progressFill: {
-    height: "100%",
-    borderRadius: "999px",
-    background: "#2f9728",
-    transition: "width 0.25s ease",
-  },
-
-  metricsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(4, minmax(190px, 1fr))",
-    gap: "22px",
-    marginBottom: "32px",
-  },
-
-  metricCard: {
-    minHeight: "190px",
-    background: "linear-gradient(135deg, #38a42f 0%, #248920 100%)",
-    border: "none",
-    borderRadius: "30px",
-    padding: "30px",
-    boxShadow: "0 18px 45px rgba(47,151,40,0.18)",
-    color: "#ffffff",
-  },
-
-  metricCardWide: {
-    minHeight: "190px",
-    background: "linear-gradient(135deg, #38a42f 0%, #248920 100%)",
-    border: "none",
-    borderRadius: "30px",
-    padding: "30px",
-    boxShadow: "0 18px 45px rgba(47,151,40,0.18)",
-    color: "#ffffff",
-    gridColumn: "span 2",
-  },
-
-  metricIcon: {
-    width: "58px",
-    height: "58px",
-    borderRadius: "20px",
-    background: "rgba(255,255,255,0.18)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "25px",
-    marginBottom: "22px",
-  },
-
-  metricLabel: {
-    margin: 0,
-    color: "#ffffff",
-    fontSize: "1rem",
-    fontWeight: 850,
-  },
-
-  metricValue: {
-    display: "block",
-    marginTop: "16px",
-    color: "#ffffff",
-    fontSize: "2.45rem",
-    lineHeight: 1,
-    fontWeight: 950,
-  },
-
-  panel: {
-    background: "#ffffff",
-    border: "1px solid #e1eadc",
-    borderRadius: "32px",
-    padding: "34px",
-    boxShadow: "0 18px 45px rgba(31,77,28,0.07)",
-  },
-
-  panelTitle: {
-    margin: "0 0 10px",
-    color: "#102018",
-    fontSize: "1.65rem",
-    letterSpacing: "-0.4px",
-  },
-
-  panelText: {
-    margin: 0,
-    color: "#536057",
-    fontSize: "1.05rem",
-    lineHeight: 1.7,
-    maxWidth: "960px",
-  },
-
-  impactReportPanel: {
-    background: "#ffffff",
-    border: "1px solid #e1eadc",
-    borderRadius: "32px",
-    padding: "34px",
-    boxShadow: "0 18px 45px rgba(31,77,28,0.07)",
-    marginBottom: "32px",
-  },
-
-  impactReportHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: "18px",
-    marginBottom: "24px",
-    flexWrap: "wrap",
-  },
-
-  printReportButton: {
-    border: "none",
-    borderRadius: "15px",
-    background: "#2f9728",
-    color: "#ffffff",
-    padding: "13px 19px",
-    fontWeight: 900,
-    fontSize: "0.95rem",
-    boxShadow: "0 14px 26px rgba(47,151,40,0.18)",
-  },
-
-  impactReportGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-    gap: "14px",
-    marginBottom: "24px",
-  },
-
-  impactReportCard: {
-    background: "#f7faf4",
-    border: "1px solid #e6efdf",
-    borderRadius: "18px",
-    padding: "16px",
-  },
-
-  impactReportLabel: {
-    display: "block",
-    color: "#617064",
-    fontSize: "0.82rem",
-    fontWeight: 900,
-    marginBottom: "10px",
-  },
-
-  impactReportValue: {
-    display: "block",
-    color: "#102018",
-    fontSize: "1.35rem",
-    lineHeight: 1.15,
-    fontWeight: 950,
-  },
-
-  reportColumns: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(280px, 1fr))",
-    gap: "18px",
-  },
-
-  reportSubpanel: {
-    background: "#ffffff",
-    border: "1px solid #e1eadc",
-    borderRadius: "24px",
-    padding: "22px",
-  },
-
-  reportSubtitle: {
-    margin: "0 0 16px",
-    color: "#102018",
-    fontSize: "1.15rem",
-    fontWeight: 950,
-  },
-
-  topOngList: {
-    display: "grid",
-    gap: "10px",
-  },
-
-  topOngItem: {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: "14px",
-    padding: "13px 0",
-    borderBottom: "1px solid #edf2ea",
-  },
-
-  monthlyBars: {
-    display: "grid",
-    gap: "12px",
-  },
-
-  monthlyBarRow: {
-    display: "grid",
-    gridTemplateColumns: "70px 1fr 42px",
-    alignItems: "center",
-    gap: "10px",
-  },
-
-  monthlyBarLabel: {
-    color: "#536057",
-    fontSize: "0.86rem",
-    fontWeight: 900,
-  },
-
-  monthlyBarTrack: {
-    height: "12px",
-    background: "#e7eee2",
-    borderRadius: "999px",
-    overflow: "hidden",
-  },
-
-  monthlyBarFill: {
-    height: "100%",
-    minWidth: "4px",
-    background: "#2f9728",
-    borderRadius: "999px",
-  },
-
-  monthlyBarValue: {
-    color: "#102018",
-    fontSize: "0.9rem",
-    textAlign: "right",
-  },
-
-  quickActionsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, minmax(220px, 1fr))",
-    gap: "18px",
-    marginTop: "28px",
-  },
-
-  quickActionCard: {
-    border: "1px solid #e1eadc",
-    borderRadius: "24px",
-    background: "#ffffff",
-    padding: "22px",
-    textAlign: "left",
-    boxShadow: "0 14px 34px rgba(31,77,28,0.06)",
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-  },
-
-  quickActionIcon: {
-    width: "52px",
-    height: "52px",
-    borderRadius: "18px",
-    background: "#e8f4df",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "24px",
-    marginBottom: "8px",
-  },
-};
-
 export default Dashboard;
-
-
-
-

@@ -1,34 +1,32 @@
-import { pageStyles as styles } from "../styles/pageStyles";
-
-function HeaderUserCard({ user }) {
-  const role = user?.role || "";
+﻿function HeaderUserCard({ user = null }) {
   const userName = user?.name || "Usuario";
+
   const roleLabel =
-    user?.organization_type ||
-    (role === "SUPERMARKET"
+    user?.role === "SUPERMARKET"
       ? "Supermercado"
-      : role === "ADMIN"
+      : user?.role === "ADMIN"
       ? "Administrador"
-      : role === "ONG"
-      ? "ONG"
-      : "No informado");
-  const userIcon =
-    role === "ADMIN"
-      ? "🛡️"
-      : role === "SUPERMARKET"
-      ? "🛒"
-      : role === "ONG"
-      ? "🤝"
-      : "👤";
+      : "Comedor";
+
+  const getInitials = (name = "Usuario") =>
+    name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase();
 
   return (
-    <div style={styles.userCard}>
-      <div style={styles.userAvatar}>{userIcon}</div>
+    <div className="renova-user-summary renova-header-user-card">
+      <div className="renova-user-avatar">
+        {getInitials(userName)}
+      </div>
 
-      <div style={styles.userInfo}>
-        <span style={styles.sessionText}>Usuario</span>
-        <strong style={styles.userName}>{userName}</strong>
-        <span style={styles.rolePill}>{roleLabel}</span>
+      <div className="renova-user-meta">
+        <span>Usuario</span>
+        <strong>{userName}</strong>
+        <small>{roleLabel}</small>
       </div>
     </div>
   );

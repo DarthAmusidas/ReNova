@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   getReservations,
@@ -9,6 +9,8 @@ import HeaderUserCard from "../components/HeaderUserCard";
 import NotificationBell from "../components/NotificationBell";
 import { pageStyles as styles, getStatusStyle } from "../styles/pageStyles";
 
+const RESERVATIONS_PER_PAGE = 4;
+
 function Reservations() {
   const navigate = useNavigate();
 
@@ -18,6 +20,8 @@ function Reservations() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("ALL");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [now, setNow] = useState(Date.now());
   const [selectedReservationForDelivery, setSelectedReservationForDelivery] =
     useState(null);
@@ -491,13 +495,62 @@ function Reservations() {
     return status || "Pendiente";
   };
 
+  const getSearchableReservationText = (reservation) => {
+    const directValues = Object.values(reservation || {})
+      .filter((value) => {
+        const valueType = typeof value;
+        return (
+          value !== null &&
+          value !== undefined &&
+          (valueType === "string" ||
+            valueType === "number" ||
+            valueType === "boolean")
+        );
+      })
+      .join(" ");
+
+    return [
+      reservation.product_name,
+      reservation.product?.name,
+      reservation.name,
+      reservation.supermarket_name,
+      reservation.supermarket?.name,
+      reservation.supermarket_organization_type,
+      reservation.supermarket_role,
+      reservation.market_name,
+      reservation.ong_name,
+      reservation.ong?.name,
+      reservation.organization_name,
+      reservation.organization_type,
+      reservation.order_code,
+      reservation.id,
+      reservation.quantity_reserved,
+      reservation.quantity,
+      reservation.status,
+      reservation.pickup_person_name,
+      reservation.pickup_person_dni,
+      reservation.pickup_person_phone,
+      reservation.pickup_time,
+      reservation.pickup_notes,
+      directValues,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+  };
+
   const getFilteredReservations = () => {
-    if (selectedFilter === "ALL") {
-      return reservations;
-    }
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
     return reservations.filter((res) => {
       const status = res.status || "PENDING";
-      return status === selectedFilter;
+      const matchesStatus =
+        selectedFilter === "ALL" || status === selectedFilter;
+
+      if (!matchesStatus) return false;
+      if (!normalizedSearch) return true;
+
+      return getSearchableReservationText(res).includes(normalizedSearch);
     });
   };
 
@@ -522,6 +575,18 @@ function Reservations() {
 
   const statusCounts = getStatusCounts();
   const filteredReservations = getFilteredReservations();
+  const totalReservationPages = Math.max(
+    1,
+    Math.ceil(filteredReservations.length / RESERVATIONS_PER_PAGE)
+  );
+  const safeCurrentPage = Math.min(currentPage, totalReservationPages);
+  const reservationStartIndex =
+    (safeCurrentPage - 1) * RESERVATIONS_PER_PAGE;
+  const reservationEndIndex = reservationStartIndex + RESERVATIONS_PER_PAGE;
+  const paginatedReservations = filteredReservations.slice(
+    reservationStartIndex,
+    reservationEndIndex
+  );
 
   const getProductName = (reservation) => {
     return (
@@ -722,7 +787,7 @@ function Reservations() {
   };
 
   return (
-    <div style={styles.layout}>
+    <div style={styles.layout} className="renova-reservations-shell">
       <AppSidebar
         active="reservations"
         user={user}
@@ -731,20 +796,17 @@ function Reservations() {
         onLogout={handleLogout}
       />
 
-      <main style={styles.main}>
-        <header style={styles.header}>
+      <main style={styles.main} className="renova-reservations-main">
+        <header style={styles.header} className="renova-reservations-header">
           <div>
-            <span style={styles.badge}>Gestión de reservas</span>
+            <span style={styles.badge} className="renova-reservations-page-badge">Gestión de reservas</span>
             <h1 style={styles.title}>{getPageTitle()}</h1>
             <p style={styles.subtitle}>{getPageSubtitle()}</p>
           </div>
 
-          <div style={styles.userArea}>
+          <div style={styles.userArea} className="renova-header-actions renova-page-header-actions">
             <HeaderUserCard user={user} />
-
-            <div style={styles.bellWrapper}>
-              <NotificationBell />
-            </div>
+            <NotificationBell />
           </div>
         </header>
 
@@ -758,31 +820,107 @@ function Reservations() {
             modificar estados ni confirmar entregas.
           </div>
         )}
+        <div className="renova-reservations-toolbar">
+          <div style={localStyles.filterBar} className="renova-reservations-filter-bar">
+            {[
+              { key: "ALL", label: "Todas", count: statusCounts.ALL },
+              { key: "PENDING", label: "Pendientes", count: statusCounts.PENDING, title: "Reservas esperando confirmación del supermercado" },
+              { key: "CONFIRMED", label: "Confirmadas", count: statusCounts.CONFIRMED, title: "Reservas confirmadas por el supermercado" },
+              { key: "COMPLETED", label: "Completadas", count: statusCounts.COMPLETED, title: "Entregas confirmadas por ambas partes" },
+              { key: "CANCELLED", label: "Canceladas", count: statusCounts.CANCELLED, title: "Reservas canceladas" },
+            ].map((filter) => (
+              <button
+                key={filter.key}
+                style={
+                  selectedFilter === filter.key
+                    ? localStyles.filterButtonActive
+                    : localStyles.filterButton
+                }
+                onClick={() => setSelectedFilter(filter.key)}
+                title={filter.title}
+              >
+                {filter.label} <span style={localStyles.filterCount}>{filter.count}</span>
+              </button>
+            ))}
+          </div>
 
-        <div style={localStyles.filterBar}>
-          {[
-            { key: "ALL", label: "Todas", count: statusCounts.ALL },
-            { key: "PENDING", label: "Pendientes", count: statusCounts.PENDING, title: "Reservas esperando confirmación del supermercado" },
-            { key: "CONFIRMED", label: "Confirmadas", count: statusCounts.CONFIRMED, title: "Reservas confirmadas por el supermercado" },
-            { key: "COMPLETED", label: "Completadas", count: statusCounts.COMPLETED, title: "Entregas confirmadas por ambas partes" },
-            { key: "CANCELLED", label: "Canceladas", count: statusCounts.CANCELLED, title: "Reservas canceladas" },
-          ].map((filter) => (
-            <button
-              key={filter.key}
-              style={
-                selectedFilter === filter.key
-                  ? localStyles.filterButtonActive
-                  : localStyles.filterButton
-              }
-              onClick={() => setSelectedFilter(filter.key)}
-              title={filter.title}
+          <label className="renova-search-box renova-reservations-search-box">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
             >
-              {filter.label} <span style={localStyles.filterCount}>{filter.count}</span>
-            </button>
-          ))}
+              <circle cx="11" cy="11" r="7" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+
+            <input
+              type="search"
+              placeholder="Buscar reserva, producto o proveedor"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </label>
         </div>
 
-        {error && <div style={styles.errorBox}>{error}</div>}
+        <p className="renova-reservations-result-count">
+          {filteredReservations.length} reservas encontradas
+        </p>
+
+        {filteredReservations.length > RESERVATIONS_PER_PAGE && (
+          <nav
+            className="renova-reservations-pagination renova-reservations-pagination-top"
+            aria-label="Paginación superior de reservas"
+          >
+            <button
+              type="button"
+              className="renova-pagination-control"
+              disabled={safeCurrentPage === 1}
+              onClick={() => setCurrentPage(Math.max(1, safeCurrentPage - 1))}
+            >
+              Anterior
+            </button>
+
+            <div className="renova-pagination-numbers">
+              {Array.from(
+                { length: totalReservationPages },
+                (_, index) => index + 1
+              ).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  className={
+                    page === safeCurrentPage
+                      ? "renova-pagination-page renova-pagination-page-active"
+                      : "renova-pagination-page"
+                  }
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="renova-pagination-control"
+              disabled={safeCurrentPage === totalReservationPages}
+              onClick={() =>
+                setCurrentPage(
+                  Math.min(totalReservationPages, safeCurrentPage + 1)
+                )
+              }
+            >
+              Siguiente
+            </button>
+          </nav>
+        )}
+
+{error && <div style={styles.errorBox}>{error}</div>}
 
         {isAdmin && (
           <div style={localStyles.adminInfoBox}>
@@ -812,8 +950,8 @@ function Reservations() {
             </p>
           </section>
         ) : (
-          <section style={styles.cardsGrid}>
-            {filteredReservations.map((reservation) => {
+          <section style={styles.cardsGrid} className="renova-reservations-grid">
+            {paginatedReservations.map((reservation) => {
               const status = reservation.status || "PENDING";
               const isUpdating = updatingId === reservation.id;
               const confirmationDeadline = getConfirmationDeadline(reservation);
@@ -834,8 +972,8 @@ function Reservations() {
                 reservation.pickup_notes;
 
               return (
-                <article key={reservation.id} style={styles.card}>
-                  <div style={styles.cardHeader}>
+                <article key={reservation.id} style={styles.card} className="renova-reservation-card">
+                  <div style={styles.cardHeader} className="renova-reservation-card-header">
                     <div>
                       <h2 style={styles.cardTitle}>
                         {getProductName(reservation)}
@@ -850,7 +988,7 @@ function Reservations() {
                       </p>
 
                       {getTraceabilityInfo(reservation) && (
-                        <div style={localStyles.traceabilityInfo}>
+                        <div style={localStyles.traceabilityInfo} className="renova-reservation-traceability-info">
                           {getTraceabilityInfo(reservation).map((item, idx) => (
                             <div key={idx} style={localStyles.traceabilityItem}>
                               <span style={localStyles.traceabilityLabel}>
@@ -865,7 +1003,22 @@ function Reservations() {
                       )}
                     </div>
 
-                    <div style={styles.cardIcon}>📋</div>
+                    <div className="renova-reservation-card-icon" aria-hidden="true">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <rect x="4" y="5" width="16" height="16" rx="3" />
+                        <path d="M8 3v4" />
+                        <path d="M16 3v4" />
+                        <path d="M8 11h8" />
+                        <path d="M8 15h5" />
+                      </svg>
+                    </div>
                   </div>
 
                   <span style={getStatusStyle(status)}>
@@ -910,17 +1063,17 @@ function Reservations() {
                     </div>
                   )}
 
-                  <div style={styles.metaGrid}>
+                  <div style={styles.metaGrid} className="renova-reservation-meta-grid">
                     {isAdmin ? (
                       <>
-                        <div style={styles.metaItem}>
+                        <div style={styles.metaItem} className="renova-reservation-meta-item">
                           <span style={styles.metaLabel}>ONG</span>
                           <span style={styles.metaValue}>
                             {getOngName(reservation)}
                           </span>
                         </div>
 
-                        <div style={styles.metaItem}>
+                        <div style={styles.metaItem} className="renova-reservation-meta-item">
                           <span style={styles.metaLabel}>Supermercado</span>
                           <span style={styles.metaValue}>
                             {getSupermarketName(reservation)}
@@ -928,7 +1081,7 @@ function Reservations() {
                         </div>
                       </>
                     ) : (
-                      <div style={styles.metaItem}>
+                      <div style={styles.metaItem} className="renova-reservation-meta-item">
                         <span style={styles.metaLabel}>
                           {isSupermarket ? "ONG" : "Supermercado"}
                         </span>
@@ -940,14 +1093,14 @@ function Reservations() {
                       </div>
                     )}
 
-                    <div style={styles.metaItem}>
+                    <div style={styles.metaItem} className="renova-reservation-meta-item">
                       <span style={styles.metaLabel}>Pedido</span>
                       <span style={styles.orderCodeValue}>
                         {reservation.order_code || String(reservation.id).slice(0, 8)}
                       </span>
                     </div>
 
-                    <div style={styles.metaItem}>
+                    <div style={styles.metaItem} className="renova-reservation-meta-item">
                       <span style={styles.metaLabel}>Cantidad</span>
                       <span style={styles.metaValue}>
                         {reservation.quantity_reserved ||
@@ -956,7 +1109,7 @@ function Reservations() {
                       </span>
                     </div>
 
-                    <div style={styles.metaItem}>
+                    <div style={styles.metaItem} className="renova-reservation-meta-item">
                       <span style={styles.metaLabel}>Fecha</span>
                       <span style={styles.metaValue}>
                         {formatDate(
@@ -967,11 +1120,11 @@ function Reservations() {
                   </div>
 
                   {hasPickupInfo && (
-                    <div style={localStyles.pickupSection}>
+                    <div style={localStyles.pickupSection} className="renova-reservation-pickup-section">
                       <div style={localStyles.pickupTitle}>Datos de retiro</div>
                       <div style={localStyles.pickupGrid}>
                         {reservation.pickup_person_name && (
-                          <div style={localStyles.pickupItem}>
+                          <div style={localStyles.pickupItem} className="renova-reservation-pickup-item">
                             <span style={styles.metaLabel}>
                               Persona de retiro
                             </span>
@@ -982,7 +1135,7 @@ function Reservations() {
                         )}
 
                         {reservation.pickup_person_dni && (
-                          <div style={localStyles.pickupItem}>
+                          <div style={localStyles.pickupItem} className="renova-reservation-pickup-item">
                             <span style={styles.metaLabel}>DNI</span>
                             <span style={styles.metaValue}>
                               {reservation.pickup_person_dni}
@@ -991,7 +1144,7 @@ function Reservations() {
                         )}
 
                         {reservation.pickup_person_phone && (
-                          <div style={localStyles.pickupItem}>
+                          <div style={localStyles.pickupItem} className="renova-reservation-pickup-item">
                             <span style={styles.metaLabel}>Teléfono</span>
                             <span style={styles.metaValue}>
                               {reservation.pickup_person_phone}
@@ -1000,7 +1153,7 @@ function Reservations() {
                         )}
 
                         {reservation.pickup_time && (
-                          <div style={localStyles.pickupItem}>
+                          <div style={localStyles.pickupItem} className="renova-reservation-pickup-item">
                             <span style={styles.metaLabel}>Horario de retiro</span>
                             <span style={styles.metaValue}>
                               {reservation.pickup_time}
@@ -1009,7 +1162,7 @@ function Reservations() {
                         )}
 
                         {reservation.pickup_notes && (
-                          <div style={localStyles.pickupItem}>
+                          <div style={localStyles.pickupItem} className="renova-reservation-pickup-item">
                             <span style={styles.metaLabel}>Notas</span>
                             <span style={styles.metaValue}>
                               {reservation.pickup_notes}
@@ -1020,7 +1173,7 @@ function Reservations() {
                     </div>
                   )}
 
-                  <div style={localStyles.confirmationBox}>
+                  <div style={localStyles.confirmationBox} className="renova-reservation-confirmation-box">
                     <span style={styles.metaLabel} title="Ambas partes deben confirmar para completar la entrega">Confirmación de entrega</span>
 
                     <div style={localStyles.confirmationTags}>
@@ -1050,7 +1203,7 @@ function Reservations() {
                     </div>
                   </div>
 
-                  <div style={styles.cardActions}>
+                  <div style={styles.cardActions} className="renova-reservation-card-actions">
                     {renderActions(reservation, status, isUpdating)}
                     <button
                       type="button"
@@ -1067,6 +1220,55 @@ function Reservations() {
               );
             })}
           </section>
+        )}
+
+        {filteredReservations.length > RESERVATIONS_PER_PAGE && (
+          <nav
+            className="renova-reservations-pagination"
+            aria-label="Paginación de reservas"
+          >
+            <button
+              type="button"
+              className="renova-pagination-control"
+              disabled={safeCurrentPage === 1}
+              onClick={() => setCurrentPage(Math.max(1, safeCurrentPage - 1))}
+            >
+              Anterior
+            </button>
+
+            <div className="renova-pagination-numbers">
+              {Array.from(
+                { length: totalReservationPages },
+                (_, index) => index + 1
+              ).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  className={
+                    page === safeCurrentPage
+                      ? "renova-pagination-page renova-pagination-page-active"
+                      : "renova-pagination-page"
+                  }
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="renova-pagination-control"
+              disabled={safeCurrentPage === totalReservationPages}
+              onClick={() =>
+                setCurrentPage(
+                  Math.min(totalReservationPages, safeCurrentPage + 1)
+                )
+              }
+            >
+              Siguiente
+            </button>
+          </nav>
         )}
 
         {selectedReservationForDelivery && (
@@ -1314,6 +1516,10 @@ const localStyles = {
 };
 
 export default Reservations;
+
+
+
+
 
 
 
