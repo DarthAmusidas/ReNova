@@ -1,17 +1,22 @@
-// Rutas de autenticación: registro e inicio de sesión
-const express = require("express");
+﻿const express = require("express");
 
 const router = express.Router();
 
 const {
   register,
-  login
+  login,
+  verifyEmail,
+  resendVerification,
+  forgotPassword,
+  resetPassword,
 } = require("../controllers/authController");
 
-// POST /auth/register - Registra un nuevo usuario
 router.post("/register", register);
-
-// POST /auth/login - Inicia sesión y emite un token JWT
 router.post("/login", login);
+
+router.post("/verify-email", verifyEmail);
+router.post("/resend-verification", resendVerification);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 
 module.exports = router;

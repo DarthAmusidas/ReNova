@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+﻿import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getDashboardSummary } from "../services/dashboardService";
-import sidebarLogo from "../assets/renova-logo-tr-verde.png";
-import reportLogo from "../assets/renova-logo-transparent.png";
+import AppSidebar from "../components/AppSidebar";
+import HeaderUserCard from "../components/HeaderUserCard";
 
 const emptyReport = {
   total_products_published: 0,
@@ -35,9 +35,7 @@ const roundMetric = (value, decimals = 2) => {
 };
 
 const normalizeUnit = (unit) => {
-  const value = String(unit || "")
-    .trim()
-    .toLowerCase();
+  const value = String(unit || "").trim().toLowerCase();
 
   if (!value) return "sin unidad informada";
 
@@ -49,21 +47,10 @@ const normalizeUnit = (unit) => {
     return "unidades";
   }
 
-  if (["caja", "cajas"].includes(value)) {
-    return "cajas";
-  }
-
-  if (["paquete", "paquetes"].includes(value)) {
-    return "paquetes";
-  }
-
-  if (["bolsa", "bolsas"].includes(value)) {
-    return "bolsas";
-  }
-
-  if (["litro", "litros", "l"].includes(value)) {
-    return "litros";
-  }
+  if (["caja", "cajas"].includes(value)) return "cajas";
+  if (["paquete", "paquetes"].includes(value)) return "paquetes";
+  if (["bolsa", "bolsas"].includes(value)) return "bolsas";
+  if (["litro", "litros", "l"].includes(value)) return "litros";
 
   return value;
 };
@@ -78,19 +65,7 @@ const formatNumber = (value, suffix = "") => {
   return suffix ? `${formatted} ${suffix}` : formatted;
 };
 
-const formatPercent = (value) => {
-  return `${formatNumber(value)} %`;
-};
-
-const formatDate = (dateValue = new Date()) => {
-  const date = new Date(dateValue);
-
-  if (Number.isNaN(date.getTime())) {
-    return "Sin fecha";
-  }
-
-  return date.toLocaleDateString("es-AR");
-};
+const formatPercent = (value) => `${formatNumber(value)} %`;
 
 const getStoredUser = () => {
   try {
@@ -99,20 +74,6 @@ const getStoredUser = () => {
   } catch {
     return null;
   }
-};
-
-const getRoleLabel = (user) => {
-  return user?.organization_type || user?.role || "Usuario";
-};
-
-const getRoleIcon = (role) => {
-  const normalizedRole = String(role || "").toUpperCase();
-
-  if (normalizedRole === "ADMIN") return "🛡️";
-  if (normalizedRole === "SUPERMARKET") return "🛒";
-  if (normalizedRole === "ONG") return "🤝";
-
-  return "👤";
 };
 
 const normalizeReport = (payload) => {
@@ -142,13 +103,99 @@ const normalizeReport = (payload) => {
   };
 };
 
-const getMaxMonthValue = (monthlyItems) => {
-  const values = monthlyItems.map((item) =>
-    toNumber(item.completed_deliveries)
-  );
+function ImpactIcon({ type }) {
+  const commonProps = {
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": "true",
+  };
 
-  return Math.max(...values, 1);
-};
+  if (type === "products") {
+    return (
+      <svg {...commonProps}>
+        <path d="M21 8.5 12 3 3 8.5" />
+        <path d="M21 8.5v7L12 21l-9-5.5v-7" />
+        <path d="M12 12 3 8.5" />
+        <path d="M12 12l9-3.5" />
+        <path d="M12 12v9" />
+      </svg>
+    );
+  }
+
+  if (type === "calendar") {
+    return (
+      <svg {...commonProps}>
+        <rect x="4" y="5" width="16" height="16" rx="3" />
+        <path d="M8 3v4" />
+        <path d="M16 3v4" />
+        <path d="M4 10h16" />
+        <path d="m9 15 2 2 4-4" />
+      </svg>
+    );
+  }
+
+  if (type === "check") {
+    return (
+      <svg {...commonProps}>
+        <path d="M20 6 9 17l-5-5" />
+        <path d="M21 12a9 9 0 1 1-6.7-8.7" />
+      </svg>
+    );
+  }
+
+  if (type === "users") {
+    return (
+      <svg {...commonProps}>
+        <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+        <circle cx="9.5" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      </svg>
+    );
+  }
+
+  if (type === "rate") {
+    return (
+      <svg {...commonProps}>
+        <path d="M3 17l6-6 4 4 8-8" />
+        <path d="M14 7h7v7" />
+      </svg>
+    );
+  }
+
+  if (type === "pie") {
+    return (
+      <svg {...commonProps}>
+        <path d="M21 12a9 9 0 1 1-9-9v9z" />
+        <path d="M21 12a9 9 0 0 0-9-9" />
+      </svg>
+    );
+  }
+
+  if (type === "leaf") {
+    return (
+      <svg {...commonProps}>
+        <path d="M11 20A7 7 0 0 1 4 13c0-7 7-10 16-10 0 9-3 16-10 16" />
+        <path d="M4 20c4-4 8-7 16-17" />
+      </svg>
+    );
+  }
+
+  if (type === "print") {
+    return (
+      <svg {...commonProps}>
+        <path d="M6 9V3h12v6" />
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+        <rect x="6" y="14" width="12" height="7" rx="1" />
+      </svg>
+    );
+  }
+
+  return null;
+}
 
 export default function ImpactReport() {
   const navigate = useNavigate();
@@ -168,7 +215,9 @@ export default function ImpactReport() {
         quantity: toNumber(item.quantity),
       }))
     : [];
+
   const totalQuantityDelivered = toNumber(report?.total_quantity_delivered);
+
   const effectiveDeliveredByUnit =
     deliveredByUnit.length > 0
       ? deliveredByUnit
@@ -180,6 +229,7 @@ export default function ImpactReport() {
           },
         ]
       : [];
+
   const co2Factor = toNumber(report?.co2_factor_per_kg) || 2.5;
   const backendKgRecovered = toNumber(report?.measured_kg_recovered);
   const backendCo2Avoided = toNumber(report?.estimated_co2_avoided);
@@ -222,7 +272,7 @@ export default function ImpactReport() {
 
       setError(
         err?.response?.data?.error ||
-        err?.response?.data?.message ||
+          err?.response?.data?.message ||
           "No se pudo cargar el reporte de impacto."
       );
     } finally {
@@ -245,17 +295,75 @@ export default function ImpactReport() {
     window.print();
   };
 
-  const maxMonthValue = getMaxMonthValue(report.monthly_completed_deliveries);
-
   const canViewReport =
     String(user?.role || "").toUpperCase() === "SUPERMARKET" ||
     String(user?.role || "").toUpperCase() === "ADMIN";
 
+  const completed = toNumber(report.completed_reservations);
+  const pending = toNumber(report.pending_reservations);
+  const cancelled = toNumber(report.cancelled_reservations);
+  const received = toNumber(report.total_reservations_received);
+  const unclassified = Math.max(0, received - completed - pending - cancelled);
+
+  const distributionTotal = Math.max(completed + pending + cancelled, received, 1);
+
+  const completedPercent = (completed / distributionTotal) * 100;
+  const pendingPercent = (pending / distributionTotal) * 100;
+  const cancelledPercent = (cancelled / distributionTotal) * 100;
+  const unclassifiedPercent = (unclassified / distributionTotal) * 100;
+
+  const completedDeg = (completedPercent / 100) * 360;
+  const pendingDeg = (pendingPercent / 100) * 360;
+  const cancelledDeg = (cancelledPercent / 100) * 360;
+
+  const donutGradient = `conic-gradient(
+    #37a62d 0deg ${completedDeg}deg,
+    #f0b742 ${completedDeg}deg ${completedDeg + pendingDeg}deg,
+    #d6453d ${completedDeg + pendingDeg}deg ${completedDeg + pendingDeg + cancelledDeg}deg,
+    rgba(160, 210, 140, 0.18) ${completedDeg + pendingDeg + cancelledDeg}deg 360deg
+  )`;
+
+  const utilization = Math.min(100, Math.max(0, toNumber(report.utilization_rate)));
+  const utilizationDeg = (utilization / 100) * 360;
+
+  const summaryCards = [
+    {
+      label: "Productos publicados",
+      value: formatNumber(report.total_products_published),
+      icon: "products",
+    },
+    {
+      label: "Reservas recibidas",
+      value: formatNumber(report.total_reservations_received),
+      icon: "calendar",
+    },
+    {
+      label: "Reservas completadas",
+      value: formatNumber(report.completed_reservations),
+      icon: "check",
+    },
+    {
+      label: "ONG beneficiadas",
+      value: formatNumber(report.distinct_ongs_helped),
+      icon: "users",
+    },
+    {
+      label: "Cantidad entregada",
+      value: formatNumber(totalQuantityDelivered),
+      icon: "products",
+    },
+  ];
+
   return (
-    <div style={styles.appShell}>
+    <div className="renova-app-shell">
       <style>
         {`
           @media print {
+            @page {
+              size: A4;
+              margin: 14mm;
+            }
+
             body * {
               visibility: hidden !important;
             }
@@ -265,23 +373,26 @@ export default function ImpactReport() {
               visibility: visible !important;
             }
 
-            .impact-report-print-area {
-              position: absolute !important;
-              left: 0 !important;
-              top: 0 !important;
-              width: 100% !important;
-              background: white !important;
-              padding: 28px !important;
-              box-shadow: none !important;
-              border: none !important;
-            }
-
             .no-print {
               display: none !important;
             }
 
+            .impact-report-print-area {
+              display: block !important;
+              position: absolute !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 100% !important;
+              background: #ffffff !important;
+              color: #102018 !important;
+              padding: 0 !important;
+              box-shadow: none !important;
+              border: none !important;
+            }
+
             .impact-report-print-area section,
-            .impact-report-print-area article {
+            .impact-report-print-area article,
+            .impact-report-print-area table {
               break-inside: avoid;
               page-break-inside: avoid;
             }
@@ -289,114 +400,43 @@ export default function ImpactReport() {
         `}
       </style>
 
-      <aside style={styles.sidebar} className="no-print">
-        <div style={styles.sidebarLogoContainer}>
-          <img src={sidebarLogo} alt="ReNova" style={styles.sidebarLogo} />
-        </div>
+      <AppSidebar
+        active="impact"
+        user={user}
+        isAdmin={isAdmin}
+        navigate={navigate}
+        onLogout={handleLogout}
+      />
 
-        <nav style={styles.nav}>
-          <Link to="/dashboard" style={styles.navItem}>
-            <span>📊</span>
-            <span>Dashboard</span>
-          </Link>
-
-          <Link to="/products" style={styles.navItem}>
-            <span>🥦</span>
-            <span>Productos</span>
-          </Link>
-
-          <Link to="/reservations" style={styles.navItem}>
-            <span>📋</span>
-            <span>Reservas</span>
-          </Link>
-
-          <Link to="/impact" style={styles.navItemActive}>
-            <span>📈</span>
-            <span>Impacto</span>
-          </Link>
-
-          {isAdmin && (
-            <Link to="/admin/users" style={styles.navItem}>
-              <span>👥</span>
-              <span>Usuarios</span>
-            </Link>
-          )}
-        </nav>
-
-        <button type="button" onClick={handleLogout} style={styles.logoutButton}>
-          Cerrar sesión
-        </button>
-      </aside>
-
-      <main style={styles.mainContent}>
-        <header style={styles.header} className="no-print">
+      <main className="renova-impact-main">
+        <header className="renova-impact-header no-print">
           <div>
-            <span style={styles.pageBadge}>Reporte</span>
-            <h1 style={styles.pageTitle}>Reporte de impacto</h1>
-            <p style={styles.pageSubtitle}>
+            <span className="renova-section-badge">Reporte</span>
+            <h1>Reporte de <span>impacto</span></h1>
+            <p>
               Indicadores calculados a partir de productos publicados y reservas
               completadas.
             </p>
           </div>
 
-          <div style={styles.userArea}>
-            <div style={styles.userCard}>
-              <div style={styles.userIcon}>{getRoleIcon(user?.role)}</div>
-              <div>
-                <div style={styles.userLabel}>Usuario</div>
-                <strong style={styles.userName}>
-                  {user?.name || "Usuario"}
-                </strong>
-                <div style={styles.userRole}>{getRoleLabel(user)}</div>
-              </div>
-            </div>
-            <div style={styles.notificationButton}>🔔</div>
+          <div className="renova-impact-header-right">
+            <HeaderUserCard user={user} />
           </div>
         </header>
 
-        <section
-          className="impact-report-print-area"
-          style={styles.reportContainer}
-        >
-          <div style={styles.reportHeader}>
-            <img src={reportLogo} alt="ReNova" style={styles.reportLogo} />
-
-            <div style={styles.reportMeta}>
-              <strong>Reporte de impacto</strong>
-              <span>Generado: {formatDate(new Date())}</span>
-              <span>{user?.name || "Usuario"}</span>
-            </div>
-          </div>
-
-          <hr style={styles.reportDivider} />
-
-          <div style={styles.reportTitleRow}>
-            <div>
-              <h2 style={styles.reportTitle}>Reporte de impacto</h2>
-              <p style={styles.reportSubtitle}>
-                Indicadores calculados a partir de productos publicados y
-                reservas completadas.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={handlePrint}
-              style={styles.printButton}
-              className="no-print"
-            >
-              Imprimir reporte
-            </button>
-          </div>
-
+        <section className="renova-impact-report-card">
           {loading && (
-            <div style={styles.infoBox}>Cargando reporte de impacto...</div>
+            <div className="renova-impact-info-box">
+              Cargando reporte de impacto...
+            </div>
           )}
 
-          {!loading && error && <div style={styles.errorBox}>{error}</div>}
+          {!loading && error && (
+            <div className="renova-impact-error-box">{error}</div>
+          )}
 
           {!loading && !error && !canViewReport && (
-            <div style={styles.infoBox}>
+            <div className="renova-impact-info-box">
               El reporte de impacto está disponible para supermercados y
               administradores.
             </div>
@@ -404,89 +444,175 @@ export default function ImpactReport() {
 
           {!loading && !error && canViewReport && (
             <>
-              <section style={styles.summaryGrid}>
-                <MetricCard
-                  label="Productos publicados"
-                  value={formatNumber(report.total_products_published)}
-                />
-                <MetricCard
-                  label="Reservas recibidas"
-                  value={formatNumber(report.total_reservations_received)}
-                />
-                <MetricCard
-                  label="Reservas completadas"
-                  value={formatNumber(report.completed_reservations)}
-                />
-                <MetricCard
-                  label="ONG beneficiadas"
-                  value={formatNumber(report.distinct_ongs_helped)}
-                />
-                <MetricCard
-                  label="Cantidad entregada"
-                  value={formatNumber(totalQuantityDelivered)}
-                  description="Total de productos entregados, según reservas completadas."
-                />
+              <section className="renova-impact-summary-grid">
+                {summaryCards.map((card) => (
+                  <MetricCard
+                    key={card.label}
+                    label={card.label}
+                    value={card.value}
+                    icon={card.icon}
+                  />
+                ))}
               </section>
 
-              <section style={styles.twoColumnGrid}>
-                <article style={{ ...styles.panel, ...styles.tasaPanel }}>
-                  <MetricCard
-                    label="Tasa de aprovechamiento"
-                    value={formatPercent(report.utilization_rate)}
-                    description="Porcentaje de reservas recibidas que finalizaron como entregas completadas."
-                    formula="Fórmula: completadas ÷ recibidas × 100."
-                    tall
-                    flush
-                  />
+              <section className="renova-impact-visual-grid">
+                <article className="renova-impact-visual-card">
+                  <div className="renova-impact-panel-title">
+                    <span>
+                      <ImpactIcon type="rate" />
+                    </span>
+
+                    <h3>Tasa de aprovechamiento</h3>
+                  </div>
+
+                  <div className="renova-impact-utilization-layout">
+                    <div
+                      className="renova-impact-progress-ring"
+                      style={{
+                        background: `conic-gradient(#46d94d 0deg ${utilizationDeg}deg, rgba(255,255,255,0.08) ${utilizationDeg}deg 360deg)`,
+                      }}
+                    >
+                      <div>
+                        <strong>{formatPercent(report.utilization_rate)}</strong>
+                        <span>Aprovechamiento</span>
+                      </div>
+                    </div>
+
+                    <div className="renova-impact-visual-copy">
+                      <p>
+                        Porcentaje de reservas recibidas que finalizaron como
+                        entregas completadas.
+                      </p>
+
+                      <div className="renova-impact-progress-track">
+                        <div style={{ width: `${utilization}%` }} />
+                      </div>
+
+                      <div className="renova-impact-progress-scale">
+                        <span>0%</span>
+                        <span>50%</span>
+                        <span>100%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="renova-impact-formula-box">
+                    Fórmula: completadas ÷ recibidas × 100.
+                  </div>
                 </article>
 
-                <article style={styles.panel}>
-                  <h3 style={styles.sectionTitle}>
-                    Impacto ambiental estimado
-                  </h3>
+                <article className="renova-impact-visual-card">
+                  <div className="renova-impact-panel-title">
+                    <span>
+                      <ImpactIcon type="pie" />
+                    </span>
 
-                  <p style={styles.panelText}>
-                    Estos indicadores son estimaciones referenciales calculadas
-                    a partir de reservas completadas.
-                  </p>
+                    <h3>Distribución de reservas</h3>
+                  </div>
 
-                  <div style={styles.environmentGrid}>
-                    <MetricCard
+                  <div className="renova-impact-donut-layout">
+                    <div
+                      className="renova-impact-donut"
+                      style={{ background: donutGradient }}
+                    >
+                      <div>
+                        <span>Total</span>
+                        <strong>{distributionTotal}</strong>
+                      </div>
+                    </div>
+
+                    <div className="renova-impact-chart-legend">
+                      <LegendItem
+                        tone="green"
+                        label="Completadas"
+                        value={completed}
+                        percent={completedPercent}
+                      />
+                      <LegendItem
+                        tone="yellow"
+                        label="Pendientes"
+                        value={pending}
+                        percent={pendingPercent}
+                      />
+                      <LegendItem
+                        tone="red"
+                        label="Canceladas"
+                        value={cancelled}
+                        percent={cancelledPercent}
+                      />
+
+                      {unclassified > 0 && (
+                        <LegendItem
+                          tone="muted"
+                          label="Sin clasificar"
+                          value={unclassified}
+                          percent={unclassifiedPercent}
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="renova-impact-formula-box">
+                    Basado en reservas recibidas.
+                  </div>
+                </article>
+
+                <article className="renova-impact-visual-card">
+                  <div className="renova-impact-panel-title">
+                    <span>
+                      <ImpactIcon type="leaf" />
+                    </span>
+
+                    <div>
+                      <h3>Impacto ambiental estimado</h3>
+                      <p>
+                        Estimaciones referenciales calculadas a partir de
+                        reservas completadas.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="renova-impact-environment-grid">
+                    <EnvironmentMetric
                       label="Kg de comida recuperada"
                       value={formatNumber(
                         roundMetric(effectiveKgRecovered),
                         "kg"
                       )}
+                      helper="Alimentos recuperados y entregados."
                     />
-                    <MetricCard
+
+                    <EnvironmentMetric
                       label="CO₂ evitado estimado"
                       value={formatNumber(
                         roundMetric(effectiveCo2Avoided),
                         "kg CO₂e"
                       )}
+                      helper="Emisiones evitadas gracias a la recuperación."
                     />
                   </div>
 
-                  <p style={styles.methodText}>{CO2_METHOD_TEXT}</p>
+                  <div className="renova-impact-formula-box">
+                    {CO2_METHOD_TEXT}
+                  </div>
                 </article>
               </section>
 
-              <section style={styles.twoColumnGrid}>
-                <article style={styles.panel}>
-                  <h3 style={styles.sectionTitle}>Top ONG beneficiadas</h3>
+              <section className="renova-impact-two-column-grid renova-impact-secondary-grid">
+                <article className="renova-impact-panel">
+                  <h3>Top ONG beneficiadas</h3>
 
                   {report.top_ongs.length > 0 ? (
-                    <div style={styles.rankingList}>
+                    <div className="renova-impact-ranking-list">
                       {report.top_ongs.map((ong) => (
-                        <div key={ong.id || ong.name} style={styles.rankingRow}>
+                        <div key={ong.id || ong.name}>
                           <div>
                             <strong>{ong.name || "ONG sin nombre"}</strong>
                             {ong.organization_type && (
-                              <span style={styles.rankingType}>
-                                {ong.organization_type}
-                              </span>
+                              <span>{ong.organization_type}</span>
                             )}
                           </div>
+
                           <strong>
                             {formatNumber(ong.completed_reservations)}{" "}
                             completadas
@@ -495,552 +621,331 @@ export default function ImpactReport() {
                       ))}
                     </div>
                   ) : (
-                    <p style={styles.panelText}>
-                      Todavía no hay datos suficientes.
-                    </p>
+                    <p>Todavía no hay datos suficientes.</p>
                   )}
                 </article>
 
-                <article style={styles.panel}>
-                  <h3 style={styles.sectionTitle}>
-                    Entregas completadas por mes
-                  </h3>
+                <article className="renova-impact-panel">
+                  <h3>Entregas completadas por mes</h3>
 
                   {report.monthly_completed_deliveries.length > 0 ? (
-                    <div style={styles.monthList}>
+                    <div className="renova-impact-month-list">
                       {report.monthly_completed_deliveries.map((item) => {
                         const value = toNumber(item.completed_deliveries);
+                        const maxMonthValue = Math.max(
+                          ...report.monthly_completed_deliveries.map((month) =>
+                            toNumber(month.completed_deliveries)
+                          ),
+                          1
+                        );
                         const width = Math.max(
                           6,
                           Math.round((value / maxMonthValue) * 100)
                         );
 
                         return (
-                          <div key={item.month} style={styles.monthRow}>
-                            <span style={styles.monthLabel}>{item.month}</span>
-                            <div style={styles.monthBarTrack}>
-                              <div
-                                style={{
-                                  ...styles.monthBarFill,
-                                  width: `${width}%`,
-                                }}
-                              />
+                          <div key={item.month} className="renova-impact-month-row">
+                            <span>{item.month}</span>
+
+                            <div>
+                              <div style={{ width: `${width}%` }} />
                             </div>
-                            <strong style={styles.monthValue}>{value}</strong>
+
+                            <strong>{value}</strong>
                           </div>
                         );
                       })}
                     </div>
                   ) : (
-                    <p style={styles.panelText}>
-                      Todavía no hay entregas completadas por mes.
-                    </p>
+                    <p>Todavía no hay entregas completadas por mes.</p>
                   )}
                 </article>
               </section>
+              <section className="renova-impact-actions no-print">
+                <div>
+                  <strong>Reporte imprimible</strong>
+                  <p>
+                    Generá un informe completo con resumen ejecutivo,
+                    indicadores, distribución de reservas, impacto ambiental,
+                    ONG beneficiadas y entregas por mes.
+                  </p>
+                </div>
 
-              <footer style={styles.reportFooter}>
+                <button
+                  type="button"
+                  onClick={handlePrint}
+                  className="renova-impact-print-button"
+                >
+                  <ImpactIcon type="print" />
+                  Imprimir reporte
+                </button>
+              </section>
+
+              <footer className="renova-impact-report-footer">
                 Reporte generado por ReNova
               </footer>
             </>
           )}
         </section>
+
+        <section className="impact-report-print-area renova-impact-print-report">
+          <header className="renova-print-header">
+            <div>
+              <h1>Reporte de impacto ReNova</h1>
+              <p>
+                Indicadores calculados a partir de productos publicados y
+                reservas completadas.
+              </p>
+            </div>
+
+            <div>
+              <strong>{user?.name || "Usuario"}</strong>
+              <span>Rol: {role || "Usuario"}</span>
+              <span>Generado: {new Date().toLocaleString("es-AR")}</span>
+            </div>
+          </header>
+
+          {!loading && !error && canViewReport && (
+            <>
+              <section className="renova-print-section renova-print-summary">
+                <h2>Resumen ejecutivo</h2>
+
+                <p>
+                  La organización registró <strong>{formatNumber(report.total_products_published)}</strong>{" "}
+                  productos publicados, <strong>{formatNumber(report.total_reservations_received)}</strong>{" "}
+                  reservas recibidas y <strong>{formatNumber(report.completed_reservations)}</strong>{" "}
+                  reservas completadas. El nivel de aprovechamiento actual es de{" "}
+                  <strong>{formatPercent(report.utilization_rate)}</strong>.
+                </p>
+
+                <p>
+                  En términos de impacto ambiental estimado, se recuperaron{" "}
+                  <strong>{formatNumber(roundMetric(effectiveKgRecovered), "kg")}</strong>{" "}
+                  de comida y se evitaron aproximadamente{" "}
+                  <strong>{formatNumber(roundMetric(effectiveCo2Avoided), "kg CO₂e")}</strong>.
+                </p>
+              </section>
+
+              <section className="renova-print-section">
+                <h2>Indicadores principales</h2>
+
+                <table className="renova-print-table">
+                  <tbody>
+                    <tr>
+                      <th>Productos publicados</th>
+                      <td>{formatNumber(report.total_products_published)}</td>
+                    </tr>
+                    <tr>
+                      <th>Reservas recibidas</th>
+                      <td>{formatNumber(report.total_reservations_received)}</td>
+                    </tr>
+                    <tr>
+                      <th>Reservas completadas</th>
+                      <td>{formatNumber(report.completed_reservations)}</td>
+                    </tr>
+                    <tr>
+                      <th>ONG beneficiadas</th>
+                      <td>{formatNumber(report.distinct_ongs_helped)}</td>
+                    </tr>
+                    <tr>
+                      <th>Cantidad entregada</th>
+                      <td>{formatNumber(totalQuantityDelivered)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+
+              <section className="renova-print-section">
+                <h2>Distribución de reservas</h2>
+
+                <table className="renova-print-table">
+                  <thead>
+                    <tr>
+                      <th>Estado</th>
+                      <th>Cantidad</th>
+                      <th>Participación</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <tr>
+                      <td>Completadas</td>
+                      <td>{formatNumber(completed)}</td>
+                      <td>{formatPercent(completedPercent)}</td>
+                    </tr>
+                    <tr>
+                      <td>Pendientes</td>
+                      <td>{formatNumber(pending)}</td>
+                      <td>{formatPercent(pendingPercent)}</td>
+                    </tr>
+                    <tr>
+                      <td>Canceladas</td>
+                      <td>{formatNumber(cancelled)}</td>
+                      <td>{formatPercent(cancelledPercent)}</td>
+                    </tr>
+                    {unclassified > 0 && (
+                      <tr>
+                        <td>Sin clasificar</td>
+                        <td>{formatNumber(unclassified)}</td>
+                        <td>{formatPercent(unclassifiedPercent)}</td>
+                      </tr>
+                    )}
+                    <tr>
+                      <th>Total recibido</th>
+                      <th>{formatNumber(distributionTotal)}</th>
+                      <th>100 %</th>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+
+              <section className="renova-print-section">
+                <h2>Tasa de aprovechamiento</h2>
+
+                <div className="renova-print-highlight">
+                  <strong>{formatPercent(report.utilization_rate)}</strong>
+                  <span>
+                    Porcentaje de reservas recibidas que finalizaron como
+                    entregas completadas.
+                  </span>
+                </div>
+
+                <p className="renova-print-note">
+                  Fórmula: reservas completadas ÷ reservas recibidas × 100.
+                </p>
+              </section>
+
+              <section className="renova-print-section">
+                <h2>Impacto ambiental estimado</h2>
+
+                <table className="renova-print-table">
+                  <tbody>
+                    <tr>
+                      <th>Kg de comida recuperada</th>
+                      <td>{formatNumber(roundMetric(effectiveKgRecovered), "kg")}</td>
+                    </tr>
+                    <tr>
+                      <th>CO₂ evitado estimado</th>
+                      <td>{formatNumber(roundMetric(effectiveCo2Avoided), "kg CO₂e")}</td>
+                    </tr>
+                    <tr>
+                      <th>Factor CO₂ utilizado</th>
+                      <td>{formatNumber(co2Factor, "kg CO₂e por kg recuperado")}</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <p className="renova-print-note">{CO2_METHOD_TEXT}</p>
+              </section>
+
+              <section className="renova-print-section">
+                <h2>Top ONG beneficiadas</h2>
+
+                {report.top_ongs.length > 0 ? (
+                  <table className="renova-print-table">
+                    <thead>
+                      <tr>
+                        <th>ONG</th>
+                        <th>Tipo</th>
+                        <th>Reservas completadas</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {report.top_ongs.map((ong) => (
+                        <tr key={ong.id || ong.name}>
+                          <td>{ong.name || "ONG sin nombre"}</td>
+                          <td>{ong.organization_type || "-"}</td>
+                          <td>{formatNumber(ong.completed_reservations)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p className="renova-print-note">
+                    Todavía no hay datos suficientes.
+                  </p>
+                )}
+              </section>
+
+              <section className="renova-print-section">
+                <h2>Entregas completadas por mes</h2>
+
+                {report.monthly_completed_deliveries.length > 0 ? (
+                  <table className="renova-print-table">
+                    <thead>
+                      <tr>
+                        <th>Mes</th>
+                        <th>Entregas completadas</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {report.monthly_completed_deliveries.map((item) => (
+                        <tr key={item.month}>
+                          <td>{item.month}</td>
+                          <td>{formatNumber(item.completed_deliveries)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p className="renova-print-note">
+                    Todavía no hay entregas completadas por mes.
+                  </p>
+                )}
+              </section>
+
+              <footer className="renova-print-footer">
+                Reporte generado por ReNova
+              </footer>
+            </>
+          )}
+        </section>
+
       </main>
     </div>
   );
 }
 
-function MetricCard({
-  label,
-  value,
-  description,
-  formula,
-  tall = false,
-  flush = false,
-}) {
+function MetricCard({ label, value, icon }) {
   return (
-    <div
-      style={{
-        ...styles.metricCard,
-        ...(tall ? styles.metricCardTall : {}),
-        ...(flush ? styles.metricCardFlush : {}),
-      }}
-    >
-      <span style={styles.metricLabel}>{label}</span>
-      <strong style={styles.metricValue}>{value}</strong>
-      {description && (
-        <span style={styles.metricDescription}>{description}</span>
-      )}
-      {formula && <span style={styles.metricFormula}>{formula}</span>}
+    <article className="renova-impact-metric-card">
+      <span className="renova-impact-metric-icon">
+        <ImpactIcon type={icon} />
+      </span>
+
+      <div>
+        <span>{label}</span>
+        <strong>{value}</strong>
+      </div>
+    </article>
+  );
+}
+
+function LegendItem({ tone, label, value, percent }) {
+  return (
+    <div className="renova-impact-legend-item">
+      <span className={`renova-impact-legend-dot ${tone}`} />
+      <div>
+        <strong>{label}</strong>
+        <small>
+          {formatNumber(value)} ({formatNumber(percent)}%)
+        </small>
+      </div>
     </div>
   );
 }
 
-const styles = {
-  appShell: {
-    minHeight: "100vh",
-    display: "flex",
-    background: "#f4f8ef",
-    color: "#102018",
-    fontFamily:
-      "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  },
-
-  sidebar: {
-    position: "fixed",
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 260,
-    background: "#071b11",
-    color: "#ffffff",
-    display: "flex",
-    flexDirection: "column",
-    padding: "28px 22px",
-    boxSizing: "border-box",
-    zIndex: 20,
-  },
-
-  sidebarLogoContainer: {
-    width: "100%",
-    minHeight: 86,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 18,
-  },
-
-  sidebarLogo: {
-    width: "92%",
-    maxWidth: 200,
-    height: "auto",
-    objectFit: "contain",
-    display: "block",
-  },
-
-  nav: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-    marginTop: 18,
-  },
-
-  navItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    padding: "14px 18px",
-    borderRadius: 16,
-    color: "#eef8e8",
-    textDecoration: "none",
-    fontWeight: 800,
-  },
-
-  navItemActive: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    padding: "14px 18px",
-    borderRadius: 16,
-    color: "#ffffff",
-    textDecoration: "none",
-    fontWeight: 900,
-    background: "#244d13",
-  },
-
-  logoutButton: {
-    marginTop: "auto",
-    width: "100%",
-    border: "none",
-    borderRadius: 14,
-    background: "#263c31",
-    color: "#ffffff",
-    padding: "14px 16px",
-    fontWeight: 900,
-    cursor: "pointer",
-  },
-
-  mainContent: {
-    flex: 1,
-    marginLeft: 260,
-    padding: "42px 48px",
-    boxSizing: "border-box",
-  },
-
-  header: {
-    display: "flex",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: 24,
-    marginBottom: 28,
-  },
-
-  pageBadge: {
-    display: "inline-flex",
-    alignItems: "center",
-    background: "#e8f5dc",
-    color: "#1d7c19",
-    borderRadius: 999,
-    padding: "8px 18px",
-    fontWeight: 900,
-    fontSize: 14,
-  },
-
-  pageTitle: {
-    fontSize: 38,
-    margin: "26px 0 10px",
-    letterSpacing: "-0.04em",
-  },
-
-  pageSubtitle: {
-    margin: 0,
-    color: "#5d6a61",
-    fontSize: 16,
-  },
-
-  userArea: {
-    display: "flex",
-    alignItems: "center",
-    gap: 16,
-  },
-
-  userCard: {
-    display: "flex",
-    alignItems: "center",
-    gap: 16,
-    background: "#ffffff",
-    borderRadius: 24,
-    padding: "18px 24px",
-    boxShadow: "0 18px 40px rgba(24, 54, 24, 0.08)",
-  },
-
-  userIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 18,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "#eef8e8",
-    fontSize: 24,
-  },
-
-  userLabel: {
-    fontSize: 12,
-    textTransform: "uppercase",
-    color: "#738073",
-    fontWeight: 900,
-    letterSpacing: "0.08em",
-  },
-
-  userName: {
-    display: "block",
-    fontSize: 17,
-  },
-
-  userRole: {
-    display: "inline-block",
-    marginTop: 4,
-    background: "#e8f5dc",
-    color: "#1d7c19",
-    borderRadius: 999,
-    padding: "4px 10px",
-    fontSize: 12,
-    fontWeight: 900,
-  },
-
-  notificationButton: {
-    width: 62,
-    height: 62,
-    borderRadius: 22,
-    background: "#ffffff",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 18px 40px rgba(24, 54, 24, 0.08)",
-    fontSize: 24,
-  },
-
-  reportContainer: {
-    background: "#ffffff",
-    borderRadius: 28,
-    padding: 36,
-    boxShadow: "0 18px 60px rgba(24, 54, 24, 0.08)",
-  },
-
-  reportHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 24,
-  },
-
-  reportLogo: {
-    width: 170,
-    height: "auto",
-    objectFit: "contain",
-  },
-
-  reportMeta: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-end",
-    gap: 6,
-    color: "#4d5c50",
-  },
-
-  reportDivider: {
-    border: "none",
-    borderTop: "1px solid #dfe8dc",
-    margin: "28px 0",
-  },
-
-  reportTitleRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 24,
-    marginBottom: 28,
-  },
-
-  reportTitle: {
-    margin: 0,
-    fontSize: 32,
-    letterSpacing: "-0.03em",
-  },
-
-  reportSubtitle: {
-    margin: "10px 0 0",
-    color: "#5d6a61",
-  },
-
-  printButton: {
-    border: "none",
-    borderRadius: 16,
-    padding: "14px 22px",
-    background: "#228b18",
-    color: "#ffffff",
-    fontWeight: 900,
-    cursor: "pointer",
-    boxShadow: "0 12px 28px rgba(34, 139, 24, 0.2)",
-  },
-
-  summaryGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-    gap: 16,
-    marginBottom: 22,
-  },
-
-  twoColumnGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 18,
-    marginBottom: 18,
-  },
-
-  metricCard: {
-    border: "1px solid #dfe8dc",
-    borderRadius: 16,
-    background: "#f8fbf5",
-    padding: 18,
-    minHeight: 84,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    gap: 8,
-  },
-
-  metricCardTall: {
-    minHeight: 150,
-    padding: "24px 20px",
-    justifyContent: "space-between",
-    gap: 14,
-  },
-
-  metricCardFlush: {
-    width: "100%",
-    height: "100%",
-    minHeight: 180,
-    border: "none",
-    background: "transparent",
-    padding: 0,
-    boxSizing: "border-box",
-  },
-
-  metricLabel: {
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-    color: "#6b766b",
-    fontSize: 12,
-    fontWeight: 900,
-  },
-
-  metricValue: {
-    fontSize: 24,
-    color: "#102018",
-  },
-
-  metricDescription: {
-    color: "#4f5f52",
-    fontSize: 12,
-    lineHeight: 1.35,
-  },
-
-  metricFormula: {
-    color: "#6b766b",
-    fontSize: 11,
-    lineHeight: 1.35,
-    fontWeight: 800,
-  },
-
-  panel: {
-    border: "1px solid #dfe8dc",
-    borderRadius: 18,
-    background: "#ffffff",
-    padding: 24,
-  },
-
-  compactPanel: {
-    padding: "18px 20px",
-  },
-
-  tasaPanel: {
-    minHeight: 220,
-    display: "flex",
-  },
-
-  sectionTitle: {
-    margin: "0 0 18px",
-    fontSize: 20,
-  },
-
-  panelText: {
-    margin: "0 0 16px",
-    color: "#4f5f52",
-    lineHeight: 1.6,
-  },
-
-  environmentGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 14,
-    marginBottom: 16,
-  },
-
-  methodText: {
-    margin: "12px 0 0",
-    color: "#4f5f52",
-    fontSize: 14,
-    lineHeight: 1.6,
-  },
-
-  unitList: {
-    display: "grid",
-    gap: 6,
-  },
-
-  unitItem: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderBottom: "1px solid #edf2ea",
-    padding: "7px 0",
-    textTransform: "capitalize",
-  },
-
-  quantityMetric: {
-    display: "grid",
-    gap: 6,
-  },
-
-  quantityValue: {
-    color: "#102018",
-    fontSize: 30,
-    lineHeight: 1,
-  },
-
-  quantityNote: {
-    color: "#4f5f52",
-    fontSize: 13,
-    lineHeight: 1.4,
-  },
-
-  rankingList: {
-    display: "grid",
-    gap: 10,
-  },
-
-  rankingRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderBottom: "1px solid #edf2ea",
-    padding: "10px 0",
-    gap: 16,
-  },
-
-  rankingType: {
-    marginLeft: 6,
-    color: "#6b766b",
-  },
-
-  monthList: {
-    display: "grid",
-    gap: 14,
-  },
-
-  monthRow: {
-    display: "grid",
-    gridTemplateColumns: "80px 1fr 36px",
-    alignItems: "center",
-    gap: 12,
-  },
-
-  monthLabel: {
-    fontWeight: 900,
-    color: "#4f5f52",
-  },
-
-  monthBarTrack: {
-    height: 12,
-    borderRadius: 999,
-    background: "#dfe8dc",
-    overflow: "hidden",
-  },
-
-  monthBarFill: {
-    height: "100%",
-    borderRadius: 999,
-    background: "#228b18",
-  },
-
-  monthValue: {
-    textAlign: "right",
-  },
-
-  reportFooter: {
-    borderTop: "1px solid #dfe8dc",
-    marginTop: 28,
-    paddingTop: 20,
-    textAlign: "center",
-    color: "#4f5f52",
-    fontWeight: 900,
-  },
-
-  infoBox: {
-    borderRadius: 16,
-    padding: 18,
-    background: "#eef8e8",
-    color: "#1d7c19",
-    fontWeight: 800,
-  },
-
-  errorBox: {
-    borderRadius: 16,
-    padding: 18,
-    background: "#fdeaea",
-    color: "#a32727",
-    fontWeight: 800,
-  },
-};
+function EnvironmentMetric({ label, value, helper }) {
+  return (
+    <article className="renova-impact-environment-card">
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <p>{helper}</p>
+      <div>
+        <span />
+      </div>
+    </article>
+  );
+}

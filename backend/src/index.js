@@ -1,10 +1,9 @@
-// Carga las variables de entorno desde el archivo .env
-require("dotenv").config();
+﻿require("dotenv").config({ quiet: true });
 
-// Importa librerías necesarias para el servidor
 const express = require("express");
 const cors = require("cors");
-const { Pool } = require("pg");
+
+const pool = require("./db/pool");
 
 const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/authRoutes");
@@ -16,49 +15,52 @@ const authMiddleware = require("./middlewares/authMiddleware");
 
 const app = express();
 
-// Orígenes permitidos para consumir la API
-// FRONTEND_URL se configura en Render cuando tengamos la URL de Vercel
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:5175",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
+  "http://127.0.0.1:5175",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+
+  if (allowedOrigins.includes(origin)) return true;
+
+  try {
+    const url = new URL(origin);
+
+    if (url.hostname === "localhost") return true;
+    if (url.hostname === "127.0.0.1") return true;
+    if (url.hostname.endsWith(".vercel.app")) return true;
+
+    return false;
+  } catch {
+    return false;
+  }
+}
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) {
+      if (isAllowedOrigin(origin)) {
         return callback(null, true);
       }
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      if (origin.endsWith(".vercel.app")) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("No permitido por CORS"));
+      console.warn("CORS bloqueado para origin:", origin);
+      return callback(null, false);
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// Parsea automáticamente JSON en el cuerpo de las solicitudes
 app.use(express.json());
 
-// Conexión a la base de datos PostgreSQL / Supabase
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl:
-    process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: false }
-      : false,
-});
-
-// Rutas montadas por módulo para mejor organización
 app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
 app.use("/products", productRoutes);
@@ -66,14 +68,13 @@ app.use("/reservations", reservationRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/dashboard", dashboardRoutes);
 
-// Ruta principal para verificar que el backend está activo y conectado a BD
 app.get("/", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
 
     res.json({
       ok: true,
-      message: "Backend ReNova funcionando 🚀",
+      message: "Backend ReNova funcionando",
       database_time: result.rows[0],
     });
   } catch (error) {
@@ -86,7 +87,6 @@ app.get("/", async (req, res) => {
   }
 });
 
-// Ruta protegida que requiere autenticación válida
 app.get("/profile", authMiddleware, (req, res) => {
   res.json({
     message: "Ruta protegida accedida correctamente",
@@ -94,7 +94,6 @@ app.get("/profile", authMiddleware, (req, res) => {
   });
 });
 
-// Middleware para rutas no encontradas
 app.use((req, res) => {
   res.status(404).json({
     error: "Ruta no encontrada",
@@ -103,10 +102,9 @@ app.use((req, res) => {
   });
 });
 
-// Puerto del servidor, por defecto 3000
 const PORT = process.env.PORT || 3000;
 
-// Inicia el servidor en el puerto especificado
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
+  console.log("Origins permitidos:", allowedOrigins);
 });
