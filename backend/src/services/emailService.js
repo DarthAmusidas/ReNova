@@ -5,8 +5,6 @@ if (dns.setDefaultResultOrder) {
   dns.setDefaultResultOrder("ipv4first");
 }
 
-const dnsPromises = dns.promises;
-
 function getFrontendUrl() {
   return process.env.FRONTEND_URL || "http://localhost:5173";
 }
@@ -16,56 +14,36 @@ function buildFrontendLink(path, token) {
   return `${frontendUrl}${path}?token=${encodeURIComponent(token)}`;
 }
 
-async function resolveSmtpHost() {
-  const host = process.env.SMTP_HOST;
-
-  if (!host) {
+function createTransporter() {
+  if (!process.env.SMTP_HOST) {
     return null;
   }
 
-  try {
-    const addresses = await dnsPromises.resolve4(host);
-
-    if (addresses && addresses.length > 0) {
-      console.log(`SMTP IPv4 resolved: ${host} -> ${addresses[0]}`);
-      return addresses[0];
-    }
-  } catch (error) {
-    console.warn(`No se pudo resolver SMTP por IPv4, usando host original: ${error.message}`);
-  }
-
-  return host;
-}
-
-async function createTransporter() {
-  const smtpHost = process.env.SMTP_HOST;
-
-  if (!smtpHost) {
-    return null;
-  }
-
-  const resolvedHost = await resolveSmtpHost();
-
-  return nodemailer.createTransport({
-    host: resolvedHost,
+  console.log("[smtp] creating transporter", {
+    host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT || 587),
     secure: String(process.env.SMTP_SECURE).toLowerCase() === "true",
+    user: process.env.SMTP_USER,
+    family: 4,
+  });
+
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: String(process.env.SMTP_SECURE).toLowerCase() === "true",
+    family: 4,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
-    tls: {
-      servername: smtpHost,
-    },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
-    dnsTimeout: 10000,
+    connectionTimeout: 8000,
+    greetingTimeout: 8000,
+    socketTimeout: 12000,
   });
 }
 
 async function sendMail({ to, subject, text, html }) {
-  const transporter = await createTransporter();
+  const transporter = createTransporter();
 
   if (!transporter) {
     console.log("================ EMAIL MOCK ================");
@@ -76,13 +54,22 @@ async function sendMail({ to, subject, text, html }) {
     return;
   }
 
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM || process.env.SMTP_USER,
-    to,
-    subject,
-    text,
-    html,
-  });
+  console.log("[smtp] sending mail to", to);
+
+  await Promise.race([
+    transporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to,
+      subject,
+      text,
+      html,
+    }),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("SMTP timeout after 10 seconds")), 10000)
+    ),
+  ]);
+
+  console.log("[smtp] mail sent to", to);
 }
 
 async function sendVerificationEmail({ to, name, token }) {
