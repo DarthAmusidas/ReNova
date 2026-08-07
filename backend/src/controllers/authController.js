@@ -198,6 +198,14 @@ const login = async (req, res) => {
       });
     }
 
+    if (!user.email_verified_at) {
+      return res.status(403).json({
+        code: "EMAIL_NOT_VERIFIED",
+        error: "Tenés que verificar tu email antes de iniciar sesión.",
+        email: user.email,
+      });
+    }
+
     const token = jwt.sign(
       {
         id: user.id,
@@ -440,5 +448,6 @@ module.exports = {
   forgotPassword,
   resetPassword,
 };
+
 
 
