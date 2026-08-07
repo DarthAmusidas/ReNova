@@ -1,110 +1,160 @@
-﻿const getFrontendUrl = () =>
-  process.env.FRONTEND_URL || "http://localhost:5173";
+﻿const dns = require("dns");
+const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
-const getFromAddress = () =>
-  process.env.SMTP_FROM || "ReNova <no-reply@renova.com>";
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder("ipv4first");
+}
 
-const buildFrontendLink = (path, token) => {
-  const baseUrl = getFrontendUrl().replace(/\/$/, "");
-  return `${baseUrl}${path}?token=${encodeURIComponent(token)}`;
-};
+function getFrontendUrl() {
+  return process.env.FRONTEND_URL || "http://localhost:5173";
+}
 
-const getTransporter = () => {
+function buildFrontendLink(path, token) {
+  const frontendUrl = getFrontendUrl().replace(/\/$/, "");
+  return `${frontendUrl}${path}?token=${encodeURIComponent(token)}`;
+}
+
+function getEmailFrom() {
+  return (
+    process.env.EMAIL_FROM ||
+    process.env.SMTP_FROM ||
+    "ReNova <onboarding@resend.dev>"
+  );
+}
+
+async function sendMailWithResend({ to, subject, text, html }) {
+  if (!process.env.RESEND_API_KEY) {
+    return false;
+  }
+
+  console.log("[email] provider=resend");
+  console.log("[email] sending to", to);
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  const { data, error } = await resend.emails.send({
+    from: getEmailFrom(),
+    to,
+    subject,
+    text,
+    html,
+  });
+
+  if (error) {
+    throw new Error(
+      `Resend error: ${error.message || JSON.stringify(error)}`
+    );
+  }
+
+  console.log("[email] resend sent", data?.id || data);
+  return true;
+}
+
+function createSmtpTransporter() {
   if (!process.env.SMTP_HOST) {
     return null;
   }
 
-  const nodemailer = require("nodemailer");
+  console.log("[email] provider=smtp", {
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: String(process.env.SMTP_SECURE).toLowerCase() === "true",
+    user: process.env.SMTP_USER,
+    family: 4,
+  });
 
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT || 587),
-    secure: String(process.env.SMTP_SECURE || "false") === "true",
-    auth: process.env.SMTP_USER && process.env.SMTP_PASS
-      ? {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        }
-      : undefined,
+    secure: String(process.env.SMTP_SECURE).toLowerCase() === "true",
+    family: 4,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+    connectionTimeout: 8000,
+    greetingTimeout: 8000,
+    socketTimeout: 12000,
   });
-};
+}
 
-const sendEmail = async ({ to, subject, html, text }) => {
-  const transporter = getTransporter();
+async function sendMailWithSmtp({ to, subject, text, html }) {
+  const transporter = createSmtpTransporter();
 
   if (!transporter) {
-    console.log("\n================ EMAIL MOCK ================");
-    console.log("To:", to);
-    console.log("Subject:", subject);
-    console.log(text);
-    console.log("===========================================\n");
-
-    return {
-      sent: false,
-      mock: true,
-    };
+    return false;
   }
 
-  await transporter.sendMail({
-    from: getFromAddress(),
+  console.log("[email] sending smtp mail to", to);
+
+  await Promise.race([
+    transporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to,
+      subject,
+      text,
+      html,
+    }),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("SMTP timeout after 10 seconds")), 10000)
+    ),
+  ]);
+
+  console.log("[email] smtp mail sent to", to);
+  return true;
+}
+
+async function sendMail({ to, subject, text, html }) {
+  if (process.env.RESEND_API_KEY) {
+    await sendMailWithResend({ to, subject, text, html });
+    return;
+  }
+
+  const smtpSent = await sendMailWithSmtp({ to, subject, text, html });
+
+  if (smtpSent) {
+    return;
+  }
+
+  console.log("================ EMAIL MOCK ================");
+  console.log("To:", to);
+  console.log("Subject:", subject);
+  console.log(text);
+  console.log("===========================================");
+}
+
+async function sendVerificationEmail({ to, name, token }) {
+  const link = buildFrontendLink("/verify-email", token);
+
+  await sendMail({
     to,
-    subject,
-    html,
-    text,
-  });
-
-  return {
-    sent: true,
-    mock: false,
-  };
-};
-
-const sendVerificationEmail = async ({ to, name, token }) => {
-  const verificationLink = buildFrontendLink("/verify-email", token);
-
-  return sendEmail({
-    to,
-    subject: "Verificá tu email en ReNova",
-    text: `Hola ${name || ""}. Verificá tu email ingresando a este link: ${verificationLink}`,
+    subject: "Verificá tu cuenta de ReNova",
+    text: `Hola ${name || ""}. Verificá tu cuenta entrando a este enlace: ${link}`,
     html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.5;">
-        <h2>Verificá tu email en ReNova</h2>
-        <p>Hola ${name || ""}, gracias por registrarte en ReNova.</p>
-        <p>Para activar tu cuenta, ingresá al siguiente enlace:</p>
-        <p>
-          <a href="${verificationLink}" style="display:inline-block;padding:12px 18px;background:#16831e;color:#fff;text-decoration:none;border-radius:10px;font-weight:bold;">
-            Verificar email
-          </a>
-        </p>
-        <p>Este enlace vence en 24 horas.</p>
-      </div>
+      <p>Hola ${name || ""},</p>
+      <p>Para verificar tu cuenta de ReNova, ingresá al siguiente enlace:</p>
+      <p><a href="${link}">${link}</a></p>
     `,
   });
-};
+}
 
-const sendPasswordResetEmail = async ({ to, name, token }) => {
-  const resetLink = buildFrontendLink("/reset-password", token);
+async function sendPasswordResetEmail({ to, name, token }) {
+  const link = buildFrontendLink("/reset-password", token);
 
-  return sendEmail({
+  await sendMail({
     to,
-    subject: "Recuperá tu contraseña de ReNova",
-    text: `Hola ${name || ""}. Para recuperar tu contraseña ingresá a este link: ${resetLink}`,
+    subject: "Recuperar contraseña de ReNova",
+    text: `Hola ${name || ""}. Para recuperar tu contraseña, ingresá a este enlace: ${link}`,
     html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.5;">
-        <h2>Recuperá tu contraseña</h2>
-        <p>Hola ${name || ""}, recibimos una solicitud para restablecer tu contraseña.</p>
-        <p>Ingresá al siguiente enlace para definir una nueva contraseña:</p>
-        <p>
-          <a href="${resetLink}" style="display:inline-block;padding:12px 18px;background:#16831e;color:#fff;text-decoration:none;border-radius:10px;font-weight:bold;">
-            Restablecer contraseña
-          </a>
-        </p>
-        <p>Este enlace vence en 30 minutos.</p>
-        <p>Si no solicitaste este cambio, podés ignorar este mensaje.</p>
-      </div>
+      <p>Hola ${name || ""},</p>
+      <p>Recibimos una solicitud para recuperar tu contraseña de ReNova.</p>
+      <p>Ingresá al siguiente enlace para crear una nueva contraseña:</p>
+      <p><a href="${link}">${link}</a></p>
+      <p>Si no solicitaste este cambio, podés ignorar este correo.</p>
     `,
   });
-};
+}
 
 module.exports = {
   buildFrontendLink,

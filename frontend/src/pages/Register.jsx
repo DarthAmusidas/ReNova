@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { register } from "../services/authService";
 import renovaLogo from "../assets/renova-logo-login.png";
@@ -115,7 +115,7 @@ function Register() {
             <div className="vegetables">
               <span>🥬</span>
               <span>🥦</span>
-              <span>🍅</span>
+              <span>ðŸ…</span>
               <span>🥕</span>
               <span>🥒</span>
             </div>
@@ -129,7 +129,7 @@ function Register() {
 
       <section className="login-right-modern">
         <div className="login-card-modern register-card-modern">
-          <div className="login-lock-icon">📝</div>
+          <div className="login-lock-icon">📝</div>
           <img className="login-card-logo" src={renovaLogo} alt="ReNova" />
 
           <h2>Crear cuenta</h2>
@@ -146,7 +146,7 @@ function Register() {
             <div className="input-group-modern">
               <label>Tipo de organización</label>
               <div className="input-with-icon">
-                <span>🏷️</span>
+                <span>ðŸ·ï¸</span>
                 <select
                   name="organization_type"
                   value={formData.organization_type}
@@ -184,7 +184,7 @@ function Register() {
             <div className="input-group-modern">
               <label>Email</label>
               <div className="input-with-icon">
-                <span>✉️</span>
+                <span>✉️</span>
                 <input
                   type="email"
                   name="email"
@@ -215,7 +215,7 @@ function Register() {
               <div className="input-group-modern">
                 <label>Teléfono</label>
                 <div className="input-with-icon">
-                  <span>📞</span>
+                  <span>📝ž</span>
                   <input
                     type="text"
                     name="phone"
@@ -229,7 +229,7 @@ function Register() {
               <div className="input-group-modern">
                 <label>Dirección</label>
                 <div className="input-with-icon">
-                  <span>📍</span>
+                  <span>📝</span>
                   <input
                     type="text"
                     name="address"
@@ -265,3 +265,4 @@ function Register() {
 }
 
 export default Register;
+
