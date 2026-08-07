@@ -8,9 +8,9 @@ const organizationTypes = [
   "Merendero",
   "Voluntariado",
   "Supermercado",
-  "AlmacÃ©n",
-  "VerdulerÃ­a",
-  "FerreterÃ­a",
+  "Almacén",
+  "Verdulería",
+  "Ferretería",
 ];
 
 function Register() {
@@ -46,7 +46,7 @@ function Register() {
     try {
       await register(formData);
 
-      setSuccess("Cuenta creada correctamente. Ya podÃ©s iniciar sesiÃ³n.");
+      setSuccess("Cuenta creada correctamente. Ya podés iniciar sesión.");
 
       setTimeout(() => {
         navigate("/login");
@@ -70,7 +70,7 @@ function Register() {
           <img className="login-brand-logo" src={renovaLogo} alt="ReNova" />
         </div>
 
-        <span className="green-badge">â™¡ Plataforma solidaria</span>
+        <span className="green-badge">♡ Plataforma solidaria</span>
 
         <h2 className="login-main-title">
           Sumate para <span>compartir</span>
@@ -79,33 +79,33 @@ function Register() {
         <div className="green-line"></div>
 
         <p className="login-main-text">
-          RegistrÃ¡ tu organizaciÃ³n o supermercado para participar en la red de
-          donaciÃ³n de productos disponibles y generar impacto positivo en la
+          Registrá tu organización o supermercado para participar en la red de
+          donación de productos disponibles y generar impacto positivo en la
           comunidad.
         </p>
 
         <div className="login-benefits">
           <div className="benefit-item">
-            <div className="benefit-icon">ðŸ¥¬</div>
+            <div className="benefit-icon">🥬</div>
             <div>
               <strong>Menos desperdicio</strong>
-              <p>MÃ¡s impacto</p>
+              <p>Más impacto</p>
             </div>
           </div>
 
           <div className="benefit-item">
-            <div className="benefit-icon">ðŸ‘¥</div>
+            <div className="benefit-icon">👥</div>
             <div>
-              <strong>MÃ¡s comunidad</strong>
-              <p>MÃ¡s colaboraciÃ³n</p>
+              <strong>Más comunidad</strong>
+              <p>Más colaboración</p>
             </div>
           </div>
 
           <div className="benefit-item">
-            <div className="benefit-icon">â™¡</div>
+            <div className="benefit-icon">♡</div>
             <div>
-              <strong>MÃ¡s solidaridad</strong>
-              <p>MÃ¡s futuro</p>
+              <strong>Más solidaridad</strong>
+              <p>Más futuro</p>
             </div>
           </div>
         </div>
@@ -113,11 +113,11 @@ function Register() {
         <div className="food-illustration">
           <div className="food-crate">
             <div className="vegetables">
-              <span>ðŸ¥¬</span>
-              <span>ðŸ¥¦</span>
+              <span>🥬</span>
+              <span>🥦</span>
               <span>ðŸ…</span>
-              <span>ðŸ¥•</span>
-              <span>ðŸ¥’</span>
+              <span>🥕</span>
+              <span>🥒</span>
             </div>
 
             <div className="crate-box">
@@ -129,13 +129,13 @@ function Register() {
 
       <section className="login-right-modern">
         <div className="login-card-modern register-card-modern">
-          <div className="login-lock-icon">ðŸ“</div>
+          <div className="login-lock-icon">📝</div>
           <img className="login-card-logo" src={renovaLogo} alt="ReNova" />
 
           <h2>Crear cuenta</h2>
 
           <p>
-            CompletÃ¡ tus datos para registrarte en la plataforma y comenzar a
+            Completá tus datos para registrarte en la plataforma y comenzar a
             utilizar ReNova.
           </p>
 
@@ -144,7 +144,7 @@ function Register() {
 
           <form onSubmit={handleSubmit}>
             <div className="input-group-modern">
-              <label>Tipo de organizaciÃ³n</label>
+              <label>Tipo de organización</label>
               <div className="input-with-icon">
                 <span>ðŸ·ï¸</span>
                 <select
@@ -154,7 +154,7 @@ function Register() {
                   required
                 >
                   <option value="" disabled>
-                    SeleccionÃ¡ un tipo
+                    Seleccioná un tipo
                   </option>
 
                   {organizationTypes.map((type) => (
@@ -169,11 +169,11 @@ function Register() {
             <div className="input-group-modern">
               <label>Nombre</label>
               <div className="input-with-icon">
-                <span>ðŸ‘¤</span>
+                <span>👤</span>
                 <input
                   type="text"
                   name="name"
-                  placeholder="Nombre de la organizaciÃ³n"
+                  placeholder="Nombre de la organización"
                   value={formData.name}
                   onChange={handleChange}
                   required
@@ -184,7 +184,7 @@ function Register() {
             <div className="input-group-modern">
               <label>Email</label>
               <div className="input-with-icon">
-                <span>âœ‰ï¸</span>
+                <span>✉️</span>
                 <input
                   type="email"
                   name="email"
@@ -197,13 +197,13 @@ function Register() {
             </div>
 
             <div className="input-group-modern">
-              <label>ContraseÃ±a</label>
+              <label>Contraseña</label>
               <div className="input-with-icon">
-                <span>ðŸ”’</span>
+                <span>🔒</span>
                 <input
                   type="password"
                   name="password"
-                  placeholder="IngresÃ¡ una contraseÃ±a"
+                  placeholder="Ingresá una contraseña"
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -213,9 +213,9 @@ function Register() {
 
             <div className="form-grid-modern register-form-grid">
               <div className="input-group-modern">
-                <label>TelÃ©fono</label>
+                <label>Teléfono</label>
                 <div className="input-with-icon">
-                  <span>ðŸ“ž</span>
+                  <span>📝ž</span>
                   <input
                     type="text"
                     name="phone"
@@ -227,13 +227,13 @@ function Register() {
               </div>
 
               <div className="input-group-modern">
-                <label>DirecciÃ³n</label>
+                <label>Dirección</label>
                 <div className="input-with-icon">
-                  <span>ðŸ“</span>
+                  <span>📝</span>
                   <input
                     type="text"
                     name="address"
-                    placeholder="DirecciÃ³n"
+                    placeholder="Dirección"
                     value={formData.address}
                     onChange={handleChange}
                   />
@@ -253,9 +253,9 @@ function Register() {
           </div>
 
           <div className="login-register-text">
-            Â¿Ya tenÃ©s cuenta?
+            ¿Ya tenés cuenta?
             <button type="button" onClick={() => navigate("/login")}>
-              IniciÃ¡ sesiÃ³n
+              Iniciá sesión
             </button>
           </div>
         </div>
