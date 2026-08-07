@@ -1,0 +1,613 @@
+﻿/* ==========================================================
+   RENOVA AUTH FINAL
+   Login + Register
+========================================================== */
+
+.auth-final-page {
+  min-height: 100vh !important;
+  overflow: hidden !important;
+}
+
+
+/* ==========================
+   HERO
+========================== */
+
+.auth-final-page .login-left-modern {
+  padding:
+    32px
+    28px
+    24px
+    clamp(70px, 6vw, 118px) !important;
+}
+
+.auth-final-page .login-hero {
+  min-height: calc(100vh - 56px) !important;
+  max-width: 1040px !important;
+
+  padding: 0 !important;
+
+  justify-content: flex-start !important;
+}
+
+.auth-final-page .login-hero-content {
+  max-width: 640px !important;
+  gap: 15px !important;
+}
+
+.auth-final-page .login-brand-block {
+  gap: 12px !important;
+}
+
+.auth-final-page .login-main-logo {
+  width: clamp(310px, 23vw, 400px) !important;
+  margin: 0 !important;
+}
+
+.auth-final-page .login-badge {
+  margin: 0 !important;
+
+  padding: 8px 15px !important;
+
+  font-size: 0.9rem !important;
+}
+
+.auth-final-page .login-title {
+  max-width: 610px !important;
+
+  font-size:
+    clamp(3.65rem, 4.8vw, 5.25rem) !important;
+
+  line-height: 0.92 !important;
+  letter-spacing: -2.7px !important;
+
+  margin: 0 !important;
+}
+
+.auth-final-page .login-title-accent {
+  display: block !important;
+}
+
+.auth-final-page .login-description {
+  max-width: 550px !important;
+
+  margin-top: 8px !important;
+
+  font-size: 0.97rem !important;
+  line-height: 1.55 !important;
+}
+
+
+/* ==========================
+   BENEFICIOS
+========================== */
+
+.auth-final-page .login-benefits {
+  position: relative !important;
+
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+
+  width: 340px !important;
+  max-width: 340px !important;
+
+  margin-top: 10px !important;
+
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+
+  gap: 9px !important;
+
+  z-index: 10 !important;
+}
+
+.auth-final-page .login-benefit-card {
+  min-height: 65px !important;
+
+  padding: 10px 14px !important;
+
+  border-radius: 17px !important;
+}
+
+.auth-final-page .benefit-icon {
+  width: 43px !important;
+  height: 43px !important;
+  min-width: 43px !important;
+
+  border-radius: 13px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  background: #e8f6dc !important;
+}
+
+.auth-final-page .benefit-icon-community {
+  background: #fff5d8 !important;
+}
+
+.auth-final-page .benefit-icon svg {
+  width: 22px !important;
+  height: 22px !important;
+
+  fill: none !important;
+
+  stroke: #48a52d !important;
+  stroke-width: 1.9 !important;
+
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+.auth-final-page .benefit-icon-community svg {
+  stroke: #e0a524 !important;
+}
+
+.auth-final-page .login-benefit-card strong {
+  font-size: 0.9rem !important;
+}
+
+.auth-final-page .login-benefit-card p {
+  margin-top: 2px !important;
+  font-size: 0.78rem !important;
+}
+
+
+/* ==========================
+   BOLSA / ILUSTRACIÓN
+========================== */
+
+.auth-final-page .login-illustration-wrap {
+  position: absolute !important;
+
+  left: clamp(340px, 23vw, 455px) !important;
+
+  bottom: -115px !important;
+
+  width:
+    clamp(540px, 40vw, 740px) !important;
+
+  margin: 0 !important;
+
+  z-index: 3 !important;
+
+  pointer-events: none !important;
+}
+
+.auth-final-page .login-grocery-image {
+  width: 100% !important;
+  height: auto !important;
+
+  object-fit: contain !important;
+
+  filter:
+    drop-shadow(
+      0
+      28px
+      40px
+      rgba(35,82,34,0.18)
+    ) !important;
+}
+
+
+/* ==========================
+   COLUMNA DERECHA
+========================== */
+
+.auth-final-page .login-right-modern {
+  padding:
+    24px
+    clamp(52px, 6vw, 110px)
+    24px
+    16px !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.auth-final-page .login-auth-area {
+  width: 100% !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+
+/* ==========================
+   CARD BASE
+========================== */
+
+.auth-final-page .login-card-modern {
+  width: min(100%, 570px) !important;
+  max-width: 570px !important;
+
+  min-height: auto !important;
+
+  padding:
+    40px
+    48px
+    34px !important;
+
+  border-radius: 35px !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0.78),
+      rgba(247,253,242,0.62)
+    ) !important;
+
+  border:
+    1px solid
+    rgba(255,255,255,0.74) !important;
+
+  box-shadow:
+    0 32px 80px rgba(30,80,35,0.16),
+    inset 0 1px 0 rgba(255,255,255,0.85) !important;
+
+  backdrop-filter:
+    blur(22px)
+    saturate(135%) !important;
+
+  -webkit-backdrop-filter:
+    blur(22px)
+    saturate(135%) !important;
+}
+
+.auth-final-page .login-card-logo {
+  width: 170px !important;
+
+  max-width: 100% !important;
+
+  margin:
+    0
+    auto
+    21px !important;
+}
+
+.auth-final-page .login-card-modern h2 {
+  margin:
+    0
+    0
+    11px !important;
+
+  font-size: 2.25rem !important;
+  line-height: 1.05 !important;
+}
+
+.auth-final-page .login-card-modern > p {
+  max-width: 430px !important;
+
+  margin:
+    0
+    auto
+    26px !important;
+
+  font-size: 0.95rem !important;
+  line-height: 1.55 !important;
+}
+
+
+/* ==========================
+   INPUTS
+========================== */
+
+.auth-final-page .input-group-modern {
+  margin-bottom: 16px !important;
+}
+
+.auth-final-page .input-group-modern label {
+  margin-bottom: 7px !important;
+
+  font-size: 0.92rem !important;
+}
+
+.auth-final-page .input-with-icon {
+  min-height: 57px !important;
+
+  padding:
+    0
+    16px !important;
+
+  gap: 11px !important;
+
+  border-radius: 17px !important;
+
+  background:
+    rgba(255,255,255,0.78) !important;
+}
+
+.auth-final-page .auth-field-icon {
+  width: 21px !important;
+  min-width: 21px !important;
+
+  margin: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  color: #279b35 !important;
+
+  font-size: 0 !important;
+}
+
+.auth-final-page .auth-field-icon svg {
+  width: 18px !important;
+  height: 18px !important;
+
+  fill: none !important;
+
+  stroke: currentColor !important;
+  stroke-width: 1.8 !important;
+
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+.auth-final-page .input-with-icon input,
+.auth-final-page .input-with-icon select {
+  min-width: 0 !important;
+
+  border: none !important;
+  outline: none !important;
+
+  padding: 0 !important;
+
+  background: transparent !important;
+
+  box-shadow: none !important;
+
+  font-size: 0.96rem !important;
+}
+
+
+/* ==========================
+   PASSWORD
+========================== */
+
+.auth-final-page .auth-password-toggle {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+
+  padding: 0 !important;
+
+  border: none !important;
+
+  border-radius: 11px !important;
+
+  background: transparent !important;
+
+  color: #46584a !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  box-shadow: none !important;
+}
+
+.auth-final-page .auth-password-toggle:hover {
+  background:
+    rgba(47,151,40,0.09) !important;
+
+  color: #16831e !important;
+}
+
+.auth-final-page .auth-password-toggle svg {
+  width: 20px !important;
+  height: 20px !important;
+
+  fill: none !important;
+
+  stroke: currentColor !important;
+  stroke-width: 1.8 !important;
+
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+
+/* ==========================
+   BOTÓN
+========================== */
+
+.auth-final-page .auth-submit-button {
+  position: relative !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 9px !important;
+}
+
+.auth-final-page .auth-button-spinner {
+  width: 16px !important;
+  height: 16px !important;
+
+  border-radius: 999px !important;
+
+  border:
+    2px solid
+    rgba(255,255,255,0.4) !important;
+
+  border-top-color:
+    #ffffff !important;
+
+  animation:
+    auth-spin
+    0.7s
+    linear
+    infinite !important;
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ==========================
+   REGISTER
+========================== */
+
+.auth-final-page .field-optional {
+  color: #77857a !important;
+
+  font-size: 0.77rem !important;
+  font-weight: 700 !important;
+}
+
+.register-page-modern .auth-register-card {
+  width: min(100%, 590px) !important;
+  max-width: 590px !important;
+
+  padding:
+    27px
+    38px
+    23px !important;
+}
+
+.register-page-modern .auth-register-card .login-card-logo {
+  width: 155px !important;
+
+  margin-bottom: 10px !important;
+}
+
+.register-page-modern .auth-register-card h2 {
+  margin-bottom: 6px !important;
+
+  font-size: 1.95rem !important;
+}
+
+.register-page-modern .auth-register-card > p {
+  max-width: 420px !important;
+
+  margin-bottom: 14px !important;
+
+  font-size: 0.84rem !important;
+  line-height: 1.4 !important;
+}
+
+.register-page-modern .input-group-modern {
+  margin-bottom: 9px !important;
+}
+
+.register-page-modern .input-group-modern label {
+  margin-bottom: 5px !important;
+
+  font-size: 0.82rem !important;
+}
+
+.register-page-modern .input-with-icon {
+  min-height: 48px !important;
+
+  padding:
+    0
+    14px !important;
+
+  border-radius: 15px !important;
+}
+
+.register-page-modern .input-with-icon input,
+.register-page-modern .input-with-icon select {
+  font-size: 0.91rem !important;
+}
+
+.register-page-modern .input-with-icon select {
+  min-height: 46px !important;
+}
+
+.register-page-modern .register-form-grid {
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(0,1fr)
+    minmax(0,1fr) !important;
+
+  gap: 13px !important;
+}
+
+.register-page-modern .btn-login-modern {
+  min-height: 53px !important;
+
+  margin-top: 1px !important;
+
+  font-size: 0.98rem !important;
+}
+
+.register-page-modern .login-separator {
+  margin:
+    13px
+    0
+    10px !important;
+}
+
+.register-page-modern .login-register-text {
+  font-size: 0.88rem !important;
+}
+
+.register-page-modern .success-message-modern,
+.register-page-modern .error-message-modern {
+  margin-bottom: 10px !important;
+
+  padding: 10px 12px !important;
+
+  font-size: 0.82rem !important;
+}
+
+.register-page-modern .success-message-modern small {
+  display: block !important;
+
+  margin-top: 4px !important;
+}
+
+
+/* ==========================================================
+   TABLET / MOBILE
+========================================================== */
+
+@media (max-width: 1200px) {
+
+  .auth-final-page {
+    overflow-y: auto !important;
+  }
+
+  .auth-final-page .login-illustration-wrap {
+    position: relative !important;
+
+    left: auto !important;
+    bottom: auto !important;
+
+    width: min(460px, 86vw) !important;
+
+    margin:
+      18px
+      auto
+      0 !important;
+  }
+
+}
+
+
+@media (max-width: 900px) {
+
+  .register-page-modern .register-form-grid {
+    grid-template-columns: 1fr !important;
+
+    gap: 0 !important;
+  }
+
+}
