@@ -1,5 +1,6 @@
 ﻿const dns = require("dns");
 const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
 if (dns.setDefaultResultOrder) {
   dns.setDefaultResultOrder("ipv4first");
@@ -14,12 +15,48 @@ function buildFrontendLink(path, token) {
   return `${frontendUrl}${path}?token=${encodeURIComponent(token)}`;
 }
 
-function createTransporter() {
+function getEmailFrom() {
+  return (
+    process.env.EMAIL_FROM ||
+    process.env.SMTP_FROM ||
+    "ReNova <onboarding@resend.dev>"
+  );
+}
+
+async function sendMailWithResend({ to, subject, text, html }) {
+  if (!process.env.RESEND_API_KEY) {
+    return false;
+  }
+
+  console.log("[email] provider=resend");
+  console.log("[email] sending to", to);
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  const { data, error } = await resend.emails.send({
+    from: getEmailFrom(),
+    to,
+    subject,
+    text,
+    html,
+  });
+
+  if (error) {
+    throw new Error(
+      `Resend error: ${error.message || JSON.stringify(error)}`
+    );
+  }
+
+  console.log("[email] resend sent", data?.id || data);
+  return true;
+}
+
+function createSmtpTransporter() {
   if (!process.env.SMTP_HOST) {
     return null;
   }
 
-  console.log("[smtp] creating transporter", {
+  console.log("[email] provider=smtp", {
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT || 587),
     secure: String(process.env.SMTP_SECURE).toLowerCase() === "true",
@@ -42,19 +79,14 @@ function createTransporter() {
   });
 }
 
-async function sendMail({ to, subject, text, html }) {
-  const transporter = createTransporter();
+async function sendMailWithSmtp({ to, subject, text, html }) {
+  const transporter = createSmtpTransporter();
 
   if (!transporter) {
-    console.log("================ EMAIL MOCK ================");
-    console.log("To:", to);
-    console.log("Subject:", subject);
-    console.log(text);
-    console.log("===========================================");
-    return;
+    return false;
   }
 
-  console.log("[smtp] sending mail to", to);
+  console.log("[email] sending smtp mail to", to);
 
   await Promise.race([
     transporter.sendMail({
@@ -69,7 +101,27 @@ async function sendMail({ to, subject, text, html }) {
     ),
   ]);
 
-  console.log("[smtp] mail sent to", to);
+  console.log("[email] smtp mail sent to", to);
+  return true;
+}
+
+async function sendMail({ to, subject, text, html }) {
+  if (process.env.RESEND_API_KEY) {
+    await sendMailWithResend({ to, subject, text, html });
+    return;
+  }
+
+  const smtpSent = await sendMailWithSmtp({ to, subject, text, html });
+
+  if (smtpSent) {
+    return;
+  }
+
+  console.log("================ EMAIL MOCK ================");
+  console.log("To:", to);
+  console.log("Subject:", subject);
+  console.log(text);
+  console.log("===========================================");
 }
 
 async function sendVerificationEmail({ to, name, token }) {
