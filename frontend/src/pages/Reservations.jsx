@@ -7,6 +7,7 @@ import {
 import AppSidebar from "../components/AppSidebar";
 import HeaderUserCard from "../components/HeaderUserCard";
 import { pageStyles as styles, getStatusStyle } from "../styles/pageStyles";
+import "../styles/management-pages.css";
 
 const RESERVATIONS_PER_PAGE = 4;
 
@@ -835,6 +836,11 @@ function Reservations() {
                     : localStyles.filterButton
                 }
                 onClick={() => setSelectedFilter(filter.key)}
+                className={
+                  selectedFilter === filter.key
+                    ? "renova-reservation-filter-button renova-reservation-filter-button-active"
+                    : "renova-reservation-filter-button"
+                }
                 title={filter.title}
               >
                 {filter.label} <span style={localStyles.filterCount}>{filter.count}</span>
@@ -928,14 +934,14 @@ function Reservations() {
         )}
 
         {loading ? (
-          <section style={styles.emptyState}>
+          <section style={styles.emptyState} className="renova-reservations-empty-state">
             <h2 style={styles.emptyTitle}>Cargando reservas...</h2>
             <p style={styles.emptyText}>
               Estamos consultando las reservas registradas.
             </p>
           </section>
         ) : filteredReservations.length === 0 ? (
-          <section style={styles.emptyState}>
+          <section style={styles.emptyState} className="renova-reservations-empty-state">
             <h2 style={styles.emptyTitle}>No hay reservas para mostrar</h2>
             <p style={styles.emptyText}>
               {selectedFilter !== "ALL"
@@ -1270,8 +1276,8 @@ function Reservations() {
         )}
 
         {selectedReservationForDelivery && (
-          <div style={styles.modalOverlay}>
-            <div style={styles.modalCard}>
+          <div style={styles.modalOverlay} className="renova-reservations-modal-overlay">
+            <div style={styles.modalCard} className="renova-reservations-modal-card">
               <h2 style={styles.modalTitle}>Confirmar entrega</h2>
 
               <p style={styles.modalText}>

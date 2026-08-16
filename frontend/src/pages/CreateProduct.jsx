@@ -4,6 +4,7 @@ import { createProduct } from "../services/productService";
 import AppSidebar from "../components/AppSidebar";
 import NotificationBell from "../components/NotificationBell";
 import { pageStyles as pageStyles } from "../styles/pageStyles";
+import "../styles/management-pages.css";
 
 function CreateProduct() {
   const navigate = useNavigate();
@@ -94,7 +95,7 @@ function CreateProduct() {
   };
 
   return (
-    <div style={styles.layout}>
+    <div style={styles.layout} className="renova-create-product-shell">
       <AppSidebar
         active="products"
         user={user}
@@ -103,8 +104,8 @@ function CreateProduct() {
         onLogout={handleLogout}
       />
 
-      <main style={styles.main}>
-        <header style={styles.header}>
+      <main style={styles.main} className="renova-create-product-main">
+        <header style={styles.header} className="renova-create-product-header">
           <div>
             <span style={styles.badge}>Nuevo producto</span>
 
@@ -123,8 +124,8 @@ function CreateProduct() {
           </div>
         </header>
 
-        <section style={styles.formPanel}>
-          <div style={styles.formHeader}>
+        <section style={styles.formPanel} className="renova-create-product-panel">
+          <div style={styles.formHeader} className="renova-create-product-form-header">
             <div>
               <h2 style={styles.formTitle}>Información del producto</h2>
               <p style={styles.formDescription}>
@@ -140,7 +141,7 @@ function CreateProduct() {
           {success && <div style={styles.successBox}>{success}</div>}
 
           <form onSubmit={handleSubmit}>
-            <div style={styles.formGrid}>
+            <div style={styles.formGrid} className="renova-create-product-grid">
               <div style={styles.inputGroup}>
                 <label style={styles.inputLabel}>Nombre del producto</label>
                 <input
@@ -201,7 +202,7 @@ function CreateProduct() {
                 />
               </div>
 
-              <label style={styles.checkboxCard}>
+              <label style={styles.checkboxCard} className="renova-create-product-checkbox">
                 <input
                   type="checkbox"
                   name="low_rotation"
@@ -233,7 +234,7 @@ function CreateProduct() {
               />
             </div>
 
-            <div style={styles.formActions}>
+            <div style={styles.formActions} className="renova-create-product-actions">
               <button
                 type="button"
                 style={styles.secondaryButton}

@@ -1,0 +1,1479 @@
+
+/* ==========================================================
+   RENOVA MANAGEMENT PAGES
+   Create Product + Reservations
+   Responsive + Dark Mode
+========================================================== */
+
+
+/* ----------------------------------------------------------
+   SHARED SHELL
+---------------------------------------------------------- */
+
+.renova-create-product-shell,
+.renova-reservations-shell {
+  min-height: 100vh !important;
+
+  display: grid !important;
+  grid-template-columns:
+    262px
+    minmax(0, 1fr) !important;
+
+  background:
+    radial-gradient(
+      circle at 88% 0%,
+      rgba(130, 190, 70, 0.17),
+      transparent 27%
+    ),
+    linear-gradient(
+      135deg,
+      #fbfcf3 0%,
+      #eef8e9 52%,
+      #f7fbf2 100%
+    ) !important;
+
+  color: #102018 !important;
+}
+
+
+.renova-create-product-main,
+.renova-reservations-main {
+  min-width: 0 !important;
+
+  width: 100% !important;
+
+  box-sizing: border-box !important;
+
+  padding:
+    34px
+    clamp(30px, 4vw, 58px)
+    56px !important;
+
+  background: transparent !important;
+}
+
+
+/* ----------------------------------------------------------
+   CREATE PRODUCT
+---------------------------------------------------------- */
+
+.renova-create-product-header {
+  display: flex !important;
+
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+
+  gap: 28px !important;
+
+  margin-bottom: 30px !important;
+}
+
+
+.renova-create-product-panel {
+  width: 100% !important;
+  max-width: 980px !important;
+
+  box-sizing: border-box !important;
+
+  padding: 34px !important;
+
+  border-radius: 32px !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0.91),
+      rgba(250,253,247,0.82)
+    ) !important;
+
+  border:
+    1px solid
+    rgba(255,255,255,0.8) !important;
+
+  box-shadow:
+    0 22px 55px
+    rgba(30,80,35,0.09) !important;
+}
+
+
+.renova-create-product-form-header {
+  display: flex !important;
+
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+
+  gap: 22px !important;
+}
+
+
+.renova-create-product-grid {
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr) !important;
+
+  gap: 20px !important;
+}
+
+
+.renova-create-product-panel input,
+.renova-create-product-panel textarea,
+.renova-create-product-panel select {
+  box-sizing: border-box !important;
+
+  max-width: 100% !important;
+}
+
+
+.renova-create-product-checkbox {
+  box-sizing: border-box !important;
+}
+
+
+.renova-create-product-actions {
+  display: flex !important;
+
+  justify-content: flex-end !important;
+
+  gap: 12px !important;
+}
+
+
+/* ----------------------------------------------------------
+   RESERVATIONS
+---------------------------------------------------------- */
+
+.renova-reservations-header {
+  display: flex !important;
+
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+
+  gap: 28px !important;
+
+  margin-bottom: 28px !important;
+}
+
+
+.renova-reservations-toolbar {
+  width: 100% !important;
+
+  display: flex !important;
+
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+
+  gap: 18px !important;
+
+  margin-bottom: 10px !important;
+}
+
+
+.renova-reservations-filter-bar {
+  min-width: 0 !important;
+
+  flex: 1 1 auto !important;
+
+  margin-bottom: 0 !important;
+}
+
+
+.renova-reservations-search-box {
+  width: 360px !important;
+  min-width: 280px !important;
+  max-width: 360px !important;
+
+  flex-shrink: 0 !important;
+}
+
+
+.renova-reservations-grid {
+  min-width: 0 !important;
+
+  grid-template-columns:
+    repeat(
+      auto-fill,
+      minmax(340px, 1fr)
+    ) !important;
+}
+
+
+.renova-reservation-card {
+  min-width: 0 !important;
+
+  box-sizing: border-box !important;
+
+  overflow: hidden !important;
+}
+
+
+.renova-reservation-card-header {
+  min-width: 0 !important;
+}
+
+
+.renova-reservation-card-header > div:first-child {
+  min-width: 0 !important;
+}
+
+
+.renova-reservation-card-icon {
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+
+  border-radius: 18px !important;
+
+  display: inline-flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  background: #e7f6df !important;
+
+  color: #16831e !important;
+}
+
+
+.renova-reservation-card-icon svg {
+  width: 25px !important;
+  height: 25px !important;
+}
+
+
+.renova-reservation-meta-item,
+.renova-reservation-pickup-item {
+  min-width: 0 !important;
+
+  box-sizing: border-box !important;
+}
+
+
+.renova-reservation-meta-item span,
+.renova-reservation-pickup-item span,
+.renova-reservation-traceability-info span {
+  overflow-wrap: anywhere !important;
+}
+
+
+.renova-reservation-card-actions {
+  width: 100% !important;
+
+  display: flex !important;
+
+  gap: 10px !important;
+
+  flex-wrap: wrap !important;
+}
+
+
+.renova-reservation-card-actions button {
+  margin-left: 0 !important;
+}
+
+
+.renova-reservation-print-button {
+  margin-left: 0 !important;
+}
+
+
+.renova-reservations-pagination {
+  max-width: 100% !important;
+
+  overflow: hidden !important;
+}
+
+
+/* ==========================================================
+   DARK MODE
+========================================================== */
+
+html.renova-dark-mode
+.renova-create-product-shell,
+
+html.renova-dark-mode
+.renova-reservations-shell {
+  background:
+    radial-gradient(
+      circle at 88% 0%,
+      rgba(55,166,45,0.15),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 8% 100%,
+      rgba(47,151,40,0.09),
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      #07130c 0%,
+      #0d1f13 52%,
+      #08160d 100%
+    ) !important;
+
+  color: #f4fbf1 !important;
+}
+
+
+html.renova-dark-mode
+.renova-create-product-main,
+
+html.renova-dark-mode
+.renova-reservations-main {
+  background: transparent !important;
+}
+
+
+/* Create product dark */
+
+html.renova-dark-mode
+.renova-create-product-panel {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(19,39,24,0.94),
+      rgba(12,28,17,0.90)
+    ) !important;
+
+  border-color:
+    rgba(160,210,140,0.14) !important;
+
+  box-shadow:
+    0 22px 55px
+    rgba(0,0,0,0.25) !important;
+}
+
+
+html.renova-dark-mode
+.renova-create-product-header h1,
+
+html.renova-dark-mode
+.renova-create-product-panel h2,
+
+html.renova-dark-mode
+.renova-create-product-panel label,
+
+html.renova-dark-mode
+.renova-create-product-panel strong {
+  color: #f4fbf1 !important;
+}
+
+
+html.renova-dark-mode
+.renova-create-product-header p,
+
+html.renova-dark-mode
+.renova-create-product-panel p {
+  color: #aac0aa !important;
+}
+
+
+html.renova-dark-mode
+.renova-create-product-panel input,
+
+html.renova-dark-mode
+.renova-create-product-panel textarea,
+
+html.renova-dark-mode
+.renova-create-product-panel select {
+  background:
+    rgba(9,24,14,0.88) !important;
+
+  border-color:
+    rgba(147,197,128,0.25) !important;
+
+  color: #f4fbf1 !important;
+}
+
+
+html.renova-dark-mode
+.renova-create-product-panel input::placeholder,
+
+html.renova-dark-mode
+.renova-create-product-panel textarea::placeholder {
+  color: #78917c !important;
+}
+
+
+html.renova-dark-mode
+.renova-create-product-checkbox {
+  background:
+    rgba(9,24,14,0.72) !important;
+
+  border-color:
+    rgba(147,197,128,0.18) !important;
+}
+
+
+html.renova-dark-mode
+.renova-create-product-form-header > div:last-child {
+  background:
+    rgba(55,166,45,0.14) !important;
+}
+
+
+/* Reservations dark */
+
+html.renova-dark-mode
+.renova-reservations-header h1,
+
+html.renova-dark-mode
+.renova-reservation-card h2,
+
+html.renova-dark-mode
+.renova-reservation-card strong,
+
+html.renova-dark-mode
+.renova-reservation-pickup-section > div:first-child {
+  color: #f4fbf1 !important;
+}
+
+
+html.renova-dark-mode
+.renova-reservations-header p,
+
+html.renova-dark-mode
+.renova-reservations-result-count,
+
+html.renova-dark-mode
+.renova-reservation-card p,
+
+html.renova-dark-mode
+.renova-reservation-traceability-info span {
+  color: #aac0aa !important;
+}
+
+
+html.renova-dark-mode
+.renova-reservation-card,
+
+html.renova-dark-mode
+.renova-reservations-empty-state {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(19,39,24,0.94),
+      rgba(12,28,17,0.90)
+    ) !important;
+
+  border-color:
+    rgba(160,210,140,0.14) !important;
+
+  box-shadow:
+    0 22px 55px
+    rgba(0,0,0,0.25) !important;
+}
+
+
+html.renova-dark-mode
+.renova-reservation-meta-item,
+
+html.renova-dark-mode
+.renova-reservation-pickup-section,
+
+html.renova-dark-mode
+.renova-reservation-pickup-item,
+
+html.renova-dark-mode
+.renova-reservation-confirmation-box {
+  background:
+    rgba(9,24,14,0.72) !important;
+
+  border-color:
+    rgba(147,197,128,0.16) !important;
+}
+
+
+html.renova-dark-mode
+.renova-reservation-meta-item span,
+
+html.renova-dark-mode
+.renova-reservation-pickup-item span {
+  color: #dbe8d8 !important;
+}
+
+
+html.renova-dark-mode
+.renova-reservations-search-box {
+  background:
+    rgba(19,39,24,0.92) !important;
+
+  border-color:
+    rgba(147,197,128,0.20) !important;
+}
+
+
+html.renova-dark-mode
+.renova-reservations-search-box input {
+  color: #f4fbf1 !important;
+}
+
+
+html.renova-dark-mode
+.renova-reservations-search-box input::placeholder {
+  color: #78917c !important;
+}
+
+
+html.renova-dark-mode
+.renova-reservation-filter-button {
+  background:
+    rgba(19,39,24,0.88) !important;
+
+  border:
+    1px solid
+    rgba(147,197,128,0.18) !important;
+
+  color: #dbe8d8 !important;
+}
+
+
+html.renova-dark-mode
+.renova-reservation-filter-button-active {
+  background:
+    linear-gradient(
+      135deg,
+      #37a62d,
+      #16831e
+    ) !important;
+
+  border-color:
+    transparent !important;
+
+  color: #ffffff !important;
+}
+
+
+html.renova-dark-mode
+.renova-reservations-modal-card {
+  background:
+    linear-gradient(
+      180deg,
+      #14291a,
+      #0d1f13
+    ) !important;
+
+  color: #f4fbf1 !important;
+}
+
+
+html.renova-dark-mode
+.renova-reservations-modal-card h2,
+
+html.renova-dark-mode
+.renova-reservations-modal-card label {
+  color: #f4fbf1 !important;
+}
+
+
+html.renova-dark-mode
+.renova-reservations-modal-card p {
+  color: #aac0aa !important;
+}
+
+
+html.renova-dark-mode
+.renova-reservations-modal-card input {
+  background: #09180e !important;
+
+  border-color:
+    rgba(147,197,128,0.24) !important;
+
+  color: #ffffff !important;
+}
+
+
+/* ==========================================================
+   TABLET
+========================================================== */
+
+@media (max-width: 1100px) {
+
+  .renova-create-product-main,
+  .renova-reservations-main {
+    padding:
+      28px
+      24px
+      44px !important;
+  }
+
+
+  .renova-reservations-toolbar {
+    flex-direction:
+      column !important;
+
+    align-items:
+      stretch !important;
+  }
+
+
+  .renova-reservations-search-box {
+    width: 100% !important;
+
+    min-width: 0 !important;
+
+    max-width: none !important;
+  }
+
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 900px) {
+
+  /*
+   * Fundamental:
+   * elimina la grilla desktop 270px + contenido.
+   */
+
+  .renova-create-product-shell,
+  .renova-reservations-shell {
+    display: block !important;
+
+    width: 100% !important;
+
+    min-width: 0 !important;
+
+    overflow-x: hidden !important;
+
+    grid-template-columns:
+      1fr !important;
+  }
+
+
+  /*
+   * Sidebar se transforma en navegación superior.
+   */
+
+  .renova-create-product-shell
+  > .renova-sidebar,
+
+  .renova-reservations-shell
+  > .renova-sidebar {
+    position: relative !important;
+
+    top: auto !important;
+
+    width: 100% !important;
+
+    height: auto !important;
+
+    min-height: 0 !important;
+
+    padding:
+      14px
+      14px
+      12px !important;
+
+    box-sizing: border-box !important;
+
+    border-right: none !important;
+
+    border-bottom:
+      1px solid
+      rgba(94,145,78,0.14) !important;
+  }
+
+
+  .renova-create-product-shell
+  .renova-sidebar-brand,
+
+  .renova-reservations-shell
+  .renova-sidebar-brand {
+    margin-bottom:
+      10px !important;
+  }
+
+
+  .renova-create-product-shell
+  .renova-sidebar-brand img,
+
+  .renova-reservations-shell
+  .renova-sidebar-brand img {
+    width:
+      138px !important;
+  }
+
+
+  .renova-create-product-shell
+  .renova-sidebar-nav,
+
+  .renova-reservations-shell
+  .renova-sidebar-nav {
+    display:
+      flex !important;
+
+    width:
+      100% !important;
+
+    gap:
+      8px !important;
+
+    overflow-x:
+      auto !important;
+
+    padding-bottom:
+      4px !important;
+
+    scrollbar-width:
+      none !important;
+  }
+
+
+  .renova-create-product-shell
+  .renova-sidebar-nav::-webkit-scrollbar,
+
+  .renova-reservations-shell
+  .renova-sidebar-nav::-webkit-scrollbar {
+    display: none !important;
+  }
+
+
+  .renova-create-product-shell
+  .renova-sidebar-link,
+
+  .renova-reservations-shell
+  .renova-sidebar-link {
+    width:
+      auto !important;
+
+    min-width:
+      max-content !important;
+
+    min-height:
+      46px !important;
+
+    padding:
+      10px
+      13px !important;
+
+    white-space:
+      nowrap !important;
+  }
+
+
+  .renova-create-product-shell
+  .renova-sidebar-svg-icon,
+
+  .renova-reservations-shell
+  .renova-sidebar-svg-icon {
+    width:
+      29px !important;
+
+    height:
+      29px !important;
+
+    min-width:
+      29px !important;
+
+    margin-right:
+      8px !important;
+  }
+
+
+  .renova-create-product-shell
+  .renova-sidebar-footer,
+
+  .renova-reservations-shell
+  .renova-sidebar-footer {
+    display:
+      none !important;
+  }
+
+
+  /*
+   * Main
+   */
+
+  .renova-create-product-main,
+  .renova-reservations-main {
+    width:
+      100% !important;
+
+    min-width:
+      0 !important;
+
+    padding:
+      22px
+      16px
+      38px !important;
+  }
+
+
+  /*
+   * Create product
+   */
+
+  .renova-create-product-header {
+    flex-direction:
+      column !important;
+
+    gap:
+      16px !important;
+
+    margin-bottom:
+      22px !important;
+  }
+
+
+  .renova-create-product-header h1 {
+    margin-top:
+      18px !important;
+
+    font-size:
+      2rem !important;
+
+    line-height:
+      1.08 !important;
+  }
+
+
+  .renova-create-product-header p {
+    font-size:
+      0.95rem !important;
+  }
+
+
+  .renova-create-product-header
+  > div:last-child {
+    width:
+      100% !important;
+
+    padding-top:
+      0 !important;
+
+    justify-content:
+      flex-start !important;
+  }
+
+
+  .renova-create-product-panel {
+    width:
+      100% !important;
+
+    max-width:
+      none !important;
+
+    padding:
+      20px
+      16px !important;
+
+    border-radius:
+      24px !important;
+  }
+
+
+  .renova-create-product-form-header {
+    gap:
+      14px !important;
+
+    margin-bottom:
+      22px !important;
+  }
+
+
+  .renova-create-product-form-header h2 {
+    font-size:
+      1.4rem !important;
+  }
+
+
+  .renova-create-product-form-header
+  > div:last-child {
+    width:
+      48px !important;
+
+    height:
+      48px !important;
+
+    min-width:
+      48px !important;
+
+    border-radius:
+      16px !important;
+
+    font-size:
+      22px !important;
+  }
+
+
+  .renova-create-product-grid {
+    grid-template-columns:
+      1fr !important;
+
+    gap:
+      0 !important;
+
+    margin-bottom:
+      0 !important;
+  }
+
+
+  .renova-create-product-panel input,
+  .renova-create-product-panel textarea,
+  .renova-create-product-panel select {
+    width:
+      100% !important;
+
+    font-size:
+      16px !important;
+  }
+
+
+  .renova-create-product-panel textarea {
+    min-height:
+      120px !important;
+  }
+
+
+  .renova-create-product-checkbox {
+    width:
+      100% !important;
+
+    min-height:
+      76px !important;
+
+    margin-bottom:
+      18px !important;
+
+    padding:
+      14px !important;
+  }
+
+
+  .renova-create-product-actions {
+    width:
+      100% !important;
+
+    display:
+      flex !important;
+
+    flex-direction:
+      column-reverse !important;
+
+    gap:
+      10px !important;
+
+    margin-top:
+      20px !important;
+  }
+
+
+  .renova-create-product-actions button {
+    width:
+      100% !important;
+
+    min-height:
+      52px !important;
+  }
+
+
+  /*
+   * Reservations
+   */
+
+  .renova-reservations-header {
+    flex-direction:
+      column !important;
+
+    gap:
+      16px !important;
+
+    margin-bottom:
+      22px !important;
+  }
+
+
+  .renova-reservations-header h1 {
+    margin-top:
+      18px !important;
+
+    font-size:
+      2rem !important;
+
+    line-height:
+      1.08 !important;
+  }
+
+
+  .renova-page-header-actions {
+    width:
+      100% !important;
+
+    min-width:
+      0 !important;
+
+    padding-top:
+      0 !important;
+
+    justify-content:
+      flex-start !important;
+  }
+
+
+  .renova-page-header-actions > * {
+    max-width:
+      100% !important;
+  }
+
+
+  .renova-reservations-toolbar {
+    width:
+      100% !important;
+
+    display:
+      flex !important;
+
+    flex-direction:
+      column !important;
+
+    align-items:
+      stretch !important;
+
+    gap:
+      14px !important;
+  }
+
+
+  .renova-reservations-filter-bar {
+    width:
+      100% !important;
+
+    display:
+      flex !important;
+
+    flex-wrap:
+      nowrap !important;
+
+    gap:
+      8px !important;
+
+    overflow-x:
+      auto !important;
+
+    padding-bottom:
+      5px !important;
+
+    margin-bottom:
+      0 !important;
+
+    scrollbar-width:
+      none !important;
+  }
+
+
+  .renova-reservations-filter-bar::-webkit-scrollbar {
+    display:
+      none !important;
+  }
+
+
+  .renova-reservations-filter-bar button {
+    flex:
+      0 0 auto !important;
+
+    white-space:
+      nowrap !important;
+
+    padding:
+      10px
+      14px !important;
+  }
+
+
+  .renova-reservations-search-box {
+    width:
+      100% !important;
+
+    min-width:
+      0 !important;
+
+    max-width:
+      none !important;
+  }
+
+
+  .renova-reservations-search-box input {
+    min-width:
+      0 !important;
+
+    font-size:
+      16px !important;
+  }
+
+
+  .renova-reservations-grid {
+    display:
+      grid !important;
+
+    grid-template-columns:
+      minmax(0, 1fr) !important;
+
+    gap:
+      16px !important;
+
+    width:
+      100% !important;
+  }
+
+
+  .renova-reservation-card {
+    width:
+      100% !important;
+
+    min-width:
+      0 !important;
+
+    padding:
+      18px !important;
+
+    border-radius:
+      22px !important;
+  }
+
+
+  .renova-reservation-card-header {
+    gap:
+      12px !important;
+  }
+
+
+  .renova-reservation-card-icon {
+    width:
+      44px !important;
+
+    height:
+      44px !important;
+
+    min-width:
+      44px !important;
+
+    border-radius:
+      15px !important;
+  }
+
+
+  .renova-reservation-card-header h2 {
+    font-size:
+      1.2rem !important;
+
+    overflow-wrap:
+      anywhere !important;
+  }
+
+
+  .renova-reservation-meta-grid {
+    display:
+      grid !important;
+
+    grid-template-columns:
+      minmax(0, 1fr) !important;
+
+    gap:
+      9px !important;
+  }
+
+
+  .renova-reservation-pickup-section
+  > div:nth-child(2) {
+    display:
+      grid !important;
+
+    grid-template-columns:
+      minmax(0, 1fr) !important;
+
+    gap:
+      9px !important;
+  }
+
+
+  .renova-reservation-confirmation-box
+  > div {
+    display:
+      flex !important;
+
+    flex-direction:
+      column !important;
+
+    align-items:
+      flex-start !important;
+
+    gap:
+      8px !important;
+  }
+
+
+  .renova-reservation-card-actions {
+    display:
+      grid !important;
+
+    grid-template-columns:
+      1fr !important;
+
+    gap:
+      9px !important;
+  }
+
+
+  .renova-reservation-card-actions button {
+    width:
+      100% !important;
+
+    min-height:
+      48px !important;
+
+    margin:
+      0 !important;
+  }
+
+
+  /*
+   * Pagination
+   */
+
+  .renova-reservations-pagination {
+    width:
+      100% !important;
+
+    display:
+      flex !important;
+
+    justify-content:
+      center !important;
+
+    flex-wrap:
+      wrap !important;
+
+    gap:
+      8px !important;
+  }
+
+
+  .renova-pagination-numbers {
+    max-width:
+      100% !important;
+
+    overflow-x:
+      auto !important;
+  }
+
+
+  /*
+   * Empty state
+   */
+
+  .renova-reservations-empty-state {
+    width:
+      100% !important;
+
+    box-sizing:
+      border-box !important;
+
+    padding:
+      28px
+      18px !important;
+
+    border-radius:
+      22px !important;
+  }
+
+
+  /*
+   * Delivery modal
+   */
+
+  .renova-reservations-modal-overlay {
+    padding:
+      14px !important;
+  }
+
+
+  .renova-reservations-modal-card {
+    width:
+      100% !important;
+
+    max-width:
+      500px !important;
+
+    max-height:
+      calc(100vh - 28px) !important;
+
+    overflow-y:
+      auto !important;
+
+    box-sizing:
+      border-box !important;
+
+    padding:
+      24px
+      18px !important;
+
+    border-radius:
+      24px !important;
+  }
+
+
+  .renova-reservations-modal-card input {
+    width:
+      100% !important;
+
+    box-sizing:
+      border-box !important;
+
+    font-size:
+      16px !important;
+  }
+
+
+  .renova-reservations-modal-card
+  > div:last-child {
+    display:
+      grid !important;
+
+    grid-template-columns:
+      1fr !important;
+
+    gap:
+      10px !important;
+  }
+
+
+  .renova-reservations-modal-card
+  > div:last-child button {
+    width:
+      100% !important;
+  }
+
+}
+
+
+/* ==========================================================
+   SMALL MOBILE
+========================================================== */
+
+@media (max-width: 520px) {
+
+  .renova-create-product-main,
+  .renova-reservations-main {
+    padding:
+      18px
+      12px
+      32px !important;
+  }
+
+
+  .renova-create-product-panel {
+    padding:
+      18px
+      14px !important;
+  }
+
+
+  .renova-reservation-card {
+    padding:
+      16px !important;
+  }
+
+
+  .renova-reservation-card-header {
+    align-items:
+      flex-start !important;
+  }
+
+
+  .renova-reservation-card-icon {
+    width:
+      40px !important;
+
+    height:
+      40px !important;
+
+    min-width:
+      40px !important;
+  }
+
+
+  .renova-reservations-page-badge {
+    font-size:
+      0.82rem !important;
+  }
+
+}
+
+/* =========================================
+   CREATE PRODUCT MOBILE CHECKBOX FIX
+========================================= */
+
+@media (max-width: 900px) {
+
+  /* Asegura que cada item pueda encogerse bien */
+  .renova-create-product-grid > * {
+    min-width: 0 !important;
+  }
+
+  /* Descripción: fila completa */
+  .renova-create-product-grid > :has(textarea) {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+  }
+
+  /* Checkbox baja rotación: fila completa */
+  .renova-create-product-grid > .renova-create-product-checkbox {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+
+    display: grid !important;
+    grid-template-columns: 24px minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 12px !important;
+
+    min-height: auto !important;
+
+    padding: 14px !important;
+    margin-bottom: 18px !important;
+
+    box-sizing: border-box !important;
+  }
+
+  .renova-create-product-grid > .renova-create-product-checkbox input[type="checkbox"] {
+    margin: 4px 0 0 0 !important;
+    align-self: start !important;
+    justify-self: start !important;
+  }
+
+  .renova-create-product-grid > .renova-create-product-checkbox > div {
+    min-width: 0 !important;
+  }
+
+  .renova-create-product-grid > .renova-create-product-checkbox strong,
+  .renova-create-product-grid > .renova-create-product-checkbox p,
+  .renova-create-product-grid > .renova-create-product-checkbox span {
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+
+  .renova-create-product-grid textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 120px !important;
+    box-sizing: border-box !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .renova-create-product-grid > .renova-create-product-checkbox {
+    grid-template-columns: 22px minmax(0, 1fr) !important;
+    gap: 10px !important;
+    padding: 13px !important;
+  }
+}
+
+/* =========================================
+   END CREATE PRODUCT MOBILE CHECKBOX FIX
+========================================= */
+
