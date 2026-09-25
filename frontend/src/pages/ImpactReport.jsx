@@ -9,6 +9,7 @@ const emptyReport = {
   total_reservations_received: 0,
   completed_reservations: 0,
   pending_reservations: 0,
+  confirmed_reservations: 0,
   cancelled_reservations: 0,
   distinct_ongs_helped: 0,
   total_quantity_delivered: 0,
@@ -301,26 +302,36 @@ export default function ImpactReport() {
 
   const completed = toNumber(report.completed_reservations);
   const pending = toNumber(report.pending_reservations);
+  const confirmed = toNumber(report.confirmed_reservations);
   const cancelled = toNumber(report.cancelled_reservations);
   const received = toNumber(report.total_reservations_received);
-  const unclassified = Math.max(0, received - completed - pending - cancelled);
+  const classifiedTotal = completed + pending + confirmed + cancelled;
+  const unclassified = Math.max(0, received - classifiedTotal);
 
-  const distributionTotal = Math.max(completed + pending + cancelled, received, 1);
+  const distributionTotal = Math.max(classifiedTotal, received);
+  const getDistributionPercent = (value) =>
+    distributionTotal > 0 ? (value / distributionTotal) * 100 : 0;
 
-  const completedPercent = (completed / distributionTotal) * 100;
-  const pendingPercent = (pending / distributionTotal) * 100;
-  const cancelledPercent = (cancelled / distributionTotal) * 100;
-  const unclassifiedPercent = (unclassified / distributionTotal) * 100;
+  const completedPercent = getDistributionPercent(completed);
+  const pendingPercent = getDistributionPercent(pending);
+  const confirmedPercent = getDistributionPercent(confirmed);
+  const cancelledPercent = getDistributionPercent(cancelled);
+  const unclassifiedPercent = getDistributionPercent(unclassified);
 
   const completedDeg = (completedPercent / 100) * 360;
   const pendingDeg = (pendingPercent / 100) * 360;
+  const confirmedDeg = (confirmedPercent / 100) * 360;
   const cancelledDeg = (cancelledPercent / 100) * 360;
+  const pendingEndDeg = completedDeg + pendingDeg;
+  const confirmedEndDeg = pendingEndDeg + confirmedDeg;
+  const cancelledEndDeg = confirmedEndDeg + cancelledDeg;
 
   const donutGradient = `conic-gradient(
     #37a62d 0deg ${completedDeg}deg,
-    #f0b742 ${completedDeg}deg ${completedDeg + pendingDeg}deg,
-    #d6453d ${completedDeg + pendingDeg}deg ${completedDeg + pendingDeg + cancelledDeg}deg,
-    rgba(160, 210, 140, 0.18) ${completedDeg + pendingDeg + cancelledDeg}deg 360deg
+    #f0b742 ${completedDeg}deg ${pendingEndDeg}deg,
+    #2f80ed ${pendingEndDeg}deg ${confirmedEndDeg}deg,
+    #d6453d ${confirmedEndDeg}deg ${cancelledEndDeg}deg,
+    rgba(160, 210, 140, 0.18) ${cancelledEndDeg}deg 360deg
   )`;
 
   const utilization = Math.min(100, Math.max(0, toNumber(report.utilization_rate)));
@@ -533,6 +544,12 @@ export default function ImpactReport() {
                         label="Pendientes"
                         value={pending}
                         percent={pendingPercent}
+                      />
+                      <LegendItem
+                        tone="blue"
+                        label="Confirmadas"
+                        value={confirmed}
+                        percent={confirmedPercent}
                       />
                       <LegendItem
                         tone="red"
@@ -779,6 +796,11 @@ export default function ImpactReport() {
                       <td>{formatPercent(pendingPercent)}</td>
                     </tr>
                     <tr>
+                      <td>Confirmadas</td>
+                      <td>{formatNumber(confirmed)}</td>
+                      <td>{formatPercent(confirmedPercent)}</td>
+                    </tr>
+                    <tr>
                       <td>Canceladas</td>
                       <td>{formatNumber(cancelled)}</td>
                       <td>{formatPercent(cancelledPercent)}</td>
@@ -793,7 +815,7 @@ export default function ImpactReport() {
                     <tr>
                       <th>Total recibido</th>
                       <th>{formatNumber(distributionTotal)}</th>
-                      <th>100 %</th>
+                      <th>{distributionTotal > 0 ? "100 %" : "0 %"}</th>
                     </tr>
                   </tbody>
                 </table>

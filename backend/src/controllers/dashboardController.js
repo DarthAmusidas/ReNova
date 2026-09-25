@@ -222,6 +222,7 @@ const getImpactReport = async (supermarketId = null) => {
        COUNT(*)::int AS total_reservations_received,
        COUNT(*) FILTER (WHERE r.status = 'COMPLETED')::int AS completed_reservations,
        COUNT(*) FILTER (WHERE r.status = 'PENDING')::int AS pending_reservations,
+       COUNT(*) FILTER (WHERE r.status = 'CONFIRMED')::int AS confirmed_reservations,
        COUNT(*) FILTER (WHERE r.status = 'CANCELLED')::int AS cancelled_reservations,
        COUNT(DISTINCT r.ong_id) FILTER (WHERE r.status = 'COMPLETED')::int AS distinct_ongs_helped
      FROM reservations r
@@ -321,6 +322,7 @@ const getImpactReport = async (supermarketId = null) => {
     total_reservations_received: totalReservations,
     completed_reservations: completedReservations,
     pending_reservations: toNumber(stats.pending_reservations),
+    confirmed_reservations: toNumber(stats.confirmed_reservations),
     cancelled_reservations: toNumber(stats.cancelled_reservations),
     distinct_ongs_helped: toNumber(stats.distinct_ongs_helped),
 

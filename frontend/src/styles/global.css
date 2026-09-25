@@ -9535,6 +9535,10 @@ html:not(.renova-dark-mode) .renova-impact-main .renova-impact-rate-panel {
   background: #f0b742 !important;
 }
 
+.renova-impact-legend-dot.blue {
+  background: #2f80ed !important;
+}
+
 .renova-impact-legend-dot.red {
   background: #d6453d !important;
 }
