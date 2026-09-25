@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { register } from "../services/authService";
 import renovaLogo from "../assets/renova-logo-login.png";
 import AuthHero from "../components/AuthHero";
+import TermsModal from "../components/TermsModal";
+import { TERMS_VERSION, getTermsAudience } from "../utils/terms";
 import "../styles/auth-final.css";
 
 const organizationTypes = [
@@ -99,6 +101,10 @@ function Register() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+
+  const termsAudience = getTermsAudience(formData.organization_type);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -106,6 +112,14 @@ function Register() {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
+
+    // Los términos cambian según el tipo de organización, así que se vuelven a aceptar.
+    if (
+      name === "organization_type" &&
+      getTermsAudience(value) !== termsAudience
+    ) {
+      setAcceptedTerms(false);
+    }
 
     setFormData((currentData) => ({
       ...currentData,
@@ -118,10 +132,20 @@ function Register() {
 
     setError("");
     setSuccess("");
+
+    if (!acceptedTerms) {
+      setError("Tenés que aceptar los términos y condiciones para crear la cuenta.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const data = await register(formData);
+      const data = await register({
+        ...formData,
+        accepted_terms: true,
+        terms_version: TERMS_VERSION,
+      });
 
       setSuccess(
         data.message ||
@@ -349,6 +373,34 @@ function Register() {
 
               </div>
 
+              <div className="auth-terms-check">
+                <input
+                  id="accepted_terms"
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(event) => setAcceptedTerms(event.target.checked)}
+                  disabled={loading || !termsAudience}
+                  required
+                />
+
+                <label htmlFor="accepted_terms">
+                  Leí y acepto los{" "}
+                  <button
+                    type="button"
+                    onClick={() => setShowTerms(true)}
+                    disabled={!termsAudience}
+                  >
+                    términos y condiciones
+                  </button>
+                  {termsAudience === "ONG" && " para organizaciones sociales"}
+                  {termsAudience === "SUPERMARKET" && " para comercios donantes"}
+                  .
+                  {!termsAudience && (
+                    <small>Seleccioná el tipo de organización para verlos.</small>
+                  )}
+                </label>
+              </div>
+
               <button
                 className="btn-login-modern auth-submit-button"
                 type="submit"
@@ -390,6 +442,16 @@ function Register() {
           </div>
         </div>
       </section>
+
+      <TermsModal
+        open={showTerms}
+        audience={termsAudience}
+        onClose={() => setShowTerms(false)}
+        onAccept={() => {
+          setAcceptedTerms(true);
+          setShowTerms(false);
+        }}
+      />
     </main>
   );
 }

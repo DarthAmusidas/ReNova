@@ -16,12 +16,21 @@ const {
 
 const allowedRoles = ["SUPERMARKET", "ONG", "ADMIN"];
 
-const mapOrganizationTypeToRole = (organizationType) => {
-  const ongTypes = ["Comedor", "Merendero", "Voluntariado"];
-  const supermarketTypes = ["Supermercado", "Almacén", "Verdulería", "Ferretería"];
+// Sin tildes ni mayúsculas: el frontend envía "Almacen", "Verduleria", etc.
+const normalizeOrganizationType = (value) =>
+  String(value || "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .trim()
+    .toLowerCase();
 
-  if (ongTypes.includes(organizationType)) return "ONG";
-  if (supermarketTypes.includes(organizationType)) return "SUPERMARKET";
+const mapOrganizationTypeToRole = (organizationType) => {
+  const ongTypes = ["comedor", "merendero", "voluntariado"];
+  const supermarketTypes = ["supermercado", "almacen", "verduleria", "ferreteria"];
+  const normalizedType = normalizeOrganizationType(organizationType);
+
+  if (ongTypes.includes(normalizedType)) return "ONG";
+  if (supermarketTypes.includes(normalizedType)) return "SUPERMARKET";
 
   return null;
 };
@@ -66,6 +75,8 @@ const register = async (req, res) => {
       phone,
       address,
       organization_type,
+      accepted_terms,
+      terms_version,
     } = req.body || {};
 
     const normalizedEmail = normalizeEmail(email);
@@ -73,6 +84,12 @@ const register = async (req, res) => {
     if (!name || !normalizedEmail || !password) {
       return res.status(400).json({
         error: "Nombre, email y contraseña son obligatorios",
+      });
+    }
+
+    if (accepted_terms !== true || !terms_version) {
+      return res.status(400).json({
+        error: "Tenés que aceptar los términos y condiciones",
       });
     }
 
@@ -121,9 +138,10 @@ const register = async (req, res) => {
 
     const result = await pool.query(
       `INSERT INTO users
-        (name, email, password, role, phone, address, organization_type)
+        (name, email, password, role, phone, address, organization_type,
+         terms_accepted_at, terms_version)
        VALUES
-        ($1, $2, $3, $4, $5, $6, $7)
+        ($1, $2, $3, $4, $5, $6, $7, NOW(), $8)
        RETURNING id, name, email, role, phone, address, organization_type, created_at`,
       [
         name,
@@ -133,6 +151,7 @@ const register = async (req, res) => {
         phone || null,
         address || null,
         organization_type || null,
+        String(terms_version).slice(0, 20),
       ]
     );
 
