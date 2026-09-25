@@ -653,18 +653,6 @@
   cursor: pointer;
 }
 
-.register-page-modern .auth-terms-check label button:disabled {
-  color: #7a877d;
-  cursor: not-allowed;
-}
-
-.register-page-modern .auth-terms-check small {
-  display: block;
-  margin-top: 2px;
-  color: #6b776e;
-  font-size: 0.78rem;
-}
-
 .auth-terms-overlay {
   position: fixed;
   inset: 0;

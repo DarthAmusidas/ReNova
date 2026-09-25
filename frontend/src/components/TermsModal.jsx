@@ -94,7 +94,14 @@ function TermsModal({ open, audience, onClose, onAccept }) {
   const specific = audienceSections[audience];
   const sections = specific
     ? [...generalSections, ...specific.sections]
-    : generalSections;
+    : [
+        ...generalSections,
+        ...audienceSections.SUPERMARKET.sections,
+        ...audienceSections.ONG.sections.map((section) => ({
+          ...section,
+          title: section.title.replace("7.", "8."),
+        })),
+      ];
 
   return createPortal(
     <div className="auth-terms-overlay" onClick={onClose}>
@@ -109,7 +116,7 @@ function TermsModal({ open, audience, onClose, onAccept }) {
           <div>
             <h3 id="auth-terms-title">Términos y condiciones</h3>
             <p>
-              {specific ? specific.label : "Condiciones generales"} · Versión{" "}
+              {specific ? specific.label : "Comercios donantes y organizaciones sociales"} · Versión{" "}
               {TERMS_VERSION}
             </p>
           </div>

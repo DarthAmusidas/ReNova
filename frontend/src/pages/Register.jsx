@@ -113,9 +113,10 @@ function Register() {
   const handleChange = (event) => {
     const { name, value } = event.target;
 
-    // Los términos cambian según el tipo de organización, así que se vuelven a aceptar.
+    // Si ya había aceptado los términos de un perfil y cambia al otro, debe volver a aceptarlos.
     if (
       name === "organization_type" &&
+      termsAudience &&
       getTermsAudience(value) !== termsAudience
     ) {
       setAcceptedTerms(false);
@@ -379,7 +380,7 @@ function Register() {
                   type="checkbox"
                   checked={acceptedTerms}
                   onChange={(event) => setAcceptedTerms(event.target.checked)}
-                  disabled={loading || !termsAudience}
+                  disabled={loading}
                   required
                 />
 
@@ -388,16 +389,12 @@ function Register() {
                   <button
                     type="button"
                     onClick={() => setShowTerms(true)}
-                    disabled={!termsAudience}
                   >
                     términos y condiciones
                   </button>
                   {termsAudience === "ONG" && " para organizaciones sociales"}
                   {termsAudience === "SUPERMARKET" && " para comercios donantes"}
                   .
-                  {!termsAudience && (
-                    <small>Seleccioná el tipo de organización para verlos.</small>
-                  )}
                 </label>
               </div>
 
