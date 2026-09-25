@@ -253,6 +253,13 @@ export default function ImpactReport() {
       ? effectiveKgRecovered * co2Factor
       : backendCo2Avoided;
 
+  // Ambas métricas están en kg, así que las barras comparan su magnitud relativa.
+  const environmentMax = Math.max(effectiveKgRecovered, effectiveCo2Avoided);
+  const kgRecoveredPercent =
+    environmentMax > 0 ? (effectiveKgRecovered / environmentMax) * 100 : 0;
+  const co2AvoidedPercent =
+    environmentMax > 0 ? (effectiveCo2Avoided / environmentMax) * 100 : 0;
+
   const fetchImpactReport = async () => {
     try {
       setLoading(true);
@@ -597,6 +604,7 @@ export default function ImpactReport() {
                         "kg"
                       )}
                       helper="Alimentos recuperados y entregados."
+                      percent={kgRecoveredPercent}
                     />
 
                     <EnvironmentMetric
@@ -606,6 +614,7 @@ export default function ImpactReport() {
                         "kg CO₂e"
                       )}
                       helper="Emisiones evitadas gracias a la recuperación."
+                      percent={co2AvoidedPercent}
                     />
                   </div>
 
@@ -959,14 +968,16 @@ function LegendItem({ tone, label, value, percent }) {
   );
 }
 
-function EnvironmentMetric({ label, value, helper }) {
+function EnvironmentMetric({ label, value, helper, percent = 0 }) {
+  const width = Math.min(Math.max(toNumber(percent), 0), 100);
+
   return (
     <article className="renova-impact-environment-card">
       <span>{label}</span>
       <strong>{value}</strong>
       <p>{helper}</p>
       <div>
-        <span />
+        <span style={{ width: `${width}%` }} />
       </div>
     </article>
   );

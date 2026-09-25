@@ -9605,7 +9605,8 @@ html:not(.renova-dark-mode) .renova-impact-main .renova-impact-rate-panel {
 
 .renova-impact-environment-card > div > span {
   display: block !important;
-  width: 72% !important;
+  width: 0;
+  transition: width 0.4s ease;
   height: 100% !important;
   border-radius: 999px !important;
   background: linear-gradient(135deg, #46d94d 0%, #16831e 100%) !important;
