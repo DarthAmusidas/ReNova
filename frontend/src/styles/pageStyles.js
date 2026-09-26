@@ -171,7 +171,7 @@ export const pageStyles = {
   },
 
   sessionText: {
-    color: "#7a867c",
+    color: "#5d6b60",
     fontSize: "0.78rem",
     fontWeight: 900,
     textTransform: "uppercase",
@@ -286,7 +286,7 @@ export const pageStyles = {
 
   metaLabel: {
     display: "block",
-    color: "#7a867c",
+    color: "#5d6b60",
     fontSize: "0.76rem",
     fontWeight: 900,
     textTransform: "uppercase",
@@ -321,7 +321,7 @@ export const pageStyles = {
   primaryButton: {
     border: "none",
     borderRadius: "15px",
-    background: "#2f9728",
+    background: "#1d7f22",
     color: "#ffffff",
     padding: "13px 19px",
     fontWeight: 900,
