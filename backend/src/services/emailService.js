@@ -23,6 +23,55 @@ function getEmailFrom() {
   );
 }
 
+// Acepta "Nombre <email@dominio>" o solo "email@dominio".
+function parseSender(from) {
+  const match = String(from).match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/);
+
+  if (match) {
+    return { name: match[1].trim() || "ReNova", email: match[2].trim() };
+  }
+
+  return { name: "ReNova", email: String(from).trim() };
+}
+
+// Brevo envía por HTTPS, así que funciona en Render aunque bloquee los puertos SMTP.
+async function sendMailWithBrevo({ to, subject, text, html }) {
+  if (!process.env.BREVO_API_KEY) {
+    return false;
+  }
+
+  console.log("[email] provider=brevo");
+  console.log("[email] sending to", to);
+
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "api-key": process.env.BREVO_API_KEY,
+      "content-type": "application/json",
+      accept: "application/json",
+    },
+    body: JSON.stringify({
+      sender: parseSender(getEmailFrom()),
+      to: [{ email: to }],
+      subject,
+      textContent: text,
+      htmlContent: html,
+    }),
+    signal: AbortSignal.timeout(10000),
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      `Brevo error ${response.status}: ${data.message || JSON.stringify(data)}`
+    );
+  }
+
+  console.log("[email] brevo sent", data.messageId || data);
+  return true;
+}
+
 async function sendMailWithResend({ to, subject, text, html }) {
   if (!process.env.RESEND_API_KEY) {
     return false;
@@ -106,6 +155,11 @@ async function sendMailWithSmtp({ to, subject, text, html }) {
 }
 
 async function sendMail({ to, subject, text, html }) {
+  if (process.env.BREVO_API_KEY) {
+    await sendMailWithBrevo({ to, subject, text, html });
+    return;
+  }
+
   if (process.env.RESEND_API_KEY) {
     await sendMailWithResend({ to, subject, text, html });
     return;
