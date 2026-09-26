@@ -81,7 +81,7 @@ function AdminUsers() {
   };
 
   return (
-    <div style={styles.layout}>
+    <div style={styles.layout} className="renova-users-shell">
       <AppSidebar
         active="users"
         user={user}
@@ -90,10 +90,10 @@ function AdminUsers() {
         onLogout={handleLogout}
       />
 
-      <main style={styles.main}>
+      <main style={styles.main} className="renova-users-main">
         <header style={styles.header}>
           <div>
-            <span style={styles.badge}>Administración</span>
+            <span style={styles.badge} className="renova-users-badge">Administración</span>
 
             <h1 style={styles.title}>Usuarios registrados</h1>
 
@@ -111,17 +111,17 @@ function AdminUsers() {
           </div>
         </header>
 
-        {error && <div style={styles.errorBox}>{error}</div>}
+        {error && <div style={styles.errorBox} className="renova-users-error">{error}</div>}
 
         {loading ? (
-          <section style={styles.emptyState}>
+          <section style={styles.emptyState} className="renova-users-empty">
             <h2 style={styles.emptyTitle}>Cargando usuarios...</h2>
             <p style={styles.emptyText}>
               Estamos consultando los usuarios registrados.
             </p>
           </section>
         ) : users.length === 0 ? (
-          <section style={styles.emptyState}>
+          <section style={styles.emptyState} className="renova-users-empty">
             <h2 style={styles.emptyTitle}>No hay usuarios para mostrar</h2>
             <p style={styles.emptyText}>
               Todavía no existen usuarios registrados.
@@ -130,7 +130,7 @@ function AdminUsers() {
         ) : (
           <section style={styles.cardsGrid}>
             {users.map((item) => (
-              <article key={item.id} style={styles.card}>
+              <article key={item.id} style={styles.card} className="renova-users-card">
                 <div style={styles.cardHeader}>
                   <div>
                     <h2 style={styles.cardTitle}>{item.name}</h2>
@@ -138,20 +138,23 @@ function AdminUsers() {
                     <p style={styles.cardText}>{item.email}</p>
                   </div>
 
-                  <div style={styles.cardIcon}>{getRoleIcon(item.role)}</div>
+                  <div style={styles.cardIcon} className="renova-users-card-icon">{getRoleIcon(item.role)}</div>
                 </div>
 
-                <span style={getRoleBadgeStyle(item.role)}>
+                <span
+                  style={getRoleBadgeStyle(item.role)}
+                  className={`renova-users-role renova-users-role-${String(item.role).toLowerCase()}`}
+                >
                   {getRoleLabel(item.role)}
                 </span>
 
                 <div style={styles.metaGrid}>
-                  <div style={styles.metaItem}>
+                  <div style={styles.metaItem} className="renova-users-meta">
                     <span style={styles.metaLabel}>Teléfono</span>
                     <span style={styles.metaValue}>{item.phone || "-"}</span>
                   </div>
 
-                  <div style={styles.metaItem}>
+                  <div style={styles.metaItem} className="renova-users-meta">
                     <span style={styles.metaLabel}>Fecha alta</span>
                     <span style={styles.metaValue}>
                       {formatDate(item.created_at)}
@@ -159,18 +162,18 @@ function AdminUsers() {
                   </div>
 
                   {item.organization_type && (
-                    <div style={styles.metaItem}>
+                    <div style={styles.metaItem} className="renova-users-meta">
                       <span style={styles.metaLabel}>Tipo de organización</span>
                       <span style={styles.metaValue}>{item.organization_type}</span>
                     </div>
                   )}
 
-                  <div style={styles.metaItemWide}>
+                  <div style={styles.metaItemWide} className="renova-users-meta">
                     <span style={styles.metaLabel}>Dirección</span>
                     <span style={styles.metaValue}>{item.address || "-"}</span>
                   </div>
 
-                  <div style={styles.metaItemWide}>
+                  <div style={styles.metaItemWide} className="renova-users-meta">
                     <span style={styles.metaLabel}>ID usuario</span>
                     <span style={styles.metaValue}>
                       {String(item.id).slice(0, 8)}

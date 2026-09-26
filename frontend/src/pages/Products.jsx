@@ -523,8 +523,8 @@ function Products() {
           </div>
         )}
 
-        {error && <div style={styles.errorBox}>{error}</div>}
-        {success && <div style={styles.successBox}>{success}</div>}
+        {error && <div style={styles.errorBox} className="renova-inline-error">{error}</div>}
+        {success && <div style={styles.successBox} className="renova-inline-success">{success}</div>}
 
         <section className="renova-products-kpis">
           {kpis.map((kpi) => (
@@ -828,7 +828,7 @@ function Products() {
 
         {selectedProduct && (
           <div style={styles.modalOverlay}>
-            <div style={styles.modalCard}>
+            <div style={styles.modalCard} className="renova-inline-modal">
               <h2 style={styles.modalTitle}>Reservar producto</h2>
 
               <p style={styles.modalText}>
@@ -933,6 +933,7 @@ function Products() {
                 <button
                   type="button"
                   style={styles.secondaryButton}
+                  className="renova-inline-secondary"
                   onClick={() => {
                     setReservationError("");
                     setSelectedProduct(null);
@@ -951,7 +952,7 @@ function Products() {
 
         {productToDelete && (
           <div style={styles.modalOverlay}>
-            <div style={styles.modalCard}>
+            <div style={styles.modalCard} className="renova-inline-modal">
               <h2 style={styles.modalTitle}>Eliminar producto</h2>
 
               <p style={styles.modalText}>
@@ -964,12 +965,13 @@ function Products() {
                 <button
                   type="button"
                   style={styles.secondaryButton}
+                  className="renova-inline-secondary"
                   onClick={() => setProductToDelete(null)}
                 >
                   Cancelar
                 </button>
 
-                <button type="button" style={styles.dangerButton} onClick={handleDelete}>
+                <button type="button" style={styles.dangerButton} className="renova-inline-danger" onClick={handleDelete}>
                   Eliminar
                 </button>
               </div>

@@ -694,6 +694,7 @@ function Reservations() {
           <button
             type="button"
             style={styles.dangerButton}
+            className="renova-inline-danger"
             disabled={isUpdating}
             onClick={() => handleUpdateStatus(reservation.id, "CANCELLED")}
           >
@@ -708,6 +709,7 @@ function Reservations() {
         <button
           type="button"
           style={styles.dangerButton}
+          className="renova-inline-danger"
           disabled={isUpdating}
           onClick={() => handleUpdateStatus(reservation.id, "CANCELLED")}
         >
@@ -769,6 +771,7 @@ function Reservations() {
           <button
             type="button"
             style={styles.dangerButton}
+            className="renova-inline-danger"
             disabled={isUpdating}
             onClick={() => handleUpdateStatus(reservation.id, "CANCELLED")}
           >
@@ -808,12 +811,12 @@ function Reservations() {
           </div>
         </header>
 
-        {error && <div style={styles.errorBox}>{error}</div>}
+        {error && <div style={styles.errorBox} className="renova-inline-error">{error}</div>}
 
-        {success && <div style={styles.successBox}>{success}</div>}
+        {success && <div style={styles.successBox} className="renova-inline-success">{success}</div>}
 
         {isAdmin && (
-          <div style={localStyles.adminInfoBox}>
+          <div style={localStyles.adminInfoBox} className="renova-admin-note-inline">
             El administrador puede consultar todas las reservas, pero no puede
             modificar estados ni confirmar entregas.
           </div>
@@ -918,10 +921,10 @@ function Reservations() {
           </nav>
         )}
 
-{error && <div style={styles.errorBox}>{error}</div>}
+{error && <div style={styles.errorBox} className="renova-inline-error">{error}</div>}
 
         {isAdmin && (
-          <div style={localStyles.adminInfoBox}>
+          <div style={localStyles.adminInfoBox} className="renova-admin-note-inline">
             El administrador puede consultar todas las reservas, pero no puede
             modificar estados ni confirmar entregas.
           </div>
@@ -1032,6 +1035,13 @@ function Reservations() {
                           ? localStyles.confirmationDeadlineWarning
                           : localStyles.confirmationDeadline
                       }
+                      className={`renova-confirmation-deadline${
+                        confirmationExpired
+                          ? " is-expired"
+                          : hasConfirmationWarning
+                          ? " is-warning"
+                          : ""
+                      }`}
                     >
                       <span style={styles.metaLabel}>
                         Tiempo restante para confirmar
@@ -1042,14 +1052,14 @@ function Reservations() {
                         </span>
                       ) : (
                         <>
-                          <span style={localStyles.remainingTimeText}>
+                          <span style={localStyles.remainingTimeText} className="renova-confirmation-remaining">
                             Tiempo restante para confirmar:{" "}
                             <strong>
                               {formatRemainingTime(confirmationRemainingMs)}
                             </strong>
                           </span>
                           {hasConfirmationWarning && (
-                            <span style={localStyles.warningText}>
+                            <span style={localStyles.warningText} className="renova-confirmation-warning-text">
                               Quedan menos de 6 horas para confirmar esta reserva.
                             </span>
                           )}
@@ -1271,7 +1281,7 @@ function Reservations() {
 
         {selectedReservationForDelivery && (
           <div style={styles.modalOverlay}>
-            <div style={styles.modalCard}>
+            <div style={styles.modalCard} className="renova-inline-modal">
               <h2 style={styles.modalTitle}>Confirmar entrega</h2>
 
               <p style={styles.modalText}>
@@ -1279,7 +1289,7 @@ function Reservations() {
               </p>
 
               {deliveryCodeError && (
-                <div style={localStyles.modalErrorBox}>{deliveryCodeError}</div>
+                <div style={localStyles.modalErrorBox} className="renova-inline-error">{deliveryCodeError}</div>
               )}
 
               <div style={styles.inputGroup}>
@@ -1301,6 +1311,7 @@ function Reservations() {
                 <button
                   type="button"
                   style={styles.secondaryButton}
+                  className="renova-inline-secondary"
                   onClick={handleCloseDeliveryModal}
                   disabled={deliveryCodeLoading}
                 >

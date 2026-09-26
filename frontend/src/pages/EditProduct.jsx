@@ -153,7 +153,7 @@ function EditProduct() {
   };
 
   return (
-    <div style={styles.layout}>
+    <div style={styles.layout} className="renova-form-shell">
       <AppSidebar
         active="products"
         user={user}
@@ -162,10 +162,10 @@ function EditProduct() {
         onLogout={handleLogout}
       />
 
-      <main style={styles.main}>
+      <main style={styles.main} className="renova-form-main">
         <header style={styles.header}>
           <div>
-            <span style={styles.badge}>Editar producto</span>
+            <span style={styles.badge} className="renova-form-badge">Editar producto</span>
 
             <h1 style={styles.title}>Actualizar producto</h1>
 
@@ -182,7 +182,7 @@ function EditProduct() {
           </div>
         </header>
 
-        <section style={styles.formPanel}>
+        <section style={styles.formPanel} className="renova-form-panel">
           <div style={styles.formHeader}>
             <div>
               <h2 style={styles.formTitle}>Información del producto</h2>
@@ -191,11 +191,11 @@ function EditProduct() {
               </p>
             </div>
 
-            <div style={styles.formIcon}>🥦</div>
+            <div style={styles.formIcon} className="renova-form-icon">🥦</div>
           </div>
 
-          {error && <div style={styles.errorBox}>{error}</div>}
-          {success && <div style={styles.successBox}>{success}</div>}
+          {error && <div style={styles.errorBox} className="renova-form-error">{error}</div>}
+          {success && <div style={styles.successBox} className="renova-form-success">{success}</div>}
 
           {loading ? (
             <p style={styles.loadingText}>Cargando producto...</p>
@@ -275,7 +275,7 @@ function EditProduct() {
                   </select>
                 </div>
 
-                <label style={styles.checkboxCard}>
+                <label style={styles.checkboxCard} className="renova-form-checkbox-card">
                   <input
                     type="checkbox"
                     name="low_rotation"
@@ -311,6 +311,7 @@ function EditProduct() {
                 <button
                   type="button"
                   style={styles.secondaryButton}
+                  className="renova-form-secondary"
                   onClick={() => navigate("/products")}
                 >
                   Cancelar

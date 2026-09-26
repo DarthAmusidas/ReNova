@@ -10597,3 +10597,382 @@ html.renova-dark-mode .success-message-modern small {
 html.renova-dark-mode .auth-dev-link {
   color: #9df28f;
 }
+
+/* ==========================================================
+   Dark mode: correcciones generales
+   ========================================================== */
+
+html.renova-dark-mode .renova-empty-state {
+  background:
+    linear-gradient(180deg, rgba(19, 39, 24, 0.92), rgba(12, 28, 17, 0.86)) !important;
+  border-color: rgba(160, 210, 140, 0.14) !important;
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.24) !important;
+}
+
+html.renova-dark-mode .renova-empty-state h2 {
+  color: #f4fbf1 !important;
+}
+
+html.renova-dark-mode .renova-empty-state p {
+  color: #aac0aa !important;
+}
+
+html.renova-dark-mode .renova-admin-note {
+  background: rgba(55, 166, 45, 0.12) !important;
+  border-color: rgba(120, 200, 100, 0.24) !important;
+  color: #9ee88f !important;
+}
+
+html.renova-dark-mode .renova-modal-error {
+  background: rgba(220, 60, 60, 0.12) !important;
+  border-color: rgba(240, 120, 120, 0.3) !important;
+  color: #ffb4b4 !important;
+}
+
+/* Usuarios (AdminUsers usa estilos en línea, por eso !important) */
+html.renova-dark-mode .renova-users-shell,
+html.renova-dark-mode .renova-reservations-shell {
+  background: #07130c !important;
+}
+
+html.renova-dark-mode .renova-users-main {
+  background:
+    radial-gradient(circle at 88% 0%, rgba(55, 166, 45, 0.16), transparent 28%),
+    radial-gradient(circle at 8% 100%, rgba(47, 151, 40, 0.10), transparent 30%),
+    linear-gradient(135deg, #07130c 0%, #0d1f13 52%, #08160d 100%) !important;
+  color: #eef8e9 !important;
+}
+
+html.renova-dark-mode .renova-users-main h1,
+html.renova-dark-mode .renova-users-main h2 {
+  color: #f4fbf1 !important;
+}
+
+html.renova-dark-mode .renova-users-main p {
+  color: #aac0aa !important;
+}
+
+html.renova-dark-mode .renova-users-badge {
+  background: rgba(55, 166, 45, 0.14) !important;
+  border-color: rgba(120, 200, 100, 0.24) !important;
+  color: #9ee88f !important;
+}
+
+html.renova-dark-mode .renova-users-card,
+html.renova-dark-mode .renova-users-empty {
+  background:
+    linear-gradient(180deg, rgba(19, 39, 24, 0.92), rgba(12, 28, 17, 0.86)) !important;
+  border-color: rgba(160, 210, 140, 0.14) !important;
+  box-shadow:
+    0 22px 55px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+html.renova-dark-mode .renova-users-card-icon {
+  background: rgba(55, 166, 45, 0.13) !important;
+  border-color: rgba(160, 210, 140, 0.14) !important;
+}
+
+html.renova-dark-mode .renova-users-meta {
+  background: rgba(255, 255, 255, 0.045) !important;
+  border-color: rgba(160, 210, 140, 0.14) !important;
+}
+
+html.renova-dark-mode .renova-users-meta span:first-child {
+  color: #91a391 !important;
+}
+
+html.renova-dark-mode .renova-users-meta span:last-child {
+  color: #f4fbf1 !important;
+}
+
+html.renova-dark-mode .renova-users-error {
+  background: rgba(220, 60, 60, 0.12) !important;
+  border-color: rgba(240, 120, 120, 0.3) !important;
+  color: #ffb4b4 !important;
+}
+
+html.renova-dark-mode .renova-users-role-admin {
+  background: rgba(150, 110, 230, 0.18) !important;
+  color: #cdb6ff !important;
+}
+
+html.renova-dark-mode .renova-users-role-supermarket {
+  background: rgba(55, 166, 45, 0.16) !important;
+  color: #9ee88f !important;
+}
+
+html.renova-dark-mode .renova-users-role-ong {
+  background: rgba(70, 140, 220, 0.18) !important;
+  color: #a9d0ff !important;
+}
+
+html.renova-dark-mode .renova-header-user-card .renova-user-meta small {
+  background: rgba(55, 166, 45, 0.16) !important;
+  border-color: rgba(120, 200, 100, 0.24) !important;
+  color: #9ee88f !important;
+}
+
+html.renova-dark-mode .renova-products-header > div:first-child > p:not(.renova-products-greeting) {
+  color: #aac0aa !important;
+}
+
+html.renova-dark-mode .renova-admin-note-inline {
+  background: rgba(55, 166, 45, 0.12) !important;
+  border-color: rgba(120, 200, 100, 0.24) !important;
+  color: #9ee88f !important;
+}
+
+/* Estados de producto y botón deshabilitado */
+html.renova-dark-mode .renova-status-pill.available {
+  background: rgba(55, 166, 45, 0.16) !important;
+  color: #9ee88f !important;
+}
+
+html.renova-dark-mode .renova-status-pill.warning {
+  background: rgba(230, 170, 30, 0.16) !important;
+  color: #ffd27a !important;
+}
+
+html.renova-dark-mode .renova-status-pill.orange {
+  background: rgba(240, 130, 50, 0.16) !important;
+  color: #ffb27a !important;
+}
+
+html.renova-dark-mode .renova-status-pill.danger {
+  background: rgba(220, 60, 60, 0.16) !important;
+  color: #ffa6a6 !important;
+}
+
+html.renova-dark-mode .renova-status-pill.muted {
+  background: rgba(255, 255, 255, 0.07) !important;
+  color: #b7c7b5 !important;
+}
+
+html.renova-dark-mode .renova-disabled-button {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(160, 210, 140, 0.14) !important;
+  color: #8fa18f !important;
+}
+
+/* Cargar y editar producto (estilos en línea, por eso !important) */
+html.renova-dark-mode .renova-form-shell {
+  background: #07130c !important;
+}
+
+html.renova-dark-mode .renova-form-main {
+  background:
+    radial-gradient(circle at 88% 0%, rgba(55, 166, 45, 0.16), transparent 28%),
+    radial-gradient(circle at 8% 100%, rgba(47, 151, 40, 0.10), transparent 30%),
+    linear-gradient(135deg, #07130c 0%, #0d1f13 52%, #08160d 100%) !important;
+  color: #eef8e9 !important;
+}
+
+html.renova-dark-mode .renova-form-main h1,
+html.renova-dark-mode .renova-form-main h2,
+html.renova-dark-mode .renova-form-main strong {
+  color: #f4fbf1 !important;
+}
+
+html.renova-dark-mode .renova-form-main p,
+html.renova-dark-mode .renova-form-main label {
+  color: #aac0aa !important;
+}
+
+html.renova-dark-mode .renova-form-badge {
+  background: rgba(55, 166, 45, 0.14) !important;
+  border-color: rgba(120, 200, 100, 0.24) !important;
+  color: #9ee88f !important;
+}
+
+html.renova-dark-mode .renova-form-panel {
+  background:
+    linear-gradient(180deg, rgba(19, 39, 24, 0.92), rgba(12, 28, 17, 0.86)) !important;
+  border-color: rgba(160, 210, 140, 0.14) !important;
+  box-shadow:
+    0 22px 55px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+html.renova-dark-mode .renova-form-icon,
+html.renova-dark-mode .renova-form-checkbox-card {
+  background: rgba(255, 255, 255, 0.045) !important;
+  border-color: rgba(160, 210, 140, 0.14) !important;
+}
+
+html.renova-dark-mode .renova-form-main input:not([type="checkbox"]),
+html.renova-dark-mode .renova-form-main select,
+html.renova-dark-mode .renova-form-main textarea {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(160, 210, 140, 0.18) !important;
+  color: #eef8e9 !important;
+  color-scheme: dark;
+}
+
+html.renova-dark-mode .renova-form-main input::placeholder,
+html.renova-dark-mode .renova-form-main textarea::placeholder {
+  color: #7f927f !important;
+}
+
+html.renova-dark-mode .renova-form-secondary {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(160, 210, 140, 0.18) !important;
+  color: #d7e8d3 !important;
+}
+
+html.renova-dark-mode .renova-form-error {
+  background: rgba(220, 60, 60, 0.12) !important;
+  border-color: rgba(240, 120, 120, 0.3) !important;
+  color: #ffb4b4 !important;
+}
+
+html.renova-dark-mode .renova-form-success {
+  background: rgba(55, 166, 45, 0.12) !important;
+  border-color: rgba(120, 200, 100, 0.24) !important;
+  color: #9ee88f !important;
+}
+
+/* Botones de las tarjetas de producto */
+html.renova-dark-mode .renova-outline-button {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(160, 210, 140, 0.22) !important;
+  color: #d7e8d3 !important;
+}
+
+html.renova-dark-mode .renova-danger-button {
+  background: rgba(220, 60, 60, 0.14) !important;
+  border-color: rgba(240, 120, 120, 0.3) !important;
+  color: #ffa6a6 !important;
+}
+
+/* Íconos de KPI de productos: fondos tenues en lugar de pastel claro */
+html.renova-dark-mode .renova-products-kpis .renova-kpi-card .renova-kpi-icon {
+  background: rgba(55, 166, 45, 0.14) !important;
+}
+
+html.renova-dark-mode .renova-products-kpis .renova-kpi-card .renova-kpi-icon::after {
+  background-color: #7fdc6f !important;
+}
+
+html.renova-dark-mode .renova-products-kpis .renova-kpi-card:nth-child(3) .renova-kpi-icon {
+  background: rgba(230, 170, 30, 0.14) !important;
+}
+
+html.renova-dark-mode .renova-products-kpis .renova-kpi-card:nth-child(3) .renova-kpi-icon::after {
+  background-color: #f2b441 !important;
+}
+
+html.renova-dark-mode .renova-products-kpis .renova-kpi-card:nth-child(4) .renova-kpi-icon {
+  background: rgba(240, 130, 50, 0.14) !important;
+}
+
+html.renova-dark-mode .renova-products-kpis .renova-kpi-card:nth-child(4) .renova-kpi-icon::after {
+  background-color: #f58a4a !important;
+}
+
+html.renova-dark-mode .renova-products-kpis .renova-kpi-card:nth-child(5) .renova-kpi-icon {
+  background: rgba(220, 60, 60, 0.14) !important;
+}
+
+html.renova-dark-mode .renova-products-kpis .renova-kpi-card:nth-child(5) .renova-kpi-icon::after {
+  background-color: #f07068 !important;
+}
+
+/* Modales y mensajes con estilos en línea (Productos y Reservas) */
+html.renova-dark-mode .renova-inline-modal {
+  background: linear-gradient(180deg, #13271a 0%, #0c1c11 100%) !important;
+  border: 1px solid rgba(160, 210, 140, 0.16) !important;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5) !important;
+  color: #eef8e9 !important;
+}
+
+html.renova-dark-mode .renova-inline-modal h2,
+html.renova-dark-mode .renova-inline-modal strong {
+  color: #f4fbf1 !important;
+}
+
+html.renova-dark-mode .renova-inline-modal p,
+html.renova-dark-mode .renova-inline-modal label {
+  color: #aac0aa !important;
+}
+
+html.renova-dark-mode .renova-inline-modal input,
+html.renova-dark-mode .renova-inline-modal select,
+html.renova-dark-mode .renova-inline-modal textarea {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(160, 210, 140, 0.18) !important;
+  color: #eef8e9 !important;
+  color-scheme: dark;
+}
+
+html.renova-dark-mode .renova-inline-modal input::placeholder,
+html.renova-dark-mode .renova-inline-modal textarea::placeholder {
+  color: #7f927f !important;
+}
+
+html.renova-dark-mode .renova-inline-secondary {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(160, 210, 140, 0.18) !important;
+  color: #d7e8d3 !important;
+}
+
+html.renova-dark-mode .renova-inline-danger {
+  background: rgba(220, 60, 60, 0.14) !important;
+  border-color: rgba(240, 120, 120, 0.3) !important;
+  color: #ffa6a6 !important;
+}
+
+html.renova-dark-mode .renova-inline-error {
+  background: rgba(220, 60, 60, 0.12) !important;
+  border-color: rgba(240, 120, 120, 0.3) !important;
+  color: #ffb4b4 !important;
+}
+
+html.renova-dark-mode .renova-inline-success {
+  background: rgba(55, 166, 45, 0.12) !important;
+  border-color: rgba(120, 200, 100, 0.24) !important;
+  color: #9ee88f !important;
+}
+
+/* Contador "sin leer" del panel de notificaciones */
+html.renova-dark-mode .notification-bell-header span {
+  background: rgba(55, 166, 45, 0.16) !important;
+  color: #9ee88f !important;
+}
+
+/* Reservas: recuadro de tiempo restante para confirmar */
+html.renova-dark-mode .renova-confirmation-deadline {
+  background: rgba(255, 255, 255, 0.045) !important;
+  border-color: rgba(160, 210, 140, 0.16) !important;
+}
+
+html.renova-dark-mode .renova-confirmation-deadline.is-warning {
+  background: rgba(230, 170, 30, 0.12) !important;
+  border-color: rgba(240, 190, 80, 0.35) !important;
+}
+
+html.renova-dark-mode .renova-confirmation-deadline.is-expired {
+  background: rgba(220, 60, 60, 0.12) !important;
+  border-color: rgba(240, 120, 120, 0.3) !important;
+}
+
+html.renova-dark-mode .renova-confirmation-deadline .renova-confirmation-remaining {
+  color: #9ee88f !important;
+}
+
+html.renova-dark-mode .renova-confirmation-deadline .renova-confirmation-warning-text {
+  color: #ffd27a !important;
+}
+
+/* Impacto: aviso informativo */
+html.renova-dark-mode .renova-impact-info-box {
+  background: rgba(55, 166, 45, 0.12) !important;
+  border: 1px solid rgba(120, 200, 100, 0.24) !important;
+  color: #9ee88f !important;
+}
+
+html.renova-dark-mode .renova-impact-error-box {
+  background: rgba(220, 60, 60, 0.12) !important;
+  border: 1px solid rgba(240, 120, 120, 0.3) !important;
+  color: #ffb4b4 !important;
+}
