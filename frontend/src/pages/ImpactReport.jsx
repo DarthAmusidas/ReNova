@@ -185,6 +185,18 @@ function ImpactIcon({ type }) {
     );
   }
 
+  if (type === "food") {
+    return (
+      <svg {...commonProps}>
+        <path d="M7 3v7" />
+        <path d="M4 3v4a3 3 0 0 0 6 0V3" />
+        <path d="M7 10v11" />
+        <path d="M16 3v18" />
+        <path d="M16 3c3 2 4 5 4 8h-4" />
+      </svg>
+    );
+  }
+
   if (type === "print") {
     return (
       <svg {...commonProps}>
@@ -253,13 +265,6 @@ export default function ImpactReport() {
       ? effectiveKgRecovered * co2Factor
       : backendCo2Avoided;
 
-  // Ambas métricas están en kg, así que las barras comparan su magnitud relativa.
-  const environmentMax = Math.max(effectiveKgRecovered, effectiveCo2Avoided);
-  const kgRecoveredPercent =
-    environmentMax > 0 ? (effectiveKgRecovered / environmentMax) * 100 : 0;
-  const co2AvoidedPercent =
-    environmentMax > 0 ? (effectiveCo2Avoided / environmentMax) * 100 : 0;
-
   const fetchImpactReport = async () => {
     try {
       setLoading(true);
@@ -325,21 +330,58 @@ export default function ImpactReport() {
   const cancelledPercent = getDistributionPercent(cancelled);
   const unclassifiedPercent = getDistributionPercent(unclassified);
 
-  const completedDeg = (completedPercent / 100) * 360;
-  const pendingDeg = (pendingPercent / 100) * 360;
-  const confirmedDeg = (confirmedPercent / 100) * 360;
-  const cancelledDeg = (cancelledPercent / 100) * 360;
-  const pendingEndDeg = completedDeg + pendingDeg;
-  const confirmedEndDeg = pendingEndDeg + confirmedDeg;
-  const cancelledEndDeg = confirmedEndDeg + cancelledDeg;
+  const reservationStatuses = [
+    {
+      tone: "blue",
+      label: "Confirmadas",
+      value: confirmed,
+      percent: confirmedPercent,
+    },
+    {
+      tone: "yellow",
+      label: "Pendientes",
+      value: pending,
+      percent: pendingPercent,
+    },
+    {
+      tone: "green",
+      label: "Completadas",
+      value: completed,
+      percent: completedPercent,
+    },
+    {
+      tone: "red",
+      label: "Canceladas",
+      value: cancelled,
+      percent: cancelledPercent,
+    },
+    ...(unclassified > 0
+      ? [
+          {
+            tone: "muted",
+            label: "Sin clasificar",
+            value: unclassified,
+            percent: unclassifiedPercent,
+          },
+        ]
+      : []),
+  ];
 
-  const donutGradient = `conic-gradient(
-    var(--impact-status-completed) 0deg ${completedDeg}deg,
-    var(--impact-status-pending) ${completedDeg}deg ${pendingEndDeg}deg,
-    var(--impact-status-confirmed) ${pendingEndDeg}deg ${confirmedEndDeg}deg,
-    var(--impact-status-cancelled) ${confirmedEndDeg}deg ${cancelledEndDeg}deg,
-    rgba(160, 210, 140, 0.18) ${cancelledEndDeg}deg 360deg
-  )`;
+  const activeReservationStatuses = reservationStatuses.filter(
+    (status) => status.value > 0
+  );
+  const donutGap = activeReservationStatuses.length > 1 ? 1.8 : 0;
+  let donutOffset = 0;
+  const reservationDonutSegments = activeReservationStatuses.map((status) => {
+    const segment = {
+      ...status,
+      dashLength: Math.max(0, status.percent - donutGap),
+      dashOffset: -(donutOffset + donutGap / 2),
+    };
+
+    donutOffset += status.percent;
+    return segment;
+  });
 
   const utilization = Math.min(100, Math.max(0, toNumber(report.utilization_rate)));
   const utilizationDeg = (utilization / 100) * 360;
@@ -528,74 +570,63 @@ export default function ImpactReport() {
                     </span>
 
                     <div className="renova-impact-panel-heading">
-                      <h3>Distribución de reservas</h3>
+                      <h3>Estado de las reservas</h3>
                       <p>Estado actual de todas las reservas recibidas.</p>
                     </div>
-
-                    <div className="renova-impact-distribution-total">
-                      <strong>{formatNumber(distributionTotal)}</strong>
-                      <span>
-                        {distributionTotal === 1 ? "reserva" : "reservas"}
-                      </span>
-                    </div>
                   </div>
 
-                  <div className="renova-impact-donut-layout">
-                    <div className="renova-impact-chart-stage">
+                  <div className="renova-impact-reservation-model">
+                    <div className="renova-impact-reservation-chart-column">
                       <div
-                        className="renova-impact-donut"
-                        style={{ background: donutGradient }}
+                        className="renova-impact-reservation-donut"
+                        role="img"
+                        aria-label={`Distribución de ${formatNumber(
+                          distributionTotal
+                        )} reservas`}
                       >
-                        <div>
-                          <span>Total</span>
-                          <strong>{distributionTotal}</strong>
+                        <svg viewBox="0 0 220 220" aria-hidden="true">
+                          <circle
+                            className="renova-impact-reservation-ring-track"
+                            cx="110"
+                            cy="110"
+                            r="80"
+                            pathLength="100"
+                          />
+
+                          {reservationDonutSegments.map((status) => (
+                            <circle
+                              key={status.label}
+                              className={`renova-impact-reservation-ring-segment ${status.tone}`}
+                              cx="110"
+                              cy="110"
+                              r="80"
+                              pathLength="100"
+                              strokeDasharray={`${status.dashLength} ${
+                                100 - status.dashLength
+                              }`}
+                              strokeDashoffset={status.dashOffset}
+                            />
+                          ))}
+                        </svg>
+
+                        <div className="renova-impact-reservation-donut-center">
+                          <strong>{formatNumber(distributionTotal)}</strong>
+                          <span>reservas</span>
                         </div>
                       </div>
+
+                      <p>Total de reservas recibidas</p>
                     </div>
 
-                    <div className="renova-impact-chart-legend">
-                      <LegendItem
-                        tone="green"
-                        label="Completadas"
-                        value={completed}
-                        percent={completedPercent}
-                      />
-                      <LegendItem
-                        tone="yellow"
-                        label="Pendientes"
-                        value={pending}
-                        percent={pendingPercent}
-                      />
-                      <LegendItem
-                        tone="blue"
-                        label="Confirmadas"
-                        value={confirmed}
-                        percent={confirmedPercent}
-                      />
-                      <LegendItem
-                        tone="red"
-                        label="Canceladas"
-                        value={cancelled}
-                        percent={cancelledPercent}
-                      />
-
-                      {unclassified > 0 && (
-                        <LegendItem
-                          tone="muted"
-                          label="Sin clasificar"
-                          value={unclassified}
-                          percent={unclassifiedPercent}
-                        />
-                      )}
+                    <div className="renova-impact-status-list renova-impact-reservation-legend">
+                      {reservationStatuses.map((status) => (
+                        <LegendItem key={status.label} {...status} />
+                      ))}
                     </div>
-                  </div>
-
-                  <div className="renova-impact-formula-box">
-                    El total se calcula sobre las reservas recibidas.
                   </div>
                 </article>
 
-                <article className="renova-impact-visual-card">
+                <article className="renova-impact-visual-card renova-impact-environment-card-wide">
                   <div className="renova-impact-panel-title">
                     <span>
                       <ImpactIcon type="leaf" />
@@ -612,23 +643,23 @@ export default function ImpactReport() {
 
                   <div className="renova-impact-environment-grid">
                     <EnvironmentMetric
+                      icon="food"
                       label="Kg de comida recuperada"
                       value={formatNumber(
                         roundMetric(effectiveKgRecovered),
                         "kg"
                       )}
                       helper="Alimentos recuperados y entregados."
-                      percent={kgRecoveredPercent}
                     />
 
                     <EnvironmentMetric
+                      icon="leaf"
                       label="CO₂ evitado estimado"
                       value={formatNumber(
                         roundMetric(effectiveCo2Avoided),
                         "kg CO₂e"
                       )}
                       helper="Emisiones evitadas gracias a la recuperación."
-                      percent={co2AvoidedPercent}
                     />
                   </div>
 
@@ -969,43 +1000,27 @@ function MetricCard({ label, value, icon }) {
 }
 
 function LegendItem({ tone, label, value, percent }) {
-  const normalizedPercent = Math.min(Math.max(toNumber(percent), 0), 100);
-
   return (
     <div className={`renova-impact-legend-item ${tone}`}>
-      <div className="renova-impact-legend-summary">
-        <span className={`renova-impact-legend-dot ${tone}`} />
-        <strong>{label}</strong>
-        <span className="renova-impact-legend-value">
-          {formatNumber(value)}
-        </span>
-        <small>{formatNumber(percent)}%</small>
-      </div>
-
-      <div
-        className="renova-impact-legend-track"
-        role="progressbar"
-        aria-label={`${label}: ${formatNumber(percent)}%`}
-        aria-valuemin="0"
-        aria-valuemax="100"
-        aria-valuenow={normalizedPercent}
-      >
-        <span style={{ width: `${normalizedPercent}%` }} />
-      </div>
+      <span className={`renova-impact-legend-dot ${tone}`} />
+      <strong>{label}</strong>
+      <span className="renova-impact-legend-value">{formatNumber(value)}</span>
+      <small>({formatNumber(percent)} %)</small>
     </div>
   );
 }
 
-function EnvironmentMetric({ label, value, helper, percent = 0 }) {
-  const width = Math.min(Math.max(toNumber(percent), 0), 100);
-
+function EnvironmentMetric({ icon, label, value, helper }) {
   return (
     <article className="renova-impact-environment-card">
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <p>{helper}</p>
-      <div>
-        <span style={{ width: `${width}%` }} />
+      <span className="renova-impact-environment-icon">
+        <ImpactIcon type={icon} />
+      </span>
+
+      <div className="renova-impact-environment-copy">
+        <span>{label}</span>
+        <strong>{value}</strong>
+        <p>{helper}</p>
       </div>
     </article>
   );
