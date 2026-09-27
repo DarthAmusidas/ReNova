@@ -89,8 +89,9 @@ export const pageStyles = {
     fontSize: "0.95rem",
   },
 
+  // El margen interno lo define la clase compartida .renova-products-main.
   main: {
-    padding: "42px 48px",
+    minWidth: 0,
     background:
       "radial-gradient(circle at 95% 0%, rgba(126,191,26,0.08), transparent 28%), #f6f9f2",
   },
@@ -145,7 +146,7 @@ export const pageStyles = {
     gap: "16px",
     background: "#ffffff",
     border: "1px solid #e1eadc",
-    borderRadius: "26px",
+    borderRadius: "24px",
     padding: "16px 20px",
     minWidth: "290px",
     boxShadow: "0 18px 45px rgba(31,77,28,0.08)",
@@ -231,7 +232,7 @@ export const pageStyles = {
   card: {
     background: "#ffffff",
     border: "1px solid #e1eadc",
-    borderRadius: "30px",
+    borderRadius: "24px",
     padding: "28px",
     boxShadow: "0 18px 45px rgba(31,77,28,0.07)",
   },
@@ -247,7 +248,7 @@ export const pageStyles = {
   cardIcon: {
     width: "54px",
     height: "54px",
-    borderRadius: "19px",
+    borderRadius: "16px",
     background: "#e8f4df",
     display: "flex",
     alignItems: "center",
@@ -280,7 +281,7 @@ export const pageStyles = {
   metaItem: {
     background: "#f7faf4",
     border: "1px solid #e6efdf",
-    borderRadius: "18px",
+    borderRadius: "16px",
     padding: "13px 14px",
   },
 
@@ -320,10 +321,11 @@ export const pageStyles = {
 
   primaryButton: {
     border: "none",
-    borderRadius: "15px",
+    borderRadius: "16px",
     background: "#1d7f22",
     color: "#ffffff",
-    padding: "13px 19px",
+    minHeight: "48px",
+    padding: "0 19px",
     fontWeight: 900,
     fontSize: "0.95rem",
     boxShadow: "0 14px 26px rgba(47,151,40,0.18)",
@@ -331,40 +333,44 @@ export const pageStyles = {
 
   secondaryButton: {
     border: "1px solid #d6e4d0",
-    borderRadius: "15px",
+    borderRadius: "16px",
     background: "#ffffff",
     color: "#223025",
-    padding: "13px 19px",
+    minHeight: "48px",
+    padding: "0 19px",
     fontWeight: 900,
     fontSize: "0.95rem",
   },
 
   dangerButton: {
     border: "none",
-    borderRadius: "15px",
+    borderRadius: "16px",
     background: "#d6453d",
     color: "#ffffff",
-    padding: "13px 19px",
+    minHeight: "48px",
+    padding: "0 19px",
     fontWeight: 900,
     fontSize: "0.95rem",
   },
 
   warningButton: {
     border: "none",
-    borderRadius: "15px",
+    borderRadius: "16px",
     background: "#d89522",
     color: "#ffffff",
-    padding: "13px 19px",
+    minHeight: "48px",
+    padding: "0 19px",
     fontWeight: 900,
     fontSize: "0.95rem",
   },
 
   disabledButton: {
     border: "1px solid #d6e4d0",
-    borderRadius: "15px",
+    borderRadius: "16px",
     background: "#f7faf4",
     color: "#6b766d",
-    padding: "13px 19px",
+    minHeight: "48px",
+    padding: "0 19px",
     fontWeight: 900,
     fontSize: "0.95rem",
     cursor: "not-allowed",
@@ -383,7 +389,7 @@ export const pageStyles = {
   emptyState: {
     background: "#ffffff",
     border: "1px solid #e1eadc",
-    borderRadius: "30px",
+    borderRadius: "24px",
     padding: "42px",
     textAlign: "center",
     boxShadow: "0 18px 45px rgba(31,77,28,0.07)",
@@ -420,7 +426,7 @@ export const pageStyles = {
     overflowY: "auto",
     boxSizing: "border-box",
     background: "#ffffff",
-    borderRadius: "30px",
+    borderRadius: "24px",
     padding: "32px",
     boxShadow: "0 28px 70px rgba(0,0,0,0.22)",
   },

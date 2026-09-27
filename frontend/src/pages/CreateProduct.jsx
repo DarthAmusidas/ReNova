@@ -2,7 +2,7 @@
 import { useNavigate } from "react-router-dom";
 import { createProduct } from "../services/productService";
 import AppSidebar from "../components/AppSidebar";
-import NotificationBell from "../components/NotificationBell";
+import HeaderUserCard from "../components/HeaderUserCard";
 import UiIcon from "../components/UiIcon";
 import { pageStyles as pageStyles } from "../styles/pageStyles";
 
@@ -104,23 +104,21 @@ function CreateProduct() {
         onLogout={handleLogout}
       />
 
-      <main style={styles.main} className="renova-form-main">
-        <header style={styles.header}>
+      <main style={styles.main} className="renova-products-main renova-form-main">
+        <header className="renova-products-header">
           <div>
-            <span style={styles.badge} className="renova-form-badge">Nuevo producto</span>
+            <span className="renova-section-badge renova-form-badge">Nuevo producto</span>
 
-            <h1 style={styles.title}>Cargar producto</h1>
+            <h1>Cargar producto</h1>
 
-            <p style={styles.subtitle}>
+            <p>
               Publicá un producto disponible para que pueda ser visualizado y
               reservado por una organización.
             </p>
           </div>
 
-          <div style={styles.userArea}>
-            <div style={styles.bellWrapper}>
-              <NotificationBell />
-            </div>
+          <div className="renova-header-actions">
+            <HeaderUserCard user={user} />
           </div>
         </header>
 
@@ -264,7 +262,7 @@ const styles = {
     maxWidth: "980px",
     background: "#ffffff",
     border: "1px solid #e1eadc",
-    borderRadius: "34px",
+    borderRadius: "24px",
     padding: "34px",
     boxShadow: "0 18px 45px rgba(31,77,28,0.07)",
   },
@@ -294,7 +292,7 @@ const styles = {
   formIcon: {
     width: "64px",
     height: "64px",
-    borderRadius: "22px",
+    borderRadius: "16px",
     background: "#e8f4df",
     display: "flex",
     alignItems: "center",
@@ -314,7 +312,7 @@ const styles = {
     width: "100%",
     minHeight: "130px",
     border: "1.5px solid #d9e5d4",
-    borderRadius: "18px",
+    borderRadius: "16px",
     padding: "16px",
     fontSize: "1rem",
     outline: "none",
@@ -329,7 +327,7 @@ const styles = {
     gap: "14px",
     background: "#f7faf4",
     border: "1px solid #e6efdf",
-    borderRadius: "20px",
+    borderRadius: "16px",
     padding: "16px",
     cursor: "pointer",
   },

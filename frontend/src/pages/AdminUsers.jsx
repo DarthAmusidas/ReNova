@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { getUsers } from "../services/userService";
 import AppSidebar from "../components/AppSidebar";
 import HeaderUserCard from "../components/HeaderUserCard";
-import NotificationBell from "../components/NotificationBell";
 import UiIcon from "../components/UiIcon";
 import { pageStyles as baseStyles } from "../styles/pageStyles";
 
@@ -91,24 +90,21 @@ function AdminUsers() {
         onLogout={handleLogout}
       />
 
-      <main style={styles.main} className="renova-users-main">
-        <header style={styles.header}>
+      <main style={styles.main} className="renova-products-main renova-users-main">
+        <header className="renova-products-header">
           <div>
-            <span style={styles.badge} className="renova-users-badge">Administración</span>
+            <span className="renova-section-badge renova-users-badge">Administración</span>
 
-            <h1 style={styles.title}>Usuarios registrados</h1>
+            <h1>Usuarios registrados</h1>
 
-            <p style={styles.subtitle}>
+            <p>
               Consultá los usuarios registrados en la plataforma ReNova.
             </p>
           </div>
 
-          <div style={styles.userArea}>
+          <div className="renova-header-actions">
             <HeaderUserCard user={user} />
 
-            <div style={styles.bellWrapper}>
-              <NotificationBell />
-            </div>
           </div>
         </header>
 
@@ -238,7 +234,7 @@ const styles = {
   metaItemWide: {
     background: "#f7faf4",
     border: "1px solid #e6efdf",
-    borderRadius: "18px",
+    borderRadius: "16px",
     padding: "13px 14px",
     gridColumn: "span 2",
   },

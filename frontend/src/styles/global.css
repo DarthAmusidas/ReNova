@@ -3280,7 +3280,7 @@ input[type="search"],
 select {
   background: rgba(255,255,255,0.86) !important;
   border: 1.5px solid rgba(94, 145, 78, 0.18) !important;
-  border-radius: 18px !important;
+  border-radius: 16px !important;
   box-shadow: 0 10px 24px rgba(30, 80, 35, 0.06) !important;
   color: var(--renova-dark) !important;
 }
@@ -11008,4 +11008,80 @@ html:not(.renova-dark-mode) .renova-user-meta span {
 html.renova-dark-mode .renova-form-icon,
 html.renova-dark-mode .renova-users-card-icon {
   color: #9ee88f !important;
+}
+
+/* ==========================================================
+   Encabezado de página unificado (misma medida en todas)
+   ========================================================== */
+@media (min-width: 761px) {
+  .renova-dashboard-main,
+  .renova-impact-main {
+    padding: 30px clamp(28px, 3.5vw, 54px) 46px !important;
+  }
+
+  .renova-dashboard-header h1,
+  .renova-impact-header h1 {
+    margin-top: 12px !important;
+    font-size: clamp(2.45rem, 3vw, 3.2rem) !important;
+    line-height: 1.02 !important;
+    letter-spacing: -1.3px !important;
+  }
+}
+
+.renova-impact-header p {
+  color: #59695d !important;
+}
+
+html.renova-dark-mode .renova-impact-header p {
+  color: #aac0aa !important;
+}
+
+/* ==========================================================
+   Escala de radios: 24 contenedores · 16 controles · píldora
+   ========================================================== */
+:root:root body .renova-user-summary,
+:root:root body .renova-product-card,
+:root:root body .renova-dashboard-panel,
+:root:root body .renova-dashboard-level-panel,
+:root:root body .renova-impact-metric-card,
+:root:root body .renova-impact-visual-card,
+:root:root body .renova-impact-report-card,
+:root:root body .renova-impact-actions {
+  border-radius: 24px !important;
+}
+
+:root:root body .renova-sidebar-link,
+:root:root body .renova-sidebar-theme-button,
+:root:root body .renova-sidebar-logout,
+:root:root body .renova-pagination-page,
+:root:root body .renova-pagination-control,
+:root:root body .renova-outline-button,
+:root:root body .renova-danger-button,
+:root:root body .renova-disabled-button,
+:root:root body .renova-publish-button,
+:root:root body .renova-reserve-button,
+:root:root body .renova-search-box,
+:root:root body .renova-search-box-inline,
+:root:root body .renova-sort-control,
+:root:root body .renova-sort-control select,
+:root:root body .notification-bell-root,
+:root:root body .notification-bell-button,
+:root:root body .renova-impact-print-button,
+:root:root body .renova-impact-environment-card,
+:root:root body .renova-dashboard-metric-icon,
+:root:root body .renova-kpi-icon,
+:root:root body .renova-user-avatar,
+:root:root body .renova-product-quantity,
+:root:root body .renova-reservation-card-icon,
+:root:root body .renova-dashboard-impact-grid > article,
+:root:root body .renova-impact-panel-title > span {
+  border-radius: 16px !important;
+}
+
+/* Altura estándar de botones de acción: 48 px */
+:root:root body .renova-dashboard-primary-action,
+:root:root body .renova-impact-print-button,
+:root:root body .renova-publish-button {
+  min-height: 48px !important;
+  height: 48px !important;
 }

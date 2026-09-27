@@ -813,15 +813,15 @@ function Reservations() {
         onLogout={handleLogout}
       />
 
-      <main style={styles.main} className="renova-reservations-main">
-        <header style={styles.header} className="renova-reservations-header">
+      <main style={styles.main} className="renova-products-main renova-reservations-main">
+        <header className="renova-products-header renova-reservations-header">
           <div>
-            <span style={styles.badge} className="renova-reservations-page-badge">Gestión de reservas</span>
-            <h1 style={styles.title}>{getPageTitle()}</h1>
-            <p style={styles.subtitle}>{getPageSubtitle()}</p>
+            <span className="renova-section-badge renova-reservations-page-badge">Gestión de reservas</span>
+            <h1>{getPageTitle()}</h1>
+            <p>{getPageSubtitle()}</p>
           </div>
 
-          <div style={styles.userArea} className="renova-header-actions renova-page-header-actions">
+          <div className="renova-header-actions renova-page-header-actions">
             <HeaderUserCard user={user} />
           </div>
         </header>
@@ -1357,7 +1357,7 @@ const localStyles = {
     background: "#eef7e7",
     border: "1px solid #d8ebce",
     color: "#1f6f21",
-    borderRadius: "18px",
+    borderRadius: "16px",
     padding: "16px 18px",
     fontWeight: 800,
     marginBottom: "22px",
@@ -1372,7 +1372,7 @@ const localStyles = {
 
   filterButton: {
     border: "1px solid #d6e4d0",
-    borderRadius: "20px",
+    borderRadius: "16px",
     background: "#ffffff",
     color: "#223025",
     padding: "10px 18px",
@@ -1384,7 +1384,7 @@ const localStyles = {
 
   filterButtonActive: {
     border: "2px solid #2f9728",
-    borderRadius: "20px",
+    borderRadius: "16px",
     background: "#e8f4df",
     color: "#1d7d24",
     padding: "10px 18px",
@@ -1406,7 +1406,7 @@ const localStyles = {
     marginTop: "18px",
     background: "#f7faf4",
     border: "1px solid #e6efdf",
-    borderRadius: "18px",
+    borderRadius: "16px",
     padding: "14px",
   },
 
@@ -1481,7 +1481,7 @@ const localStyles = {
     marginTop: "18px",
     background: "#f8f9f4",
     border: "1px solid #dfe8d7",
-    borderRadius: "18px",
+    borderRadius: "16px",
     padding: "16px",
   },
 
@@ -1533,7 +1533,7 @@ const localStyles = {
     background: "#fdeaea",
     color: "#a32727",
     border: "1px solid #f3b7b7",
-    borderRadius: "14px",
+    borderRadius: "16px",
     padding: "12px 14px",
     marginBottom: "16px",
     fontWeight: 800,
