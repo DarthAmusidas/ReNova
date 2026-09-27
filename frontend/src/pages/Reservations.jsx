@@ -7,7 +7,7 @@ import {
 } from "../services/reservationService";
 import AppSidebar from "../components/AppSidebar";
 import HeaderUserCard from "../components/HeaderUserCard";
-import { pageStyles as styles, getStatusStyle } from "../styles/pageStyles";
+import { pageStyles as styles } from "../styles/pageStyles";
 
 const RESERVATIONS_PER_PAGE = 4;
 
@@ -19,6 +19,38 @@ function Reservations() {
   const [updatingId, setUpdatingId] = useState(null);
   const [reservationToCancel, setReservationToCancel] = useState(null);
   const updatingRef = useRef(false);
+  const [copiedId, setCopiedId] = useState(null);
+
+  const handleCopyOrderCode = async (reservationId, code) => {
+    const markCopied = () => {
+      setCopiedId(reservationId);
+      setTimeout(() => setCopiedId(null), 1600);
+    };
+
+    try {
+      await navigator.clipboard.writeText(code);
+      markCopied();
+      return;
+    } catch {
+      // Algunos navegadores bloquean la API del portapapeles: se usa el método clásico.
+    }
+
+    const field = document.createElement("textarea");
+    field.value = code;
+    field.setAttribute("readonly", "");
+    field.style.position = "fixed";
+    field.style.opacity = "0";
+    document.body.appendChild(field);
+    field.select();
+    const copied = document.execCommand("copy");
+    field.remove();
+
+    if (copied) {
+      markCopied();
+    } else {
+      setError("No se pudo copiar el número de pedido. Seleccionalo y copialo a mano.");
+    }
+  };
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("ALL");
@@ -642,32 +674,6 @@ function Reservations() {
     );
   };
 
-  const getTraceabilityInfo = (reservation) => {
-    const items = [];
-
-    // If SUPERMARKET role: show who reserved
-    if (isSupermarket) {
-      const ongDisplay = getOngName(reservation) || "No informado";
-      items.push({ label: "Reservado por:", value: ongDisplay });
-    }
-
-    // If ONG role: show who publishes
-    if (isOng) {
-      const supermarketDisplay = getSupermarketName(reservation) || "No informado";
-      items.push({ label: "Publicado por:", value: supermarketDisplay });
-    }
-
-    // If ADMIN role: show both
-    if (isAdmin) {
-      const ongDisplay = getOngName(reservation) || "No informado";
-      const supermarketDisplay = getSupermarketName(reservation) || "No informado";
-      items.push({ label: "Reservado por:", value: ongDisplay });
-      items.push({ label: "Publicado por:", value: supermarketDisplay });
-    }
-
-    return items.length > 0 ? items : null;
-  };
-
   const getPageTitle = () => {
     if (isAdmin) return "Reservas registradas";
     if (isSupermarket) return "Reservas recibidas";
@@ -687,12 +693,23 @@ function Reservations() {
   };
 
   const renderActions = (reservation, status, isUpdating) => {
+    const cancelButton = (label = "Cancelar") => (
+      <button
+        type="button"
+        className="renova-rbtn renova-rbtn-danger"
+        disabled={isUpdating}
+        onClick={() => setReservationToCancel(reservation)}
+      >
+        {label}
+      </button>
+    );
+
+    const waiting = (label) => (
+      <span className="renova-rcard-waiting">{label}</span>
+    );
+
     if (isAdmin) {
-      return (
-        <button type="button" style={styles.disabledButton} disabled>
-          Solo consulta
-        </button>
-      );
+      return waiting("Solo consulta");
     }
 
     if (isSupermarket && status === "PENDING") {
@@ -700,111 +717,84 @@ function Reservations() {
 
       return (
         <>
-          <button
-            type="button"
-            style={expired ? styles.disabledButton : styles.primaryButton}
-            disabled={isUpdating || expired}
-            onClick={() => {
-              if (!expired) {
-                handleUpdateStatus(reservation.id, "CONFIRMED");
-              }
-            }}
-          >
-            {expired ? "Confirmación vencida" : "Confirmar reserva"}
-          </button>
-
-          <button
-            type="button"
-            style={styles.dangerButton}
-            className="renova-inline-danger"
-            disabled={isUpdating}
-            onClick={() => setReservationToCancel(reservation)}
-          >
-            Cancelar
-          </button>
+          {expired ? (
+            waiting("Confirmación vencida")
+          ) : (
+            <button
+              type="button"
+              className="renova-rbtn renova-rbtn-primary"
+              disabled={isUpdating}
+              onClick={() => handleUpdateStatus(reservation.id, "CONFIRMED")}
+            >
+              Confirmar reserva
+            </button>
+          )}
+          {cancelButton()}
         </>
       );
     }
 
     if (isOng && status === "PENDING") {
       return (
-        <button
-          type="button"
-          style={styles.dangerButton}
-          className="renova-inline-danger"
-          disabled={isUpdating}
-          onClick={() => setReservationToCancel(reservation)}
-        >
-          Cancelar reserva
-        </button>
+        <>
+          {waiting("Esperando que el comercio confirme")}
+          {cancelButton("Cancelar reserva")}
+        </>
       );
     }
 
     if (status === "CONFIRMED") {
       const confirmationExpired = isConfirmationExpired(reservation);
 
-      return (
-        <>
-          {isOng && !reservation.ong_completed && (
-            <button
-              type="button"
-              style={confirmationExpired ? styles.disabledButton : styles.primaryButton}
-              disabled={isUpdating || confirmationExpired}
-              onClick={() => handleUpdateStatus(reservation.id, "COMPLETED")}
-            >
-              {confirmationExpired ? "Reserva vencida" : "Confirmar retiro"}
-            </button>
-          )}
+      if (isOng && !reservation.ong_completed) {
+        return (
+          <>
+            {confirmationExpired ? (
+              waiting("Reserva vencida")
+            ) : (
+              <button
+                type="button"
+                className="renova-rbtn renova-rbtn-primary"
+                disabled={isUpdating}
+                onClick={() => handleUpdateStatus(reservation.id, "COMPLETED")}
+              >
+                Confirmar retiro
+              </button>
+            )}
+            {cancelButton()}
+          </>
+        );
+      }
 
-          {isSupermarket && !reservation.ong_completed && (
-            <button
-              type="button"
-              style={styles.disabledButton}
-              disabled
-              title="Esperando confirmación de retiro de la organización"
-            >
-              Esperando confirmación de retiro
-            </button>
-          )}
+      if (isSupermarket && !reservation.ong_completed) {
+        return (
+          <>
+            {waiting("Esperando el retiro de la ONG")}
+            {cancelButton()}
+          </>
+        );
+      }
 
-          {isSupermarket && reservation.ong_completed && !reservation.supermarket_completed && (
-            <button
-              type="button"
-              style={styles.primaryButton}
-              disabled={isUpdating}
-              onClick={() => handleOpenDeliveryModal(reservation)}
-            >
-              Confirmar entrega
-            </button>
-          )}
+      // Con el retiro confirmado por la ONG ya no se puede cancelar.
+      if (isSupermarket && !reservation.supermarket_completed) {
+        return (
+          <button
+            type="button"
+            className="renova-rbtn renova-rbtn-primary"
+            disabled={isUpdating}
+            onClick={() => handleOpenDeliveryModal(reservation)}
+          >
+            Validar entrega
+          </button>
+        );
+      }
 
-          {isOng && reservation.ong_completed && !reservation.supermarket_completed && (
-            <button type="button" style={styles.disabledButton} disabled>
-              Retiro confirmado, esperando entrega
-            </button>
-          )}
-
-          {/* Con el retiro confirmado por la ONG ya no se puede cancelar. */}
-          {!reservation.ong_completed && (
-            <button
-              type="button"
-              style={styles.dangerButton}
-              className="renova-inline-danger"
-              disabled={isUpdating}
-              onClick={() => setReservationToCancel(reservation)}
-            >
-              Cancelar
-            </button>
-          )}
-        </>
-      );
+      if (isOng && !reservation.supermarket_completed) {
+        return waiting("Retiro confirmado · falta la validación del comercio");
+      }
     }
 
-    return (
-      <button type="button" style={styles.disabledButton} disabled>
-        Sin acciones pendientes
-      </button>
-    );
+    return null;
   };
 
   return (
@@ -940,15 +930,6 @@ function Reservations() {
           </nav>
         )}
 
-{error && <div style={styles.errorBox} className="renova-inline-error">{error}</div>}
-
-        {isAdmin && (
-          <div style={localStyles.adminInfoBox} className="renova-admin-note-inline">
-            El administrador puede consultar todas las reservas, pero no puede
-            modificar estados ni confirmar entregas.
-          </div>
-        )}
-
         {loading ? (
           <section style={styles.emptyState}>
             <h2 style={styles.emptyTitle}>Cargando reservas...</h2>
@@ -992,69 +973,72 @@ function Reservations() {
                 reservation.pickup_notes;
 
               return (
-                <article key={reservation.id} style={styles.card} className="renova-reservation-card">
-                  <div style={styles.cardHeader} className="renova-reservation-card-header">
-                    <div>
-                      <h2 style={styles.cardTitle}>
-                        {getProductName(reservation)}
-                      </h2>
-
-                      <p style={styles.cardText}>
-                        {isAdmin
-                          ? "Reserva registrada en la plataforma."
-                          : isSupermarket
-                          ? "Reserva solicitada por una organización."
-                          : "Reserva realizada a un supermercado."}
+                <article key={reservation.id} className="renova-rcard">
+                  <header className="renova-rcard-head">
+                    <div className="renova-rcard-title">
+                      <h2>{getProductName(reservation)}</h2>
+                      <p className="renova-rcard-sub">
+                        {(isAdmin || isSupermarket) && (
+                          <span className="is-who">
+                            ONG <strong>{getOngName(reservation) || "No informado"}</strong>
+                          </span>
+                        )}
+                        {(isAdmin || isOng) && (
+                          <span className="is-who">
+                            Comercio <strong>{getSupermarketName(reservation) || "No informado"}</strong>
+                          </span>
+                        )}
+                        <span className="is-meta">
+                          <strong>
+                            {reservation.quantity_reserved || reservation.quantity || 0}
+                          </strong>{" "}
+                          {reservation.unit || ""}
+                        </span>
+                        <span className="is-meta">
+                          {formatDate(reservation.reserved_at || reservation.created_at)}
+                        </span>
                       </p>
-
-                      {getTraceabilityInfo(reservation) && (
-                        <div style={localStyles.traceabilityInfo} className="renova-reservation-traceability-info">
-                          {getTraceabilityInfo(reservation).map((item, idx) => (
-                            <div key={idx} style={localStyles.traceabilityItem}>
-                              <span style={localStyles.traceabilityLabel}>
-                                {item.label}
-                              </span>
-                              <span style={localStyles.traceabilityValue}>
-                                {item.value}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
 
-                    <div className="renova-reservation-card-icon" aria-hidden="true">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <rect x="4" y="5" width="16" height="16" rx="3" />
-                        <path d="M8 3v4" />
-                        <path d="M16 3v4" />
-                        <path d="M8 11h8" />
-                        <path d="M8 15h5" />
-                      </svg>
+                    <div className="renova-rcard-tags">
+                      <span className={`renova-rcard-status is-${String(status).toLowerCase()}`}>
+                        {getStatusLabel(status)}
+                      </span>
+                      <div className="renova-rcard-code">
+                        <span className="renova-rcard-code-label">Pedido</span>
+                        <strong>
+                          {reservation.order_code || String(reservation.id).slice(0, 8)}
+                        </strong>
+                        <button
+                          type="button"
+                          className="renova-rcard-copy"
+                          aria-label="Copiar número de pedido"
+                          title={copiedId === reservation.id ? "Copiado" : "Copiar"}
+                          onClick={() =>
+                            handleCopyOrderCode(
+                              reservation.id,
+                              reservation.order_code || String(reservation.id).slice(0, 8)
+                            )
+                          }
+                        >
+                          {copiedId === reservation.id ? (
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                              <path d="m5 12 5 5 9-10" />
+                            </svg>
+                          ) : (
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                              <rect x="9" y="9" width="11" height="11" rx="2" />
+                              <path d="M5 15V5a2 2 0 0 1 2-2h8" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-
-                  <span style={getStatusStyle(status)}>
-                    {getStatusLabel(status)}
-                  </span>
+                  </header>
 
                   {showConfirmationTimer && (
                     <div
-                      style={
-                        confirmationExpired
-                          ? localStyles.confirmationDeadlineExpired
-                          : hasConfirmationWarning
-                          ? localStyles.confirmationDeadlineWarning
-                          : localStyles.confirmationDeadline
-                      }
-                      className={`renova-confirmation-deadline${
+                      className={`renova-rcard-timer${
                         confirmationExpired
                           ? " is-expired"
                           : hasConfirmationWarning
@@ -1062,187 +1046,97 @@ function Reservations() {
                           : ""
                       }`}
                     >
-                      <span style={styles.metaLabel}>
-                        Tiempo restante para confirmar
-                      </span>
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3 2" />
+                      </svg>
                       {confirmationExpired ? (
-                        <span style={localStyles.expiredBadge}>
-                          Reserva vencida. Debés realizar una nueva reserva.
-                        </span>
+                        <span>Reserva vencida. Tenés que hacer una nueva reserva.</span>
                       ) : (
-                        <>
-                          <span style={localStyles.remainingTimeText} className="renova-confirmation-remaining">
-                            Tiempo restante para confirmar:{" "}
-                            <strong>
-                              {formatRemainingTime(confirmationRemainingMs)}
-                            </strong>
-                          </span>
-                          {hasConfirmationWarning && (
-                            <span style={localStyles.warningText} className="renova-confirmation-warning-text">
-                              Quedan menos de 6 horas para confirmar esta reserva.
-                            </span>
-                          )}
-                          <strong>
-                            Vence: {formatDateTime(confirmationDeadline)}
-                          </strong>
-                        </>
+                        <span>
+                          Quedan <strong>{formatRemainingTime(confirmationRemainingMs)}</strong>{" "}
+                          para completar el retiro · vence {formatDateTime(confirmationDeadline)}
+                        </span>
                       )}
                     </div>
                   )}
 
-                  <div style={styles.metaGrid} className="renova-reservation-meta-grid">
-                    {isAdmin ? (
-                      <>
-                        <div style={styles.metaItem} className="renova-reservation-meta-item">
-                          <span style={styles.metaLabel}>ONG</span>
-                          <span style={styles.metaValue}>
-                            {getOngName(reservation)}
-                          </span>
-                        </div>
-
-                        <div style={styles.metaItem} className="renova-reservation-meta-item">
-                          <span style={styles.metaLabel}>Supermercado</span>
-                          <span style={styles.metaValue}>
-                            {getSupermarketName(reservation)}
-                          </span>
-                        </div>
-                      </>
-                    ) : (
-                      <div style={styles.metaItem} className="renova-reservation-meta-item">
-                        <span style={styles.metaLabel}>
-                          {isSupermarket ? "ONG" : "Supermercado"}
-                        </span>
-                        <span style={styles.metaValue}>
-                          {isSupermarket
-                            ? getOngName(reservation)
-                            : getSupermarketName(reservation)}
-                        </span>
-                      </div>
-                    )}
-
-                    <div style={styles.metaItem} className="renova-reservation-meta-item">
-                      <span style={styles.metaLabel}>Pedido</span>
-                      <span style={styles.orderCodeValue}>
-                        {reservation.order_code || String(reservation.id).slice(0, 8)}
-                      </span>
-                    </div>
-
-                    <div style={styles.metaItem} className="renova-reservation-meta-item">
-                      <span style={styles.metaLabel}>Cantidad</span>
-                      <span style={styles.metaValue}>
-                        {reservation.quantity_reserved ||
-                          reservation.quantity ||
-                          0}
-                      </span>
-                    </div>
-
-                    <div style={styles.metaItem} className="renova-reservation-meta-item">
-                      <span style={styles.metaLabel}>Fecha</span>
-                      <span style={styles.metaValue}>
-                        {formatDate(
-                          reservation.reserved_at || reservation.created_at
-                        )}
-                      </span>
-                    </div>
-                  </div>
-
                   {hasPickupInfo && (
-                    <div style={localStyles.pickupSection} className="renova-reservation-pickup-section">
-                      <div style={localStyles.pickupTitle}>Datos de retiro</div>
-                      <div style={localStyles.pickupGrid}>
-                        {reservation.pickup_person_name && (
-                          <div style={localStyles.pickupItem} className="renova-reservation-pickup-item">
-                            <span style={styles.metaLabel}>
-                              Persona de retiro
-                            </span>
-                            <span style={styles.metaValue}>
-                              {reservation.pickup_person_name}
-                            </span>
-                          </div>
-                        )}
+                    <dl className="renova-rcard-pickup">
+                      {reservation.pickup_person_name && (
+                        <div>
+                          <dt>Retira</dt>
+                          <dd>
+                            {reservation.pickup_person_name}
+                            {reservation.pickup_person_dni && (
+                              <span className="is-dni"> · DNI {reservation.pickup_person_dni}</span>
+                            )}
+                          </dd>
+                        </div>
+                      )}
 
-                        {reservation.pickup_person_dni && (
-                          <div style={localStyles.pickupItem} className="renova-reservation-pickup-item">
-                            <span style={styles.metaLabel}>DNI</span>
-                            <span style={styles.metaValue}>
-                              {reservation.pickup_person_dni}
-                            </span>
-                          </div>
-                        )}
+                      {!reservation.pickup_person_name && reservation.pickup_person_dni && (
+                        <div>
+                          <dt>DNI</dt>
+                          <dd>{reservation.pickup_person_dni}</dd>
+                        </div>
+                      )}
 
-                        {reservation.pickup_person_phone && (
-                          <div style={localStyles.pickupItem} className="renova-reservation-pickup-item">
-                            <span style={styles.metaLabel}>Teléfono</span>
-                            <span style={styles.metaValue}>
-                              {reservation.pickup_person_phone}
-                            </span>
-                          </div>
-                        )}
+                      {reservation.pickup_person_phone && (
+                        <div>
+                          <dt>Teléfono</dt>
+                          <dd>{reservation.pickup_person_phone}</dd>
+                        </div>
+                      )}
 
-                        {reservation.pickup_time && (
-                          <div style={localStyles.pickupItem} className="renova-reservation-pickup-item">
-                            <span style={styles.metaLabel}>Horario de retiro</span>
-                            <span style={styles.metaValue}>
-                              {reservation.pickup_time}
-                            </span>
-                          </div>
-                        )}
+                      {reservation.pickup_time && (
+                        <div>
+                          <dt>Horario</dt>
+                          <dd>{reservation.pickup_time}</dd>
+                        </div>
+                      )}
 
-                        {reservation.pickup_notes && (
-                          <div style={localStyles.pickupItem} className="renova-reservation-pickup-item">
-                            <span style={styles.metaLabel}>Notas</span>
-                            <span style={styles.metaValue}>
-                              {reservation.pickup_notes}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                      {reservation.pickup_notes && (
+                        <div className="is-wide">
+                          <dt>Notas</dt>
+                          <dd>{reservation.pickup_notes}</dd>
+                        </div>
+                      )}
+                    </dl>
+                  )}
+
+                  {status === "CONFIRMED" && (
+                    <div
+                      className="renova-rcard-progress"
+                      title="La entrega se completa cuando la ONG confirma el retiro y el comercio valida el código"
+                    >
+                      <span className={reservation.ong_completed ? "is-done" : ""}>
+                        <b aria-hidden="true">{reservation.ong_completed ? "\u2713" : "1"}</b>
+                        Retiro de la ONG
+                      </span>
+                      <span className={reservation.supermarket_completed ? "is-done" : ""}>
+                        <b aria-hidden="true">{reservation.supermarket_completed ? "\u2713" : "2"}</b>
+                        Validación del comercio
+                      </span>
                     </div>
                   )}
 
-                  <div style={localStyles.confirmationBox} className="renova-reservation-confirmation-box">
-                    <span style={styles.metaLabel} title="Ambas partes deben confirmar para completar la entrega">Confirmación de entrega</span>
-
-                    <div style={localStyles.confirmationTags}>
-                      <span
-                        style={getStatusStyle(
-                          reservation.supermarket_completed
-                            ? "COMPLETED"
-                            : "PENDING"
-                        )}
-                        title="El supermercado debe confirmar que realizó la entrega"
-                      >
-                        Supermercado:{" "}
-                        {reservation.supermarket_completed
-                          ? "confirmado"
-                          : "pendiente"}
-                      </span>
-
-                      <span
-                        style={getStatusStyle(
-                          reservation.ong_completed ? "COMPLETED" : "PENDING"
-                        )}
-                        title="La ONG debe confirmar que recibió la entrega"
-                      >
-                        ONG:{" "}
-                        {reservation.ong_completed ? "confirmado" : "pendiente"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div style={styles.cardActions} className="renova-reservation-card-actions">
+                  <footer className="renova-rcard-actions">
                     {renderActions(reservation, status, isUpdating)}
+
                     <button
                       type="button"
-                      style={{
-                        ...styles.secondaryButton,
-                        marginLeft: "10px"
-                      }}
+                      className="renova-rbtn renova-rbtn-ghost renova-rcard-print"
                       onClick={() => handlePrintReceipt(reservation)}
                     >
-                      Imprimir comprobante
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M7 9V3h10v6" />
+                        <rect x="3" y="9" width="18" height="8" rx="2" />
+                        <path d="M7 14h10v7H7z" />
+                      </svg>
+                      Comprobante
                     </button>
-                  </div>
+                  </footer>
                 </article>
               );
             })}

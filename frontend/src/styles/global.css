@@ -11085,3 +11085,479 @@ html.renova-dark-mode .renova-impact-header p {
   min-height: 48px !important;
   height: 48px !important;
 }
+
+/* ==========================================================
+   Tarjeta de reserva compacta
+   ========================================================== */
+.renova-reservations-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)) !important;
+  gap: 18px !important;
+  align-items: start;
+}
+
+.renova-rcard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px 20px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(94, 145, 78, 0.14);
+  box-shadow: 0 16px 38px rgba(30, 80, 35, 0.08);
+}
+
+.renova-rcard-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.renova-rcard-title {
+  min-width: 0;
+}
+
+.renova-rcard-title h2 {
+  margin: 0 0 6px;
+  color: #102018;
+  font-size: 1.12rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.renova-rcard-sub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+  color: #59695d;
+  font-size: 0.86rem;
+}
+
+.renova-rcard-sub .is-who {
+  flex-basis: 100%;
+}
+
+.renova-rcard-sub .is-meta + .is-meta::before {
+  content: "·";
+  margin-right: 12px;
+  color: #a3ad9f;
+}
+
+.renova-rcard-pickup .is-dni {
+  white-space: nowrap;
+}
+
+.renova-rcard-sub strong {
+  color: #26352a;
+  font-weight: 800;
+}
+
+.renova-rcard-tags {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.renova-rcard-status {
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.renova-rcard-status.is-pending { background: #fff2d9; color: #7a5200; }
+.renova-rcard-status.is-confirmed { background: #e3ecf8; color: #1d4f86; }
+.renova-rcard-status.is-completed { background: #e3f2dc; color: #116a18; }
+.renova-rcard-status.is-cancelled,
+.renova-rcard-status.is-canceled { background: #fbe4e2; color: #9b2c22; }
+
+.renova-rcard-code {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  column-gap: 8px;
+  padding: 6px 6px 6px 12px;
+  border-radius: 14px;
+  border: 1.5px dashed rgba(31, 139, 36, 0.4);
+  background: #f3f8ef;
+}
+
+.renova-rcard-code-label {
+  grid-column: 1 / -1;
+  color: #5d6b60;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.renova-rcard-code strong {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: #102018;
+  white-space: nowrap;
+}
+
+.renova-rcard-copy {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #1f5f22;
+  cursor: pointer;
+}
+
+.renova-rcard-copy:hover {
+  background: rgba(31, 139, 36, 0.12);
+}
+
+.renova-rcard-copy:focus-visible {
+  outline: 3px solid rgba(31, 139, 36, 0.35);
+  outline-offset: 1px;
+}
+
+.renova-rcard-copy svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.renova-rcard-timer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 14px;
+  background: #f1f7ec;
+  color: #2f5e2a;
+  font-size: 0.84rem;
+}
+
+.renova-rcard-timer svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.renova-rcard-timer.is-warning { background: #fff2d9; color: #6b4800; }
+.renova-rcard-timer.is-expired { background: #fbe4e2; color: #8e271e; }
+
+.renova-rcard-pickup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #f6f9f3;
+}
+
+.renova-rcard-pickup .is-wide {
+  grid-column: 1 / -1;
+}
+
+.renova-rcard-pickup dt {
+  margin: 0 0 2px;
+  color: #5d6b60;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.renova-rcard-pickup dd {
+  margin: 0;
+  color: #102018;
+  font-size: 0.9rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.renova-rcard-pickup dd span {
+  color: #59695d;
+  font-weight: 600;
+}
+
+.renova-rcard-progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.renova-rcard-progress span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 11px 5px 5px;
+  border-radius: 999px;
+  background: #f1f5ee;
+  color: #4b5a4f;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.renova-rcard-progress b {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #dfe7da;
+  color: #3f4d43;
+  font-size: 0.72rem;
+}
+
+.renova-rcard-progress .is-done {
+  background: #e3f2dc;
+  color: #116a18;
+}
+
+.renova-rcard-progress .is-done b {
+  background: #136b19;
+  color: #ffffff;
+}
+
+.renova-rcard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(94, 145, 78, 0.12);
+}
+
+.renova-rcard-print {
+  margin-left: auto;
+}
+
+.renova-rcard-waiting {
+  color: #59695d;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.renova-rbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.renova-rbtn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.renova-rbtn:focus-visible {
+  outline: 3px solid rgba(31, 139, 36, 0.35);
+  outline-offset: 2px;
+}
+
+.renova-rbtn svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.renova-rbtn-primary {
+  background: linear-gradient(135deg, #1f8b24 0%, #136b19 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(22, 131, 30, 0.2);
+}
+
+.renova-rbtn-danger {
+  background: transparent;
+  border-color: rgba(185, 50, 42, 0.35);
+  color: #a3271f;
+}
+
+.renova-rbtn-danger:hover:not(:disabled) {
+  background: #fdf0ef;
+}
+
+.renova-rbtn-ghost {
+  background: transparent;
+  border-color: rgba(94, 145, 78, 0.22);
+  color: #1f5f22;
+}
+
+.renova-rbtn-ghost:hover:not(:disabled) {
+  background: #f1f7ec;
+}
+
+@media (max-width: 520px) {
+  .renova-rcard {
+    padding: 16px;
+  }
+
+  .renova-rcard-head {
+    flex-direction: column;
+  }
+
+  .renova-rcard-tags {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .renova-rcard-pickup {
+    grid-template-columns: 1fr;
+  }
+
+  .renova-rcard-actions .renova-rbtn {
+    flex: 1 1 auto;
+  }
+
+  .renova-rcard-print {
+    margin-left: 0;
+  }
+}
+
+/* Modo oscuro: más específico que ".renova-reservations-main span/strong" */
+html.renova-dark-mode .renova-reservations-main .renova-rcard {
+  background: linear-gradient(180deg, rgba(19, 39, 24, 0.92), rgba(12, 28, 17, 0.86));
+  border-color: rgba(160, 210, 140, 0.14);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.26);
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard h2,
+html.renova-dark-mode .renova-reservations-main .renova-rcard-pickup dd,
+html.renova-dark-mode .renova-reservations-main .renova-rcard-sub strong {
+  color: #f4fbf1 !important;
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-sub,
+html.renova-dark-mode .renova-reservations-main .renova-rcard-sub span,
+html.renova-dark-mode .renova-reservations-main .renova-rcard-pickup dd span,
+html.renova-dark-mode .renova-reservations-main .renova-rcard-waiting {
+  color: #aac0aa !important;
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-pickup {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-pickup dt {
+  color: #91a391;
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-code {
+  background: rgba(55, 166, 45, 0.1);
+  border-color: rgba(158, 232, 143, 0.4);
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-code strong {
+  color: #f4fbf1 !important;
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-code-label {
+  color: #91a391 !important;
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-copy {
+  color: #9ee88f;
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-copy:hover {
+  background: rgba(158, 232, 143, 0.12);
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-status.is-pending { background: rgba(230, 170, 30, 0.16); color: #ffd27a !important; }
+html.renova-dark-mode .renova-reservations-main .renova-rcard-status.is-confirmed { background: rgba(70, 140, 220, 0.18); color: #a9d0ff !important; }
+html.renova-dark-mode .renova-reservations-main .renova-rcard-status.is-completed { background: rgba(55, 166, 45, 0.16); color: #9ee88f !important; }
+html.renova-dark-mode .renova-reservations-main .renova-rcard-status.is-cancelled,
+html.renova-dark-mode .renova-reservations-main .renova-rcard-status.is-canceled { background: rgba(220, 60, 60, 0.16); color: #ffa6a6 !important; }
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-timer { background: rgba(55, 166, 45, 0.12); color: #bfe6b5; }
+html.renova-dark-mode .renova-reservations-main .renova-rcard-timer span { color: #bfe6b5 !important; }
+html.renova-dark-mode .renova-reservations-main .renova-rcard-timer.is-warning,
+html.renova-dark-mode .renova-reservations-main .renova-rcard-timer.is-warning span { background: rgba(230, 170, 30, 0.14); color: #ffd27a !important; }
+html.renova-dark-mode .renova-reservations-main .renova-rcard-timer.is-expired,
+html.renova-dark-mode .renova-reservations-main .renova-rcard-timer.is-expired span { background: rgba(220, 60, 60, 0.14); color: #ffb4b4 !important; }
+html.renova-dark-mode .renova-reservations-main .renova-rcard-timer.is-warning span,
+html.renova-dark-mode .renova-reservations-main .renova-rcard-timer.is-expired span { background: transparent; }
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-progress span {
+  background: rgba(255, 255, 255, 0.06);
+  color: #c9d8c6 !important;
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-progress b {
+  background: rgba(255, 255, 255, 0.1);
+  color: #d7e8d3;
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-progress .is-done {
+  background: rgba(55, 166, 45, 0.16);
+  color: #9ee88f !important;
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-progress .is-done b {
+  background: #37a62d;
+  color: #0b1a10;
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-actions {
+  border-top-color: rgba(160, 210, 140, 0.12);
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rbtn-danger {
+  border-color: rgba(240, 120, 120, 0.4);
+  color: #ffa6a6;
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rbtn-danger:hover:not(:disabled) {
+  background: rgba(220, 60, 60, 0.12);
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rbtn-ghost {
+  border-color: rgba(160, 210, 140, 0.24);
+  color: #bfe6b5;
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rbtn-ghost:hover:not(:disabled) {
+  background: rgba(55, 166, 45, 0.12);
+}
+
+/* Páginas con estilos en línea: en pantallas chicas el menú va arriba,
+   igual que en .renova-app-shell (antes dejaba ~100 px para el contenido). */
+@media (max-width: 900px) {
+  .renova-reservations-shell,
+  .renova-users-shell,
+  .renova-form-shell {
+    display: block !important;
+  }
+}
