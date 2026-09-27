@@ -346,190 +346,215 @@ function Reservations() {
     const statusKey = escapeHtml(
       String(reservation.status || 'PENDING').toLowerCase().replace('canceled', 'cancelled')
     );
-    const deliveryCode = escapeHtml(reservation.order_code || "No disponible");
+    const unit = escapeHtml(reservation.unit || "");
+    const printedAt = escapeHtml(
+      new Date().toLocaleString("es-AR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    );
+    const pickupStep = reservation.ong_completed ? "done" : "";
+    const deliveryStep = reservation.supermarket_completed ? "done" : "";
 
     const receiptHTML = `
       <!DOCTYPE html>
-      <html>
+      <html lang="es">
       <head>
-        <title>Comprobante de Reserva - ReNova</title>
+        <meta charset="utf-8">
+        <title>Comprobante ${orderCode} - ReNova</title>
         <style>
+          /* Márgenes 0: el navegador no imprime su encabezado/pie (fecha, about:blank). */
+          @page { size: A4; margin: 0; }
+          * { box-sizing: border-box; }
           body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
             margin: 0;
-            padding: 20px;
-            background: white;
-            color: #333;
+            padding: 18mm 16mm;
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: #102018;
+            font-size: 12.5px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
-          .header {
-            text-align: center;
-            border-bottom: 2px solid #2f9728;
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-          }
-          .header h1 {
-            margin: 0;
-            color: #2f9728;
-            font-size: 24px;
-          }
-          .header p {
-            margin: 5px 0;
-            color: #666;
-            font-size: 12px;
-          }
-          .section {
-            margin-bottom: 20px;
-            padding: 15px;
-            background: #f9f9f9;
-            border-radius: 8px;
-          }
-          .section-title {
-            font-weight: bold;
-            color: #2f9728;
-            margin-bottom: 10px;
-            font-size: 14px;
-            border-bottom: 1px solid #e0e0e0;
-            padding-bottom: 8px;
-          }
-          .field {
+          .sheet { max-width: 720px; margin: 0 auto; }
+          header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 13px;
+            align-items: flex-start;
+            gap: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #1f8b24;
           }
-          .field-label {
-            font-weight: bold;
-            color: #555;
-          }
-          .field-value {
-            color: #333;
+          .brand { display: flex; align-items: center; gap: 10px; }
+          .brand svg { width: 34px; height: 34px; }
+          .brand strong { display: block; font-size: 24px; color: #136b19; letter-spacing: -0.5px; }
+          .brand span { color: #59695d; font-size: 12px; }
+          .ticket {
             text-align: right;
-            flex-grow: 1;
-            margin-left: 20px;
+            border: 1.5px dashed #1f8b24;
+            border-radius: 12px;
+            padding: 8px 14px;
+            background: #f3f8ef;
           }
-          .footer {
-            text-align: center;
-            border-top: 1px solid #e0e0e0;
-            padding-top: 20px;
-            margin-top: 20px;
-            font-size: 11px;
-            color: #999;
+          .ticket small {
+            display: block;
+            color: #5d6b60;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
           }
+          .ticket b {
+            font-family: "JetBrains Mono", Consolas, "Courier New", monospace;
+            font-size: 20px;
+            letter-spacing: 0.5px;
+          }
+          .summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin: 18px 0 14px;
+          }
+          .summary h1 { margin: 0; font-size: 20px; }
+          .summary p { margin: 4px 0 0; color: #59695d; }
           .status-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-weight: 700;
             font-size: 12px;
-            margin-top: 10px;
+            white-space: nowrap;
           }
-          .status-pending {
-            background: #fff3cd;
-            color: #856404;
+          .status-pending { background: #fff2d9; color: #7a5200; }
+          .status-confirmed { background: #e3ecf8; color: #1d4f86; }
+          .status-completed { background: #e3f2dc; color: #116a18; }
+          .status-cancelled { background: #fbe4e2; color: #9b2c22; }
+          .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
           }
-          .status-confirmed {
-            background: #d4edda;
-            color: #155724;
+          section {
+            border: 1px solid #e1e8dc;
+            border-radius: 12px;
+            padding: 12px 14px;
           }
-          .status-completed {
-            background: #d4edda;
-            color: #155724;
+          section.wide { grid-column: 1 / -1; }
+          section h2 {
+            margin: 0 0 8px;
+            color: #136b19;
+            font-size: 11px;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
           }
-          .status-cancelled {
-            background: #f8d7da;
-            color: #721c24;
+          dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; }
+          dt { color: #5d6b60; }
+          dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+          .steps { display: flex; gap: 10px; margin-top: 2px; }
+          .step {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            background: #f4f6f2;
+            color: #4b5a4f;
+            font-weight: 600;
           }
-          @media print {
-            body { margin: 0; padding: 10px; }
+          .step i {
+            width: 20px; height: 20px; border-radius: 999px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-style: normal; font-size: 11px; font-weight: 700;
+            background: #dfe7da; color: #3f4d43;
+          }
+          .step.done { background: #e3f2dc; color: #116a18; }
+          .step.done i { background: #136b19; color: #fff; }
+          .signatures {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-top: 34px;
+          }
+          .signature { border-top: 1px solid #9aa597; padding-top: 6px; color: #59695d; font-size: 11px; }
+          footer {
+            margin-top: 26px;
+            padding-top: 10px;
+            border-top: 1px solid #e1e8dc;
+            display: flex;
+            justify-content: space-between;
+            color: #7a857b;
+            font-size: 10.5px;
           }
         </style>
       </head>
       <body>
-        <div class="header">
-          <h1>ReNova</h1>
-          <p>Comprobante de Reserva</p>
-          <p>Pedido: <strong>${orderCode}</strong></p>
-        </div>
-
-        <div class="section">
-          <div class="section-title">Información del Producto</div>
-          <div class="field">
-            <span class="field-label">Producto:</span>
-            <span class="field-value">${productName}</span>
-          </div>
-          <div class="field">
-            <span class="field-label">Cantidad:</span>
-            <span class="field-value">${quantity}</span>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">Organizaciones</div>
-          <div class="field">
-            <span class="field-label">Organización que reserva:</span>
-            <span class="field-value">${ongName}</span>
-          </div>
-          <div class="field">
-            <span class="field-label">Comercio donante:</span>
-            <span class="field-value">${supermarketName}</span>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="section-title">Datos de Retiro</div>
-          <div class="field">
-            <span class="field-label">Persona que retira:</span>
-            <span class="field-value">${pickupPersonName}</span>
-          </div>
-          <div class="field">
-            <span class="field-label">DNI:</span>
-            <span class="field-value">${pickupPersonDni}</span>
-          </div>
-          ${pickupPersonPhone !== '-' ? `
-          <div class="field">
-            <span class="field-label">Teléfono:</span>
-            <span class="field-value">${pickupPersonPhone}</span>
-          </div>
-          ` : ''}
-          ${pickupTime !== '-' ? `
-          <div class="field">
-            <span class="field-label">Horario de retiro:</span>
-            <span class="field-value">${pickupTime}</span>
-          </div>
-          ` : ''}
-          ${pickupNotes !== '-' ? `
-          <div class="field">
-            <span class="field-label">Notas:</span>
-            <span class="field-value">${pickupNotes}</span>
-          </div>
-          ` : ''}
-        </div>
-
-        <div class="section">
-          <div class="section-title">Información de la Reserva</div>
-          <div class="field">
-            <span class="field-label">Fecha de reserva:</span>
-            <span class="field-value">${reservedDate}</span>
-          </div>
-          <div class="field">
-            <span class="field-label">Estado actual:</span>
-            <span class="field-value">
-              <div class="status-badge status-${statusKey}">
-                ${status}
+        <div class="sheet">
+          <header>
+            <div class="brand">
+              <svg viewBox="0 0 32 32" fill="none" stroke="#1f8b24" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 26c0-11 7-18 20-20-1 13-8 20-19 20" />
+                <path d="M6 26 18 14" />
+              </svg>
+              <div>
+                <strong>ReNova</strong>
+                <span>Comprobante de reserva</span>
               </div>
-            </span>
-          </div>
-          <div class="field">
-            <span class="field-label">Código de entrega:</span>
-            <span class="field-value">${deliveryCode}</span>
-          </div>
-        </div>
+            </div>
+            <div class="ticket">
+              <small>Número de pedido</small>
+              <b>${orderCode}</b>
+            </div>
+          </header>
 
-        <div class="footer">
-          <p>Comprobante generado automáticamente por ReNova</p>
-          <p>Plataforma solidaria de donación de productos</p>
-          <p>Fecha de impresión: ${new Date().toLocaleDateString('es-AR')}</p>
+          <div class="summary">
+            <div>
+              <h1>${productName}</h1>
+              <p>${quantity} ${unit} · reservado el ${reservedDate}</p>
+            </div>
+            <div class="status-badge status-${statusKey}">${status}</div>
+          </div>
+
+          <div class="grid">
+            <section>
+              <h2>Organización que retira</h2>
+              <dl>
+                <dt>Organización</dt><dd>${ongName}</dd>
+                <dt>Persona</dt><dd>${pickupPersonName}</dd>
+                <dt>DNI</dt><dd>${pickupPersonDni}</dd>
+                <dt>Teléfono</dt><dd>${pickupPersonPhone}</dd>
+              </dl>
+            </section>
+
+            <section>
+              <h2>Comercio donante</h2>
+              <dl>
+                <dt>Comercio</dt><dd>${supermarketName}</dd>
+                <dt>Horario de retiro</dt><dd>${pickupTime}</dd>
+                <dt>Notas</dt><dd>${pickupNotes}</dd>
+              </dl>
+            </section>
+
+            <section class="wide">
+              <h2>Entrega</h2>
+              <div class="steps">
+                <div class="step ${pickupStep}"><i>${pickupStep ? "&#10003;" : "1"}</i> Retiro confirmado por la organización</div>
+                <div class="step ${deliveryStep}"><i>${deliveryStep ? "&#10003;" : "2"}</i> Entrega validada por el comercio</div>
+              </div>
+            </section>
+          </div>
+
+          <div class="signatures">
+            <div class="signature">Firma y aclaración de quien retira</div>
+            <div class="signature">Firma y aclaración del comercio</div>
+          </div>
+
+          <footer>
+            <span>Generado por ReNova · Plataforma solidaria de donación de alimentos</span>
+            <span>Impreso el ${printedAt}</span>
+          </footer>
         </div>
       </body>
       </html>

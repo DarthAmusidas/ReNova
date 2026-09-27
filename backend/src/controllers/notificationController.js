@@ -1,4 +1,5 @@
 const pool = require("../db/pool");
+const { isValidUUID } = require("../utils/validators");
 
 
 const getNotifications = async (req, res) => {
@@ -44,6 +45,12 @@ const markNotificationAsRead = async (req, res) => {
   try {
     const userId = req.user.id;
     const { id } = req.params;
+
+    if (!isValidUUID(id)) {
+      return res.status(400).json({
+        error: "ID de notificación inválido",
+      });
+    }
 
     const result = await pool.query(
       `

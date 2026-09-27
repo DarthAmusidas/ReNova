@@ -583,6 +583,13 @@ const updateReservationStatus = async (req, res) => {
     const { id } = req.params;
     const { status, validation_code, delivery_code } = req.body || {};
 
+    // Todos los ID de la base son UUID.
+    if (!isValidUUID(id)) {
+      return res.status(400).json({
+        error: "ID de reserva inválido",
+      });
+    }
+
     const allowedStatuses = ["CONFIRMED", "CANCELLED", "COMPLETED"];
 
     if (!allowedStatuses.includes(status)) {
