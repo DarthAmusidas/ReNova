@@ -275,20 +275,34 @@ function Reservations() {
 
   const handlePrintReceipt = (reservation) => {
     const printWindow = window.open('', '', 'width=600,height=800');
-    
-    const orderCode = reservation.order_code || String(reservation.id).slice(0, 8);
-    const productName = getProductName(reservation);
-    const quantity = reservation.quantity_reserved || reservation.quantity || 0;
-    const ongName = getOngName(reservation) || "No informado";
-    const supermarketName = getSupermarketName(reservation) || "No informado";
-    const pickupPersonName = reservation.pickup_person_name || "No informado";
-    const pickupPersonDni = reservation.pickup_person_dni || "No informado";
-    const pickupPersonPhone = reservation.pickup_person_phone || "No informado";
-    const pickupTime = reservation.pickup_time || "No informado";
-    const pickupNotes = reservation.pickup_notes || "No informado";
-    const reservedDate = formatDate(reservation.reserved_at || reservation.created_at);
-    const status = getStatusLabel(reservation.status || 'PENDING');
-    const deliveryCode = reservation.order_code || "No disponible";
+
+    if (!printWindow) {
+      setError("El navegador bloqueó la ventana del comprobante. Permití las ventanas emergentes para ReNova.");
+      return;
+    }
+
+    // Todos los datos vienen de usuarios: se escapan antes de escribirlos como HTML.
+    const escapeHtml = (value) =>
+      String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
+    const orderCode = escapeHtml(reservation.order_code || String(reservation.id).slice(0, 8));
+    const productName = escapeHtml(getProductName(reservation));
+    const quantity = escapeHtml(reservation.quantity_reserved || reservation.quantity || 0);
+    const ongName = escapeHtml(getOngName(reservation) || "No informado");
+    const supermarketName = escapeHtml(getSupermarketName(reservation) || "No informado");
+    const pickupPersonName = escapeHtml(reservation.pickup_person_name || "No informado");
+    const pickupPersonDni = escapeHtml(reservation.pickup_person_dni || "No informado");
+    const pickupPersonPhone = escapeHtml(reservation.pickup_person_phone || "No informado");
+    const pickupTime = escapeHtml(reservation.pickup_time || "No informado");
+    const pickupNotes = escapeHtml(reservation.pickup_notes || "No informado");
+    const reservedDate = escapeHtml(formatDate(reservation.reserved_at || reservation.created_at));
+    const status = escapeHtml(getStatusLabel(reservation.status || 'PENDING'));
+    const deliveryCode = escapeHtml(reservation.order_code || "No disponible");
 
     const receiptHTML = `
       <!DOCTYPE html>

@@ -419,7 +419,6 @@ const getDashboard = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error obteniendo dashboard",
-      error: error.message,
     });
   }
 };
@@ -454,7 +453,6 @@ const getImpactReportController = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error obteniendo reporte de impacto",
-      error: error.message,
     });
   }
 };

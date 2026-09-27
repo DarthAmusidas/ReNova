@@ -59,6 +59,9 @@ app.use(
   })
 );
 
+// Render está detrás de un proxy: así req.ip es la IP real del cliente (lo usa el límite de intentos).
+app.set("trust proxy", 1);
+
 app.use(express.json());
 
 app.use("/users", userRoutes);

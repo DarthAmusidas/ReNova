@@ -15,6 +15,15 @@ function buildFrontendLink(path, token) {
   return `${frontendUrl}${path}?token=${encodeURIComponent(token)}`;
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function getEmailFrom() {
   return (
     process.env.EMAIL_FROM ||
@@ -186,7 +195,7 @@ async function sendVerificationEmail({ to, name, token }) {
     subject: "Verificá tu cuenta de ReNova",
     text: `Hola ${name || ""}. Verificá tu cuenta entrando a este enlace: ${link}`,
     html: `
-      <p>Hola ${name || ""},</p>
+      <p>Hola ${escapeHtml(name)},</p>
       <p>Para verificar tu cuenta de ReNova, ingresá al siguiente enlace:</p>
       <p><a href="${link}">${link}</a></p>
     `,
@@ -201,7 +210,7 @@ async function sendPasswordResetEmail({ to, name, token }) {
     subject: "Recuperar contraseña de ReNova",
     text: `Hola ${name || ""}. Para recuperar tu contraseña, ingresá a este enlace: ${link}`,
     html: `
-      <p>Hola ${name || ""},</p>
+      <p>Hola ${escapeHtml(name)},</p>
       <p>Recibimos una solicitud para recuperar tu contraseña de ReNova.</p>
       <p>Ingresá al siguiente enlace para crear una nueva contraseña:</p>
       <p><a href="${link}">${link}</a></p>

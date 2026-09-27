@@ -9,7 +9,6 @@ const {
   invalidateUserTokens,
 } = require("../services/authTokenService");
 const {
-  buildFrontendLink,
   sendVerificationEmail,
   sendPasswordResetEmail,
 } = require("../services/emailService");
@@ -203,17 +202,18 @@ const login = async (req, res) => {
 
     const user = result.rows[0];
 
+    // Mismo mensaje para email inexistente y contraseña incorrecta: no revela qué cuentas existen.
     if (!user) {
-      return res.status(400).json({
-        error: "Usuario no encontrado",
+      return res.status(401).json({
+        error: "Email o contraseña incorrectos",
       });
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
 
     if (!validPassword) {
-      return res.status(400).json({
-        error: "Contraseña incorrecta",
+      return res.status(401).json({
+        error: "Email o contraseña incorrectos",
       });
     }
 
@@ -323,7 +323,7 @@ const resendVerification = async (req, res) => {
 
     if (user.email_verified_at) {
       return res.json({
-        message: "El email ya se encuentra verificado.",
+        message: "Si el email existe, enviaremos un enlace de verificación.",
       });
     }
 
@@ -380,15 +380,8 @@ const forgotPassword = async (req, res) => {
       token: tokenData.token,
     });
 
-    const devResetLink = buildFrontendLink("/reset-password", tokenData.token);
-
-    return res.json({
-      ...genericResponse,
-      devResetLink:
-        process.env.NODE_ENV !== "production" && !process.env.SMTP_HOST
-          ? devResetLink
-          : undefined,
-    });
+    // El enlace solo viaja por email: devolverlo en la respuesta permitiría tomar cualquier cuenta.
+    return res.json(genericResponse);
   } catch (error) {
     console.error("Error en recuperación de contraseña:", error);
 

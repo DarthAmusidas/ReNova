@@ -41,7 +41,11 @@ function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const [error, setError] = useState("");
+  const [error, setError] = useState(() =>
+    new URLSearchParams(window.location.search).get("session") === "expired"
+      ? "Tu sesión venció. Volvé a iniciar sesión."
+      : ""
+  );
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (event) => {

@@ -6,9 +6,8 @@ import renovaLogo from "../assets/renova-logo-login.png";
 function ForgotPassword() {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("supertest@renova.com");
+  const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
-  const [devResetLink, setDevResetLink] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -16,7 +15,6 @@ function ForgotPassword() {
     event.preventDefault();
 
     setMessage("");
-    setDevResetLink("");
     setError("");
     setLoading(true);
 
@@ -27,10 +25,6 @@ function ForgotPassword() {
         data.message ||
           "Si el email existe, enviaremos un enlace para restablecer la contraseña."
       );
-
-      if (data.devResetLink) {
-        setDevResetLink(data.devResetLink.replace("localhost", "127.0.0.1"));
-      }
     } catch (err) {
       setError(
         err.response?.data?.error ||
@@ -79,21 +73,6 @@ function ForgotPassword() {
               {message && (
                 <div className="success-message-modern">
                   {message}
-
-                  {devResetLink && (
-                    <small>
-                      Link local de prueba:{" "}
-                      <button
-                        type="button"
-                        className="auth-dev-link"
-                        onClick={() => {
-                          window.location.href = devResetLink;
-                        }}
-                      >
-                        Abrir recuperación
-                      </button>
-                    </small>
-                  )}
                 </div>
               )}
 
