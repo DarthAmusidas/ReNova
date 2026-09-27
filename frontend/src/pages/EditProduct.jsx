@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { getProducts, updateProduct } from "../services/productService";
 import AppSidebar from "../components/AppSidebar";
 import NotificationBell from "../components/NotificationBell";
+import UiIcon from "../components/UiIcon";
 import { pageStyles as pageStyles } from "../styles/pageStyles";
 
 function EditProduct() {
@@ -191,7 +192,9 @@ function EditProduct() {
               </p>
             </div>
 
-            <div style={styles.formIcon} className="renova-form-icon">🥦</div>
+            <div style={styles.formIcon} className="renova-form-icon">
+              <UiIcon name="edit" size={28} />
+            </div>
           </div>
 
           {error && <div style={styles.errorBox} className="renova-form-error">{error}</div>}
@@ -371,7 +374,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "30px",
+    color: "#1f8b24",
     flexShrink: 0,
   },
 

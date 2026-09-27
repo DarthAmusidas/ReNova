@@ -4,6 +4,7 @@ import { getUsers } from "../services/userService";
 import AppSidebar from "../components/AppSidebar";
 import HeaderUserCard from "../components/HeaderUserCard";
 import NotificationBell from "../components/NotificationBell";
+import UiIcon from "../components/UiIcon";
 import { pageStyles as baseStyles } from "../styles/pageStyles";
 
 function AdminUsers() {
@@ -74,10 +75,10 @@ function AdminUsers() {
   };
 
   const getRoleIcon = (role) => {
-    if (role === "ADMIN") return "🛡️";
-    if (role === "SUPERMARKET") return "🛒";
-    if (role === "ONG") return "🤝";
-    return "👤";
+    if (role === "ADMIN") return <UiIcon name="shield" size={22} />;
+    if (role === "SUPERMARKET") return <UiIcon name="store" size={22} />;
+    if (role === "ONG") return <UiIcon name="heartHand" size={22} />;
+    return <UiIcon name="user" size={22} />;
   };
 
   return (

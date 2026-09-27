@@ -11004,3 +11004,8 @@ html:not(.renova-dark-mode) .renova-status-pill.available {
 html:not(.renova-dark-mode) .renova-user-meta span {
   color: #5d6b60 !important;
 }
+
+html.renova-dark-mode .renova-form-icon,
+html.renova-dark-mode .renova-users-card-icon {
+  color: #9ee88f !important;
+}

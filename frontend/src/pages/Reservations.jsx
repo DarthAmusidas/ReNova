@@ -1,4 +1,5 @@
 ﻿import { useCallback, useEffect, useState } from "react";
+import ModalPortal from "../components/ModalPortal";
 import { useNavigate } from "react-router-dom";
 import {
   getReservations,
@@ -1294,6 +1295,7 @@ function Reservations() {
         )}
 
         {selectedReservationForDelivery && (
+          <ModalPortal>
           <div style={styles.modalOverlay}>
             <div style={styles.modalCard} className="renova-inline-modal">
               <h2 style={styles.modalTitle}>Confirmar entrega</h2>
@@ -1343,6 +1345,7 @@ function Reservations() {
               </div>
             </div>
           </div>
+          </ModalPortal>
         )}
       </main>
     </div>

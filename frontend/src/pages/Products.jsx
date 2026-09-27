@@ -1,4 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from "react";
+import ModalPortal from "../components/ModalPortal";
 import { useNavigate } from "react-router-dom";
 import { getProducts, deleteProduct } from "../services/productService";
 import { createReservation } from "../services/reservationService";
@@ -827,6 +828,7 @@ function Products() {
         )}
 
         {selectedProduct && (
+          <ModalPortal>
           <div style={styles.modalOverlay}>
             <div style={styles.modalCard} className="renova-inline-modal">
               <h2 style={styles.modalTitle}>Reservar producto</h2>
@@ -948,9 +950,11 @@ function Products() {
               </div>
             </div>
           </div>
+          </ModalPortal>
         )}
 
         {productToDelete && (
+          <ModalPortal>
           <div style={styles.modalOverlay}>
             <div style={styles.modalCard} className="renova-inline-modal">
               <h2 style={styles.modalTitle}>Eliminar producto</h2>
@@ -977,6 +981,7 @@ function Products() {
               </div>
             </div>
           </div>
+          </ModalPortal>
         )}
       </main>
     </div>

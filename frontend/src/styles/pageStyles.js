@@ -252,7 +252,7 @@ export const pageStyles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "24px",
+    color: "#1f8b24",
   },
 
   cardTitle: {
@@ -409,12 +409,16 @@ export const pageStyles = {
     justifyContent: "center",
     alignItems: "center",
     padding: "24px",
-    zIndex: 1000,
+    zIndex: 5000,
   },
 
   modalCard: {
     width: "100%",
     maxWidth: "530px",
+    // Nunca más alto que la pantalla: el contenido scrollea dentro del modal.
+    maxHeight: "calc(100vh - 48px)",
+    overflowY: "auto",
+    boxSizing: "border-box",
     background: "#ffffff",
     borderRadius: "30px",
     padding: "32px",

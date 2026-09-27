@@ -1,5 +1,6 @@
 ﻿import renovaLogo from "../assets/renova-logo-login.png";
 import groceryBag from "../assets/login-grocery-bag-transparent.png";
+import UiIcon from "./UiIcon";
 
 function BenefitIcon({ type }) {
   if (type === "leaf") {
@@ -43,7 +44,8 @@ function AuthHero() {
             />
 
             <span className="login-badge">
-              ♡ Plataforma solidaria
+              <UiIcon name="heart" size={14} strokeWidth={2.4} />
+              Plataforma solidaria
             </span>
           </div>
 

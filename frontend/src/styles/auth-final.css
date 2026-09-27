@@ -786,3 +786,9 @@
     width: 100%;
   }
 }
+
+.auth-final-page .login-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}

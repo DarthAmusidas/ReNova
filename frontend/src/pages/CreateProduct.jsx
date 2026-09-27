@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { createProduct } from "../services/productService";
 import AppSidebar from "../components/AppSidebar";
 import NotificationBell from "../components/NotificationBell";
+import UiIcon from "../components/UiIcon";
 import { pageStyles as pageStyles } from "../styles/pageStyles";
 
 function CreateProduct() {
@@ -133,7 +134,9 @@ function CreateProduct() {
               </p>
             </div>
 
-            <div style={styles.formIcon} className="renova-form-icon">🥦</div>
+            <div style={styles.formIcon} className="renova-form-icon">
+              <UiIcon name="package" size={28} />
+            </div>
           </div>
 
           {error && <div style={styles.errorBox} className="renova-form-error">{error}</div>}
@@ -296,7 +299,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "30px",
+    color: "#1f8b24",
     flexShrink: 0,
   },
 
