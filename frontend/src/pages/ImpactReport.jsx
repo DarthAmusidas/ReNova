@@ -334,10 +334,10 @@ export default function ImpactReport() {
   const cancelledEndDeg = confirmedEndDeg + cancelledDeg;
 
   const donutGradient = `conic-gradient(
-    #37a62d 0deg ${completedDeg}deg,
-    #f0b742 ${completedDeg}deg ${pendingEndDeg}deg,
-    #2f80ed ${pendingEndDeg}deg ${confirmedEndDeg}deg,
-    #d6453d ${confirmedEndDeg}deg ${cancelledEndDeg}deg,
+    var(--impact-status-completed) 0deg ${completedDeg}deg,
+    var(--impact-status-pending) ${completedDeg}deg ${pendingEndDeg}deg,
+    var(--impact-status-confirmed) ${pendingEndDeg}deg ${confirmedEndDeg}deg,
+    var(--impact-status-cancelled) ${confirmedEndDeg}deg ${cancelledEndDeg}deg,
     rgba(160, 210, 140, 0.18) ${cancelledEndDeg}deg 360deg
   )`;
 
@@ -484,15 +484,17 @@ export default function ImpactReport() {
                   </div>
 
                   <div className="renova-impact-utilization-layout">
-                    <div
-                      className="renova-impact-progress-ring"
-                      style={{
-                        background: `conic-gradient(#46d94d 0deg ${utilizationDeg}deg, rgba(255,255,255,0.08) ${utilizationDeg}deg 360deg)`,
-                      }}
-                    >
-                      <div>
-                        <strong>{formatPercent(report.utilization_rate)}</strong>
-                        <span>Aprovechamiento</span>
+                    <div className="renova-impact-chart-stage">
+                      <div
+                        className="renova-impact-progress-ring"
+                        style={{
+                          background: `conic-gradient(#46d94d 0deg ${utilizationDeg}deg, rgba(255,255,255,0.08) ${utilizationDeg}deg 360deg)`,
+                        }}
+                      >
+                        <div>
+                          <strong>{formatPercent(report.utilization_rate)}</strong>
+                          <span>Aprovechamiento</span>
+                        </div>
                       </div>
                     </div>
 
@@ -539,13 +541,15 @@ export default function ImpactReport() {
                   </div>
 
                   <div className="renova-impact-donut-layout">
-                    <div
-                      className="renova-impact-donut"
-                      style={{ background: donutGradient }}
-                    >
-                      <div>
-                        <span>Total</span>
-                        <strong>{distributionTotal}</strong>
+                    <div className="renova-impact-chart-stage">
+                      <div
+                        className="renova-impact-donut"
+                        style={{ background: donutGradient }}
+                      >
+                        <div>
+                          <span>Total</span>
+                          <strong>{distributionTotal}</strong>
+                        </div>
                       </div>
                     </div>
 

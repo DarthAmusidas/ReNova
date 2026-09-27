@@ -9528,19 +9528,19 @@ html:not(.renova-dark-mode) .renova-impact-main .renova-impact-rate-panel {
 }
 
 .renova-impact-legend-dot.green {
-  background: #37a62d !important;
+  background: var(--impact-status-completed, #2ccb4f) !important;
 }
 
 .renova-impact-legend-dot.yellow {
-  background: #f0b742 !important;
+  background: var(--impact-status-pending, #ffb000) !important;
 }
 
 .renova-impact-legend-dot.blue {
-  background: #2f80ed !important;
+  background: var(--impact-status-confirmed, #0b74ff) !important;
 }
 
 .renova-impact-legend-dot.red {
-  background: #d6453d !important;
+  background: var(--impact-status-cancelled, #f04444) !important;
 }
 
 .renova-impact-legend-item strong {
@@ -10675,19 +10675,19 @@ html.renova-dark-mode .renova-impact-main .renova-impact-donut > div {
 }
 
 .renova-impact-legend-item.green .renova-impact-legend-track > span {
-  background: #37a62d !important;
+  background: var(--impact-status-completed, #2ccb4f) !important;
 }
 
 .renova-impact-legend-item.yellow .renova-impact-legend-track > span {
-  background: #f0b742 !important;
+  background: var(--impact-status-pending, #ffb000) !important;
 }
 
 .renova-impact-legend-item.blue .renova-impact-legend-track > span {
-  background: #2f80ed !important;
+  background: var(--impact-status-confirmed, #0b74ff) !important;
 }
 
 .renova-impact-legend-item.red .renova-impact-legend-track > span {
-  background: #d6453d !important;
+  background: var(--impact-status-cancelled, #f04444) !important;
 }
 
 .renova-impact-legend-item.muted .renova-impact-legend-track > span {
@@ -11848,6 +11848,13 @@ html.renova-dark-mode .renova-form-hint {
 /* ==========================================================
    Reporte de impacto: gráficos centrados y con escala uniforme
    ========================================================== */
+.renova-impact-main {
+  --impact-status-completed: #2ccb4f;
+  --impact-status-pending: #ffb000;
+  --impact-status-confirmed: #0b74ff;
+  --impact-status-cancelled: #f04444;
+}
+
 .renova-impact-utilization-card,
 .renova-impact-distribution-card {
   display: flex !important;
@@ -11867,9 +11874,20 @@ html.renova-dark-mode .renova-form-hint {
 @media (min-width: 761px) {
   .renova-impact-utilization-card .renova-impact-panel-title,
   .renova-impact-distribution-card .renova-impact-panel-title {
+    height: 96px !important;
     min-height: 96px !important;
+    flex: 0 0 96px !important;
     box-sizing: border-box !important;
   }
+}
+
+.renova-impact-chart-stage {
+  width: 100% !important;
+  height: 192px !important;
+  min-height: 192px !important;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 192px !important;
 }
 
 .renova-impact-utilization-card .renova-impact-progress-ring,
@@ -11878,7 +11896,7 @@ html.renova-dark-mode .renova-form-hint {
   height: 184px !important;
   min-width: 184px !important;
   min-height: 184px !important;
-  margin: 2px auto 0 !important;
+  margin: 0 auto !important;
   justify-self: auto !important;
   flex: 0 0 184px !important;
 }
@@ -11909,7 +11927,28 @@ html.renova-dark-mode .renova-form-hint {
   min-width: 0 !important;
 }
 
+html.renova-dark-mode .renova-impact-distribution-card {
+  background:
+    radial-gradient(circle at 88% 8%, rgba(11, 116, 255, 0.2), transparent 38%),
+    rgba(12, 35, 20, 0.9) !important;
+}
+
+html.renova-dark-mode .renova-impact-distribution-total {
+  background: rgba(11, 116, 255, 0.2) !important;
+  border-color: rgba(80, 158, 255, 0.42) !important;
+}
+
+html.renova-dark-mode .renova-impact-distribution-total strong {
+  color: #70b0ff !important;
+}
+
 @media (max-width: 620px) {
+  .renova-impact-chart-stage {
+    height: 178px !important;
+    min-height: 178px !important;
+    flex-basis: 178px !important;
+  }
+
   .renova-impact-utilization-card .renova-impact-progress-ring,
   .renova-impact-distribution-card .renova-impact-donut {
     width: 170px !important;
