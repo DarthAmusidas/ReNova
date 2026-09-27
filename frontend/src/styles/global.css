@@ -12552,3 +12552,49 @@ html:not(.renova-dark-mode) .renova-impact-reservation-legend .renova-impact-leg
     height: 104px !important;
   }
 }
+
+/* Modo claro: contraste final de reservas e impacto ambiental */
+html:not(.renova-dark-mode) .renova-impact-main .renova-impact-distribution-card {
+  background:
+    radial-gradient(circle at 92% 6%, rgba(28, 133, 214, 0.1), transparent 34%),
+    radial-gradient(circle at 8% 94%, rgba(70, 217, 77, 0.08), transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 252, 244, 0.95)) !important;
+  border-color: rgba(80, 137, 73, 0.2) !important;
+  box-shadow: 0 16px 36px rgba(42, 91, 45, 0.08) !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-main .renova-impact-distribution-card .renova-impact-panel-title {
+  border-bottom-color: rgba(80, 137, 73, 0.16) !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-main .renova-impact-reservation-donut-center strong {
+  color: #ffffff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.34) !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-main .renova-impact-reservation-donut-center span {
+  color: #d8ebd4 !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-main .renova-impact-reservation-legend .renova-impact-legend-item {
+  background: rgba(255, 255, 255, 0.86) !important;
+  border-color: rgba(80, 137, 73, 0.17) !important;
+  box-shadow: 0 7px 18px rgba(42, 91, 45, 0.05) !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-main .renova-impact-reservation-legend .renova-impact-legend-item strong,
+html:not(.renova-dark-mode) .renova-impact-main .renova-impact-reservation-legend .renova-impact-legend-value {
+  color: #102018 !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-main .renova-impact-environment-card-wide .renova-impact-environment-copy {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html:not(.renova-dark-mode) .renova-impact-main .renova-impact-environment-card-wide .renova-impact-environment-copy > span {
+  width: auto !important;
+  height: auto !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
