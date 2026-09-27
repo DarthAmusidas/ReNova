@@ -342,6 +342,10 @@ function Reservations() {
     const pickupNotes = escapeHtml(reservation.pickup_notes || "No informado");
     const reservedDate = escapeHtml(formatDate(reservation.reserved_at || reservation.created_at));
     const status = escapeHtml(getStatusLabel(reservation.status || 'PENDING'));
+    // Clave en inglés para las clases .status-pending/.status-confirmed/... del comprobante.
+    const statusKey = escapeHtml(
+      String(reservation.status || 'PENDING').toLowerCase().replace('canceled', 'cancelled')
+    );
     const deliveryCode = escapeHtml(reservation.order_code || "No disponible");
 
     const receiptHTML = `
@@ -511,7 +515,7 @@ function Reservations() {
           <div class="field">
             <span class="field-label">Estado actual:</span>
             <span class="field-value">
-              <div class="status-badge status-${status.toLowerCase().replace('á', 'a').replace(' ', '-')}">
+              <div class="status-badge status-${statusKey}">
                 ${status}
               </div>
             </span>
@@ -846,7 +850,10 @@ function Reservations() {
                     ? localStyles.filterButtonActive
                     : localStyles.filterButton
                 }
-                onClick={() => setSelectedFilter(filter.key)}
+                onClick={() => {
+                  setSelectedFilter(filter.key);
+                  setCurrentPage(1);
+                }}
                 title={filter.title}
               >
                 {filter.label} <span style={localStyles.filterCount}>{filter.count}</span>
@@ -872,7 +879,10 @@ function Reservations() {
               type="search"
               placeholder="Buscar reserva, producto o proveedor"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
             />
           </label>
         </div>

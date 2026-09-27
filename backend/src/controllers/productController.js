@@ -344,6 +344,22 @@ const updateProduct = async (req, res) => {
         });
       }
 
+      // Una fecha nueva no puede estar en el pasado. Si el producto ya estaba
+      // vencido y no se cambia la fecha, se permite editar el resto.
+      const newDate = String(expiration_date).slice(0, 10);
+      const currentDate = product.expiration_date
+        ? new Date(product.expiration_date).toISOString().slice(0, 10)
+        : null;
+      const todayInArgentina = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Argentina/Buenos_Aires",
+      }).format(new Date());
+
+      if (newDate !== currentDate && newDate < todayInArgentina) {
+        return res.status(400).json({
+          error: "La fecha de vencimiento no puede ser anterior a hoy"
+        });
+      }
+
       parsedExpirationDate = expiration_date;
     }
 
@@ -365,6 +381,11 @@ const updateProduct = async (req, res) => {
 
     if (!status && parsedQuantity > 0) {
       parsedStatus = "AVAILABLE";
+    }
+
+    // Sin stock nunca puede quedar como disponible para reservar.
+    if (parsedQuantity === 0 && parsedStatus === "AVAILABLE") {
+      parsedStatus = "UNAVAILABLE";
     }
 
     // Actualiza el producto

@@ -11561,3 +11561,49 @@ html.renova-dark-mode .renova-reservations-main .renova-rbtn-ghost:hover:not(:di
     display: block !important;
   }
 }
+
+/* Campana: notificaciones no leídas como botón y "Marcar todas" */
+button.notification-bell-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+button.notification-bell-item:focus-visible {
+  outline: 3px solid rgba(31, 139, 36, 0.35);
+  outline-offset: 2px;
+}
+
+.notification-bell-mark-all {
+  display: block;
+  margin: 0 0 8px auto;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #1f6f21;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.notification-bell-mark-all:hover {
+  background: rgba(31, 139, 36, 0.1);
+}
+
+html.renova-dark-mode .notification-bell-item-unread {
+  background: rgba(55, 166, 45, 0.12) !important;
+  border-color: rgba(158, 232, 143, 0.4) !important;
+}
+
+html.renova-dark-mode .notification-bell-mark-all {
+  color: #9ee88f;
+}
+
+html.renova-dark-mode .renova-form-hint {
+  color: #aac0aa !important;
+}

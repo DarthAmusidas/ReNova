@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { verifyEmail } from "../services/authService";
 import renovaLogo from "../assets/renova-logo-login.png";
@@ -11,8 +11,13 @@ function VerifyEmail() {
 
   const [status, setStatus] = useState("loading");
   const [message, setMessage] = useState("Verificando tu email...");
+  // El token es de un solo uso: evita un segundo envío (StrictMode ejecuta el efecto dos veces).
+  const verifiedTokenRef = useRef(null);
 
   useEffect(() => {
+    if (verifiedTokenRef.current === token) return;
+    verifiedTokenRef.current = token;
+
     const runVerification = async () => {
       if (!token) {
         setStatus("error");

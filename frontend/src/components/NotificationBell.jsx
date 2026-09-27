@@ -1,8 +1,12 @@
 ﻿import { useEffect, useRef, useState } from "react";
 import {
   getNotifications,
+  markNotificationAsRead,
   markNotificationsAsRead,
 } from "../services/notificationService";
+
+// Cada cuánto se buscan notificaciones nuevas mientras la pestaña está visible.
+const REFRESH_INTERVAL_MS = 60 * 1000;
 
 function NotificationBell() {
   const [notifications, setNotifications] = useState([]);
@@ -38,6 +42,21 @@ function NotificationBell() {
 
   useEffect(() => {
     loadNotifications();
+
+    const intervalId = setInterval(() => {
+      if (document.visibilityState === "visible") loadNotifications();
+    }, REFRESH_INTERVAL_MS);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") loadNotifications();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, []);
 
   useEffect(() => {
@@ -54,30 +73,45 @@ function NotificationBell() {
     };
   }, []);
 
-  const handleToggle = async () => {
+  // Abrir la campana solo muestra las notificaciones: marcarlas como leídas
+  // es una acción explícita (tocando una o con "Marcar todas").
+  const handleToggle = () => {
     const nextOpenState = !isOpen;
 
     setIsOpen(nextOpenState);
 
-    if (nextOpenState) {
-      await loadNotifications();
+    if (nextOpenState) loadNotifications();
+  };
 
-      if (unreadCount > 0) {
-        try {
-          await markNotificationsAsRead();
+  const handleMarkOne = async (notification) => {
+    if (notification.is_read) return;
 
-          setNotifications((currentNotifications) =>
-            currentNotifications.map((notification) => ({
-              ...notification,
-              is_read: true,
-            }))
-          );
+    setNotifications((current) =>
+      current.map((item) =>
+        item.id === notification.id ? { ...item, is_read: true } : item
+      )
+    );
+    setUnreadCount((count) => Math.max(count - 1, 0));
 
-          setUnreadCount(0);
-        } catch (error) {
-          console.error("Error marcando notificaciones como leídas:", error);
-        }
-      }
+    try {
+      await markNotificationAsRead(notification.id);
+    } catch (error) {
+      console.error("Error marcando notificación como leída:", error);
+      loadNotifications();
+    }
+  };
+
+  const handleMarkAll = async () => {
+    setNotifications((current) =>
+      current.map((notification) => ({ ...notification, is_read: true }))
+    );
+    setUnreadCount(0);
+
+    try {
+      await markNotificationsAsRead();
+    } catch (error) {
+      console.error("Error marcando notificaciones como leídas:", error);
+      loadNotifications();
     }
   };
 
@@ -128,20 +162,37 @@ function NotificationBell() {
             <span>{unreadCount} sin leer</span>
           </div>
 
+          {unreadCount > 0 && (
+            <button
+              type="button"
+              className="notification-bell-mark-all"
+              onClick={handleMarkAll}
+            >
+              Marcar todas como leídas
+            </button>
+          )}
+
           {notifications.length === 0 ? (
             <div className="notification-bell-empty">
               No tenés notificaciones por el momento.
             </div>
           ) : (
             <div className="notification-bell-list">
-              {notifications.map((notification) => (
-                <article
+              {notifications.map((notification) => {
+                // Las no leídas son botones: se marcan como leídas al tocarlas.
+                const Item = notification.is_read ? "article" : "button";
+
+                return (
+                <Item
                   key={notification.id}
+                  type={notification.is_read ? undefined : "button"}
                   className={
                     notification.is_read
                       ? "notification-bell-item"
                       : "notification-bell-item notification-bell-item-unread"
                   }
+                  onClick={notification.is_read ? undefined : () => handleMarkOne(notification)}
+                  title={notification.is_read ? undefined : "Tocá para marcar como leída"}
                 >
                   <div className="notification-bell-item-header">
                     <strong>{notification.title || "Notificación"}</strong>
@@ -154,8 +205,9 @@ function NotificationBell() {
                   <p>{notification.message}</p>
 
                   <time>{formatDate(notification.created_at)}</time>
-                </article>
-              ))}
+                </Item>
+                );
+              })}
             </div>
           )}
         </div>

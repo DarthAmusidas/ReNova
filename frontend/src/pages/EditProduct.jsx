@@ -100,10 +100,19 @@ function EditProduct() {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    setFormData((currentData) => ({
-      ...currentData,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    setFormData((currentData) => {
+      const nextData = {
+        ...currentData,
+        [name]: type === "checkbox" ? checked : value,
+      };
+
+      // Sin stock no puede quedar disponible.
+      if (name === "quantity" && value !== "" && Number(value) === 0) {
+        nextData.status = "UNAVAILABLE";
+      }
+
+      return nextData;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -120,8 +129,13 @@ function EditProduct() {
       return;
     }
 
-    if (!formData.quantity || Number(formData.quantity) <= 0) {
-      setError("Ingresá una cantidad válida.");
+    // Se permite 0: el producto queda "No disponible" hasta reponer stock.
+    if (
+      formData.quantity === "" ||
+      Number.isNaN(Number(formData.quantity)) ||
+      Number(formData.quantity) < 0
+    ) {
+      setError("Ingresá una cantidad válida (0 o más).");
       return;
     }
 
@@ -234,7 +248,7 @@ function EditProduct() {
                     style={styles.input}
                     type="number"
                     name="quantity"
-                    min="1"
+                    min="0"
                     placeholder="Ej: 10"
                     value={formData.quantity}
                     onChange={handleChange}
@@ -272,9 +286,19 @@ function EditProduct() {
                     value={formData.status}
                     onChange={handleChange}
                   >
-                    <option value="AVAILABLE">Disponible</option>
+                    <option
+                      value="AVAILABLE"
+                      disabled={Number(formData.quantity) === 0}
+                    >
+                      Disponible
+                    </option>
                     <option value="UNAVAILABLE">No disponible</option>
                   </select>
+                  {Number(formData.quantity) === 0 && formData.quantity !== "" && (
+                    <small style={{ display: "block", marginTop: "6px", color: "#5d6b60", fontSize: "0.82rem" }} className="renova-form-hint">
+                      Sin stock el producto queda como no disponible.
+                    </small>
+                  )}
                 </div>
 
                 <label style={styles.checkboxCard} className="renova-form-checkbox-card">

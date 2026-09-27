@@ -171,6 +171,14 @@ const getReservationStats = async ({ role, userId }) => {
   return result.rows[0] || {};
 };
 
+// Mismo criterio que el filtro "Disponibles" de la página Productos:
+// estado AVAILABLE, con stock y sin vencer.
+const AVAILABLE_PRODUCT_CONDITION = `
+  COALESCE(status, 'AVAILABLE') = 'AVAILABLE'
+  AND COALESCE(quantity, 0) > 0
+  AND (expiration_date IS NULL OR expiration_date >= CURRENT_DATE)
+`;
+
 const getProductsAvailableCount = async ({ role, userId }) => {
   const normalizedRole = normalizeRole(role);
 
@@ -179,7 +187,7 @@ const getProductsAvailableCount = async ({ role, userId }) => {
       `SELECT COUNT(*)::int AS products_available
        FROM products
        WHERE supermarket_id = $1
-         AND COALESCE(quantity, 0) > 0`,
+         AND ${AVAILABLE_PRODUCT_CONDITION}`,
       [userId]
     );
 
@@ -189,7 +197,7 @@ const getProductsAvailableCount = async ({ role, userId }) => {
   const result = await pool.query(
     `SELECT COUNT(*)::int AS products_available
      FROM products
-     WHERE COALESCE(quantity, 0) > 0`
+     WHERE ${AVAILABLE_PRODUCT_CONDITION}`
   );
 
   return toNumber(result.rows[0]?.products_available);
