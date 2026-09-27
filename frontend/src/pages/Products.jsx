@@ -136,7 +136,7 @@ function Products() {
 
   const getProductStatusLabel = (status) => {
     if (status === "AVAILABLE") return "Disponible";
-    if (status === "UNAVAILABLE") return "No disponible";
+    if (status === "UNAVAILABLE" || status === "RESERVED") return "No disponible";
     return status || "Disponible";
   };
 

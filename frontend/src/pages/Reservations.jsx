@@ -784,21 +784,18 @@ function Reservations() {
             </button>
           )}
 
-          {reservation.ong_completed && reservation.supermarket_completed && (
-            <button type="button" style={styles.disabledButton} disabled>
-              Entrega completada
+          {/* Con el retiro confirmado por la ONG ya no se puede cancelar. */}
+          {!reservation.ong_completed && (
+            <button
+              type="button"
+              style={styles.dangerButton}
+              className="renova-inline-danger"
+              disabled={isUpdating}
+              onClick={() => setReservationToCancel(reservation)}
+            >
+              Cancelar
             </button>
           )}
-
-          <button
-            type="button"
-            style={styles.dangerButton}
-            className="renova-inline-danger"
-            disabled={isUpdating}
-            onClick={() => setReservationToCancel(reservation)}
-          >
-            Cancelar
-          </button>
         </>
       );
     }

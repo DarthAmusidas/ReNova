@@ -1,13 +1,6 @@
-const { Pool } = require("pg");
+const pool = require("../db/pool");
 const { isValidUUID } = require("../utils/validators");
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl:
-    process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: false }
-      : false,
-});
 
 const createNotification = async (client, userId, title, message, type) => {
   await client.query(
@@ -17,6 +10,25 @@ const createNotification = async (client, userId, title, message, type) => {
     VALUES ($1, $2, $3, $4)
     `,
     [userId, title, message, type]
+  );
+};
+
+// Devuelve la cantidad reservada al producto. Solo lo vuelve a AVAILABLE si se
+// había quedado sin stock por reservas y no está vencido: respeta un
+// UNAVAILABLE puesto a mano y no reactiva productos vencidos.
+const restoreProductStock = async (client, productId, quantityReserved) => {
+  await client.query(
+    `
+    UPDATE products
+    SET quantity = quantity + $1,
+        status = CASE
+          WHEN expiration_date < CURRENT_DATE THEN status
+          WHEN quantity <= 0 AND status IN ('UNAVAILABLE', 'RESERVED') THEN 'AVAILABLE'
+          ELSE status
+        END
+    WHERE id = $2
+    `,
+    [Number(quantityReserved || 0), productId]
   );
 };
 
@@ -61,7 +73,9 @@ const expireOldOngReservations = async () => {
         r.id,
         r.product_id,
         r.quantity_reserved,
-        p.quantity AS product_quantity
+        r.ong_id,
+        p.supermarket_id,
+        p.name AS product_name
       FROM reservations r
       INNER JOIN products p ON p.id = r.product_id
       WHERE r.status IN ('PENDING', 'CONFIRMED')
@@ -73,18 +87,10 @@ const expireOldOngReservations = async () => {
     );
 
     for (const reservation of expiredResult.rows) {
-      const restoredQuantity =
-        Number(reservation.product_quantity || 0) +
-        Number(reservation.quantity_reserved || 0);
-
-      await client.query(
-        `
-        UPDATE products
-        SET quantity = $1,
-            status = 'AVAILABLE'
-        WHERE id = $2
-        `,
-        [restoredQuantity, reservation.product_id]
+      await restoreProductStock(
+        client,
+        reservation.product_id,
+        reservation.quantity_reserved
       );
 
       await client.query(
@@ -94,6 +100,22 @@ const expireOldOngReservations = async () => {
         WHERE id = $1
         `,
         [reservation.id]
+      );
+
+      await createNotification(
+        client,
+        reservation.ong_id,
+        "Reserva vencida",
+        `Tu reserva de "${reservation.product_name}" venció porque pasaron 48 horas sin completarse. Podés volver a reservar si sigue disponible.`,
+        "RESERVATION_CANCELLED"
+      );
+
+      await createNotification(
+        client,
+        reservation.supermarket_id,
+        "Reserva vencida",
+        `La reserva de "${reservation.product_name}" venció a las 48 horas y la cantidad volvió a tu stock.`,
+        "RESERVATION_CANCELLED"
       );
     }
 
@@ -113,7 +135,7 @@ const generateUniqueOrderCode = async (client) => {
     const randomPart = Math.floor(Math.random() * 1000000)
       .toString()
       .padStart(6, "0");
-    const orderCode = `RN-2026-${randomPart}`;
+    const orderCode = `RN-${new Date().getFullYear()}-${randomPart}`;
 
     const existingResult = await client.query(
       `
@@ -553,6 +575,7 @@ const getReservations = async (req, res) => {
 
 const updateReservationStatus = async (req, res) => {
   const client = await pool.connect();
+  let transactionStarted = false;
 
   try {
     const userId = req.user.id;
@@ -571,6 +594,7 @@ const updateReservationStatus = async (req, res) => {
     await expireOldOngReservations();
 
     await client.query("BEGIN");
+    transactionStarted = true;
 
     const reservationResult = await client.query(
       `
@@ -708,18 +732,20 @@ const updateReservationStatus = async (req, res) => {
         });
       }
 
-      const restoredQuantity =
-        Number(reservation.product_quantity || 0) +
-        Number(reservation.quantity_reserved || 0);
+      // Con el retiro ya confirmado por la ONG, el alimento está en camino:
+      // solo queda que el supermercado valide la entrega.
+      if (reservation.ong_completed === true) {
+        await client.query("ROLLBACK");
 
-      await client.query(
-        `
-        UPDATE products
-        SET quantity = $1,
-            status = 'AVAILABLE'
-        WHERE id = $2
-        `,
-        [restoredQuantity, reservation.product_id]
+        return res.status(400).json({
+          error: "La ONG ya confirmó el retiro. Solo falta que el supermercado valide la entrega; la reserva ya no se puede cancelar.",
+        });
+      }
+
+      await restoreProductStock(
+        client,
+        reservation.product_id,
+        reservation.quantity_reserved
       );
 
       const result = await client.query(
@@ -865,14 +891,7 @@ const updateReservationStatus = async (req, res) => {
         );
 
         updatedReservation = partialResult.rows[0];
-
-        await createNotification(
-          client,
-          reservation.ong_id,
-          "Entrega confirmada",
-          `El supermercado confirmó la entrega del producto "${reservation.product_name}". La reserva está completa.`,
-          "RESERVATION_UPDATE"
-        );
+        // La notificación de "Reserva completada" de abajo avisa a ambas partes.
       } else {
         await client.query("ROLLBACK");
 
@@ -923,7 +942,16 @@ const updateReservationStatus = async (req, res) => {
       reservation: updatedReservation,
     });
   } catch (error) {
-    await client.query("ROLLBACK");
+    if (transactionStarted) {
+      await client.query("ROLLBACK").catch(() => {});
+    }
+
+    // 22P02: el ID no tiene el formato de la columna (UUID o número).
+    if (error.code === "22P02") {
+      return res.status(400).json({
+        error: "ID de reserva inválido",
+      });
+    }
 
     console.error("Error al actualizar estado de reserva:", error);
 

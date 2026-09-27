@@ -1,9 +1,6 @@
 // Controlador de dashboard / resumen general
-const { Pool } = require("pg");
+const pool = require("../db/pool");
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
 
 const CO2_FACTOR_PER_KG = 2.5;
 

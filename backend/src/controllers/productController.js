@@ -1,11 +1,7 @@
 // Controlador de productos
-const { Pool } = require("pg");
+const pool = require("../db/pool");
 const { isValidUUID } = require("../utils/validators");
 
-// Conexión a la base de datos PostgreSQL
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
 
 const createNotificationForOng = async (userId, productName, supermarketName) => {
   const title = "Nuevo producto disponible";
@@ -361,9 +357,10 @@ const updateProduct = async (req, res) => {
       });
     }
 
-    // Si no se envió estado, se calcula automáticamente según la cantidad
+    // Si no se envió estado, se calcula automáticamente según la cantidad.
+    // Sin stock = UNAVAILABLE, igual que cuando una reserva agota el producto.
     if (!status && parsedQuantity === 0) {
-      parsedStatus = "RESERVED";
+      parsedStatus = "UNAVAILABLE";
     }
 
     if (!status && parsedQuantity > 0) {
@@ -483,7 +480,7 @@ const deleteProduct = async (req, res) => {
 
     // Verifica las reservas vinculadas al producto
     const reservationsResult = await client.query(
-      `SELECT status
+      `SELECT status, ong_id
        FROM reservations
        WHERE product_id = $1`,
       [id]
@@ -510,6 +507,29 @@ const deleteProduct = async (req, res) => {
           error: "No se puede eliminar un producto que tiene reservas activas."
         });
       }
+    }
+
+    // Un producto vencido puede borrarse con reservas activas: se avisa a esas ONG
+    // antes de eliminarlas, para que no se enteren al ir a retirar.
+    const affectedOngIds = [
+      ...new Set(
+        reservations
+          .filter((reservation) => ["PENDING", "CONFIRMED"].includes(reservation.status))
+          .map((reservation) => reservation.ong_id)
+      ),
+    ];
+
+    for (const ongId of affectedOngIds) {
+      await client.query(
+        `INSERT INTO notifications (user_id, title, message, type)
+         VALUES ($1, $2, $3, $4)`,
+        [
+          ongId,
+          "Reserva cancelada",
+          `El comercio eliminó el producto vencido "${product.name}", así que tu reserva quedó cancelada.`,
+          "RESERVATION_CANCELLED",
+        ]
+      );
     }
 
     if (reservations.length > 0) {

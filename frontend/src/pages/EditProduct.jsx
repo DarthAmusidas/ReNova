@@ -71,7 +71,8 @@ function EditProduct() {
         unit: product.unit || "unidades",
         expiration_date: formatDateForInput(product.expiration_date),
         low_rotation: Boolean(product.low_rotation),
-        status: product.status || "AVAILABLE",
+        // RESERVED es un estado viejo equivalente a "sin stock".
+        status: product.status === "RESERVED" ? "UNAVAILABLE" : product.status || "AVAILABLE",
       });
     } catch (err) {
       console.error("Error cargando producto:", err);
