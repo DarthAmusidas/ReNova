@@ -474,7 +474,7 @@ export default function ImpactReport() {
               </section>
 
               <section className="renova-impact-visual-grid">
-                <article className="renova-impact-visual-card">
+                <article className="renova-impact-visual-card renova-impact-utilization-card">
                   <div className="renova-impact-panel-title">
                     <span>
                       <ImpactIcon type="rate" />

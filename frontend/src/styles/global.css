@@ -10534,7 +10534,7 @@ html.renova-dark-mode .renova-impact-main .renova-impact-donut > div {
 
 @media (min-width: 1451px) {
   .renova-impact-visual-grid {
-    grid-template-columns: minmax(0, 0.92fr) minmax(430px, 1.28fr) minmax(0, 1.08fr) !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 }
 
@@ -11843,4 +11843,83 @@ html.renova-dark-mode .notification-bell-mark-all {
 
 html.renova-dark-mode .renova-form-hint {
   color: #aac0aa !important;
+}
+
+/* ==========================================================
+   Reporte de impacto: gráficos centrados y con escala uniforme
+   ========================================================== */
+.renova-impact-utilization-card,
+.renova-impact-distribution-card {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.renova-impact-utilization-card .renova-impact-utilization-layout,
+.renova-impact-distribution-card .renova-impact-donut-layout {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 20px !important;
+}
+
+@media (min-width: 761px) {
+  .renova-impact-utilization-card .renova-impact-panel-title,
+  .renova-impact-distribution-card .renova-impact-panel-title {
+    min-height: 96px !important;
+    box-sizing: border-box !important;
+  }
+}
+
+.renova-impact-utilization-card .renova-impact-progress-ring,
+.renova-impact-distribution-card .renova-impact-donut {
+  width: 184px !important;
+  height: 184px !important;
+  min-width: 184px !important;
+  min-height: 184px !important;
+  margin: 2px auto 0 !important;
+  justify-self: auto !important;
+  flex: 0 0 184px !important;
+}
+
+.renova-impact-utilization-card .renova-impact-visual-copy {
+  width: 100% !important;
+  text-align: center !important;
+}
+
+.renova-impact-utilization-card .renova-impact-visual-copy p {
+  max-width: 34ch !important;
+  margin: 0 auto 18px !important;
+  line-height: 1.5 !important;
+}
+
+.renova-impact-utilization-card .renova-impact-formula-box,
+.renova-impact-distribution-card .renova-impact-formula-box {
+  margin-top: auto !important;
+}
+
+.renova-impact-distribution-card .renova-impact-chart-legend {
+  width: 100% !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+}
+
+.renova-impact-distribution-card .renova-impact-legend-item {
+  min-width: 0 !important;
+}
+
+@media (max-width: 620px) {
+  .renova-impact-utilization-card .renova-impact-progress-ring,
+  .renova-impact-distribution-card .renova-impact-donut {
+    width: 170px !important;
+    height: 170px !important;
+    min-width: 170px !important;
+    min-height: 170px !important;
+    flex-basis: 170px !important;
+  }
+
+  .renova-impact-distribution-card .renova-impact-chart-legend {
+    grid-template-columns: 1fr !important;
+  }
 }
