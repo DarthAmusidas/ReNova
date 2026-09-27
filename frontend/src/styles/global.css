@@ -10528,6 +10528,243 @@ html.renova-dark-mode .renova-impact-main .renova-impact-donut > div {
 }
 
 /* =========================================
+   IMPACT RESERVATION DISTRIBUTION
+   Jerarquía clara entre total, gráfico y estados
+========================================= */
+
+@media (min-width: 1451px) {
+  .renova-impact-visual-grid {
+    grid-template-columns: minmax(0, 0.92fr) minmax(430px, 1.28fr) minmax(0, 1.08fr) !important;
+  }
+}
+
+.renova-impact-distribution-card {
+  display: flex !important;
+  flex-direction: column !important;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(47, 128, 237, 0.09), transparent 34%),
+    rgba(255, 255, 255, 0.72) !important;
+}
+
+.renova-impact-distribution-card .renova-impact-panel-title {
+  align-items: flex-start !important;
+  padding-bottom: 18px !important;
+  border-bottom: 1px solid rgba(111, 153, 98, 0.16) !important;
+}
+
+.renova-impact-panel-heading {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+.renova-impact-panel-heading p {
+  margin: 5px 0 0 !important;
+  font-size: 0.86rem !important;
+  line-height: 1.35 !important;
+}
+
+.renova-impact-distribution-total {
+  min-width: 76px !important;
+  padding: 9px 12px !important;
+  border-radius: 14px !important;
+  background: rgba(47, 128, 237, 0.10) !important;
+  border: 1px solid rgba(47, 128, 237, 0.16) !important;
+  text-align: right !important;
+}
+
+.renova-impact-distribution-total strong,
+.renova-impact-distribution-total span {
+  display: block !important;
+}
+
+.renova-impact-distribution-total strong {
+  color: #175fb8 !important;
+  font-size: 1.25rem !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+}
+
+.renova-impact-distribution-total span {
+  margin-top: 4px !important;
+  color: #53677d !important;
+  font-size: 0.68rem !important;
+  line-height: 1 !important;
+  font-weight: 850 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+}
+
+.renova-impact-distribution-card .renova-impact-donut-layout {
+  grid-template-columns: minmax(154px, 0.8fr) minmax(190px, 1.2fr) !important;
+  gap: clamp(22px, 3vw, 38px) !important;
+  flex: 1 1 auto !important;
+}
+
+.renova-impact-distribution-card .renova-impact-donut {
+  width: 168px !important;
+  height: 168px !important;
+  justify-self: center !important;
+}
+
+.renova-impact-distribution-card .renova-impact-donut > div {
+  width: 94px !important;
+  height: 94px !important;
+}
+
+.renova-impact-chart-legend {
+  gap: 10px !important;
+}
+
+.renova-impact-legend-item {
+  display: grid !important;
+  gap: 7px !important;
+  padding: 10px 12px !important;
+  border-radius: 14px !important;
+  background: rgba(255, 255, 255, 0.42) !important;
+  border: 1px solid rgba(103, 150, 88, 0.12) !important;
+}
+
+.renova-impact-legend-summary {
+  display: grid !important;
+  grid-template-columns: 10px minmax(0, 1fr) auto auto !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.renova-impact-legend-summary .renova-impact-legend-dot {
+  width: 9px !important;
+  height: 9px !important;
+}
+
+.renova-impact-legend-summary strong {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 0.86rem !important;
+}
+
+.renova-impact-legend-value {
+  color: #17251b !important;
+  font-size: 0.9rem !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+}
+
+.renova-impact-legend-summary small {
+  min-width: 38px !important;
+  color: #68766b !important;
+  font-size: 0.72rem !important;
+  line-height: 1 !important;
+  text-align: right !important;
+}
+
+.renova-impact-legend-track {
+  width: 100% !important;
+  height: 5px !important;
+  overflow: hidden !important;
+  border-radius: 999px !important;
+  background: rgba(75, 105, 82, 0.12) !important;
+}
+
+.renova-impact-legend-track > span {
+  display: block !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  border-radius: inherit !important;
+  transition: width 240ms ease !important;
+}
+
+.renova-impact-legend-item.green .renova-impact-legend-track > span {
+  background: #37a62d !important;
+}
+
+.renova-impact-legend-item.yellow .renova-impact-legend-track > span {
+  background: #f0b742 !important;
+}
+
+.renova-impact-legend-item.blue .renova-impact-legend-track > span {
+  background: #2f80ed !important;
+}
+
+.renova-impact-legend-item.red .renova-impact-legend-track > span {
+  background: #d6453d !important;
+}
+
+.renova-impact-legend-item.muted .renova-impact-legend-track > span {
+  background: #7f9484 !important;
+}
+
+.renova-impact-distribution-card .renova-impact-formula-box {
+  margin-top: 18px !important;
+  padding: 12px 14px !important;
+  text-align: center !important;
+  font-size: 0.82rem !important;
+}
+
+html.renova-dark-mode .renova-impact-distribution-card {
+  background:
+    radial-gradient(circle at 88% 8%, rgba(47, 128, 237, 0.13), transparent 34%),
+    rgba(12, 35, 20, 0.90) !important;
+}
+
+html.renova-dark-mode .renova-impact-distribution-card .renova-impact-panel-title {
+  border-bottom-color: rgba(170, 210, 160, 0.13) !important;
+}
+
+html.renova-dark-mode .renova-impact-distribution-total {
+  background: rgba(47, 128, 237, 0.14) !important;
+  border-color: rgba(91, 161, 255, 0.20) !important;
+}
+
+html.renova-dark-mode .renova-impact-distribution-total strong {
+  color: #79b6ff !important;
+}
+
+html.renova-dark-mode .renova-impact-distribution-total span {
+  color: #a9bfd7 !important;
+}
+
+html.renova-dark-mode .renova-impact-legend-item {
+  background: rgba(255, 255, 255, 0.035) !important;
+  border-color: rgba(170, 210, 160, 0.10) !important;
+}
+
+html.renova-dark-mode .renova-impact-legend-value {
+  color: #f4fbf1 !important;
+}
+
+html.renova-dark-mode .renova-impact-legend-track {
+  background: rgba(255, 255, 255, 0.09) !important;
+}
+
+@media (max-width: 620px) {
+  .renova-impact-distribution-card .renova-impact-panel-title {
+    display: grid !important;
+    grid-template-columns: 48px minmax(0, 1fr) !important;
+  }
+
+  .renova-impact-distribution-total {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: baseline !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    text-align: center !important;
+  }
+
+  .renova-impact-distribution-total strong,
+  .renova-impact-distribution-total span {
+    display: inline !important;
+    margin: 0 !important;
+  }
+
+  .renova-impact-distribution-card .renova-impact-donut-layout {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =========================================
    AUTH RECOVERY PAGES
 ========================================= */
 

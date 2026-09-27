@@ -519,13 +519,23 @@ export default function ImpactReport() {
                   </div>
                 </article>
 
-                <article className="renova-impact-visual-card">
+                <article className="renova-impact-visual-card renova-impact-distribution-card">
                   <div className="renova-impact-panel-title">
                     <span>
                       <ImpactIcon type="pie" />
                     </span>
 
-                    <h3>Distribución de reservas</h3>
+                    <div className="renova-impact-panel-heading">
+                      <h3>Distribución de reservas</h3>
+                      <p>Estado actual de todas las reservas recibidas.</p>
+                    </div>
+
+                    <div className="renova-impact-distribution-total">
+                      <strong>{formatNumber(distributionTotal)}</strong>
+                      <span>
+                        {distributionTotal === 1 ? "reserva" : "reservas"}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="renova-impact-donut-layout">
@@ -577,7 +587,7 @@ export default function ImpactReport() {
                   </div>
 
                   <div className="renova-impact-formula-box">
-                    Basado en reservas recibidas.
+                    El total se calcula sobre las reservas recibidas.
                   </div>
                 </article>
 
@@ -955,14 +965,28 @@ function MetricCard({ label, value, icon }) {
 }
 
 function LegendItem({ tone, label, value, percent }) {
+  const normalizedPercent = Math.min(Math.max(toNumber(percent), 0), 100);
+
   return (
-    <div className="renova-impact-legend-item">
-      <span className={`renova-impact-legend-dot ${tone}`} />
-      <div>
+    <div className={`renova-impact-legend-item ${tone}`}>
+      <div className="renova-impact-legend-summary">
+        <span className={`renova-impact-legend-dot ${tone}`} />
         <strong>{label}</strong>
-        <small>
-          {formatNumber(value)} ({formatNumber(percent)}%)
-        </small>
+        <span className="renova-impact-legend-value">
+          {formatNumber(value)}
+        </span>
+        <small>{formatNumber(percent)}%</small>
+      </div>
+
+      <div
+        className="renova-impact-legend-track"
+        role="progressbar"
+        aria-label={`${label}: ${formatNumber(percent)}%`}
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow={normalizedPercent}
+      >
+        <span style={{ width: `${normalizedPercent}%` }} />
       </div>
     </div>
   );
