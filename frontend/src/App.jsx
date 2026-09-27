@@ -1,4 +1,4 @@
-﻿import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -12,6 +12,16 @@ import ImpactReport from "./pages/ImpactReport";
 import CreateProduct from "./pages/CreateProduct";
 import EditProduct from "./pages/EditProduct";
 import AdminUsers from "./pages/AdminUsers";
+
+// "Recordarme" destildado: la sesión no sobrevive a cerrar el navegador.
+// sessionStorage se borra al cerrarlo, así que si falta la marca se cierra la sesión.
+if (
+  localStorage.getItem("renova-remember") === "0" &&
+  !sessionStorage.getItem("renova-session")
+) {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+}
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");

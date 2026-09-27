@@ -792,3 +792,25 @@
   align-items: center !important;
   gap: 6px !important;
 }
+
+.auth-final-page .auth-resend-row {
+  display: block;
+  margin-top: 8px;
+}
+
+.auth-final-page .auth-resend-button {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.auth-final-page .auth-resend-button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}

@@ -1,6 +1,6 @@
 ﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../services/authService";
+import { login, resendVerification } from "../services/authService";
 import renovaLogo from "../assets/renova-logo-login.png";
 import AuthHero from "../components/AuthHero";
 import "../styles/auth-final.css";
@@ -47,11 +47,30 @@ function Login() {
       : ""
   );
   const [loading, setLoading] = useState(false);
+  const [remember, setRemember] = useState(true);
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
+  const [resendState, setResendState] = useState("");
+
+  const handleResendVerification = async () => {
+    try {
+      setResendState("sending");
+      await resendVerification(unverifiedEmail);
+      setResendState("sent");
+    } catch (err) {
+      setResendState("");
+      setError(
+        err.response?.data?.error ||
+          "No se pudo reenviar el email de verificación."
+      );
+    }
+  };
 
   const handleLogin = async (event) => {
     event.preventDefault();
 
     setError("");
+    setUnverifiedEmail("");
+    setResendState("");
     setLoading(true);
 
     try {
@@ -62,9 +81,16 @@ function Login() {
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+      // Sin "Recordarme", App.jsx cierra la sesión cuando se reabre el navegador.
+      localStorage.setItem("renova-remember", remember ? "1" : "0");
+      sessionStorage.setItem("renova-session", "1");
 
       navigate("/dashboard");
     } catch (err) {
+      if (err.response?.data?.code === "EMAIL_NOT_VERIFIED") {
+        setUnverifiedEmail(err.response.data.email || email);
+      }
+
       setError(
         err.response?.data?.error ||
           "Error al iniciar sesión"
@@ -160,7 +186,11 @@ function Login() {
               <div className="login-options">
 
                 <label className="remember-me">
-                  <input type="checkbox" defaultChecked />
+                  <input
+                    type="checkbox"
+                    checked={remember}
+                    onChange={(event) => setRemember(event.target.checked)}
+                  />
                   Recordarme
                 </label>
 
@@ -179,6 +209,25 @@ function Login() {
               {error && (
                 <div className="error-message-modern">
                   {error}
+
+                  {unverifiedEmail && (
+                    <small className="auth-resend-row">
+                      {resendState === "sent" ? (
+                        <>Te reenviamos el enlace a {unverifiedEmail}. Revisá también spam.</>
+                      ) : (
+                        <button
+                          type="button"
+                          className="auth-resend-button"
+                          onClick={handleResendVerification}
+                          disabled={resendState === "sending"}
+                        >
+                          {resendState === "sending"
+                            ? "Enviando..."
+                            : "Reenviar email de verificación"}
+                        </button>
+                      )}
+                    </small>
+                  )}
                 </div>
               )}
 

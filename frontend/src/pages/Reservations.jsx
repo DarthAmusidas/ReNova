@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useRef, useState } from "react";
 import ModalPortal from "../components/ModalPortal";
 import { useNavigate } from "react-router-dom";
 import {
@@ -17,6 +17,8 @@ function Reservations() {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
+  const [reservationToCancel, setReservationToCancel] = useState(null);
+  const updatingRef = useRef(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("ALL");
@@ -84,7 +86,11 @@ function Reservations() {
   };
 
   const handleUpdateStatus = async (reservationId, status, extraData = {}) => {
+    // Un cambio de estado por vez: evita envíos duplicados por clics rápidos.
+    if (updatingRef.current) return;
+
     try {
+      updatingRef.current = true;
       setUpdatingId(reservationId);
       setError("");
       setSuccess("");
@@ -108,6 +114,7 @@ function Reservations() {
           "No se pudo actualizar la reserva."
       );
     } finally {
+      updatingRef.current = false;
       setUpdatingId(null);
     }
   };
@@ -711,7 +718,7 @@ function Reservations() {
             style={styles.dangerButton}
             className="renova-inline-danger"
             disabled={isUpdating}
-            onClick={() => handleUpdateStatus(reservation.id, "CANCELLED")}
+            onClick={() => setReservationToCancel(reservation)}
           >
             Cancelar
           </button>
@@ -726,7 +733,7 @@ function Reservations() {
           style={styles.dangerButton}
           className="renova-inline-danger"
           disabled={isUpdating}
-          onClick={() => handleUpdateStatus(reservation.id, "CANCELLED")}
+          onClick={() => setReservationToCancel(reservation)}
         >
           Cancelar reserva
         </button>
@@ -788,7 +795,7 @@ function Reservations() {
             style={styles.dangerButton}
             className="renova-inline-danger"
             disabled={isUpdating}
-            onClick={() => handleUpdateStatus(reservation.id, "CANCELLED")}
+            onClick={() => setReservationToCancel(reservation)}
           >
             Cancelar
           </button>
@@ -1341,6 +1348,48 @@ function Reservations() {
                   disabled={deliveryCodeLoading}
                 >
                   Confirmar entrega
+                </button>
+              </div>
+            </div>
+          </div>
+          </ModalPortal>
+        )}
+
+        {reservationToCancel && (
+          <ModalPortal>
+          <div style={styles.modalOverlay}>
+            <div style={styles.modalCard} className="renova-inline-modal">
+              <h2 style={styles.modalTitle}>Cancelar reserva</h2>
+
+              <p style={styles.modalText}>
+                ¿Seguro que querés cancelar la reserva de{" "}
+                <strong>{getProductName(reservationToCancel)}</strong>
+                {reservationToCancel.order_code ? ` (${reservationToCancel.order_code})` : ""}?
+                La cantidad vuelve al stock y la otra parte recibe una notificación.
+              </p>
+
+              <div style={styles.modalActions}>
+                <button
+                  type="button"
+                  style={styles.secondaryButton}
+                  className="renova-inline-secondary"
+                  onClick={() => setReservationToCancel(null)}
+                >
+                  Volver
+                </button>
+
+                <button
+                  type="button"
+                  style={styles.dangerButton}
+                  className="renova-inline-danger"
+                  disabled={updatingId === reservationToCancel.id}
+                  onClick={async () => {
+                    const reservationId = reservationToCancel.id;
+                    await handleUpdateStatus(reservationId, "CANCELLED");
+                    setReservationToCancel(null);
+                  }}
+                >
+                  {updatingId === reservationToCancel.id ? "Cancelando..." : "Sí, cancelar"}
                 </button>
               </div>
             </div>

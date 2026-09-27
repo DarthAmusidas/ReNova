@@ -139,12 +139,6 @@ function Dashboard() {
   const isSupermarket = userRole === "SUPERMARKET";
   const isAdmin = userRole === "ADMIN";
 
-  const roleLabel = isSupermarket
-    ? "Supermercado"
-    : isAdmin
-    ? "Administrador"
-    : "Comedor";
-
   const getUserInitials = (name = "Usuario") =>
     name
       .split(" ")

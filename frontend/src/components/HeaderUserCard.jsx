@@ -1,14 +1,10 @@
 import NotificationBell from "./NotificationBell";
+import { getUserRoleLabel } from "../utils/roles";
 
 function HeaderUserCard({ user = null }) {
   const userName = user?.name || "Usuario";
 
-  const roleLabel =
-    user?.role === "SUPERMARKET"
-      ? "Supermercado"
-      : user?.role === "ADMIN"
-      ? "Administrador"
-      : "Comedor";
+  const roleLabel = getUserRoleLabel(user);
 
   const getInitials = (name = "Usuario") =>
     name

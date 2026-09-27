@@ -1,5 +1,6 @@
-﻿import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import ModalPortal from "../components/ModalPortal";
+import { formatDateOnly, parseDateOnly } from "../utils/dates";
 import { useNavigate } from "react-router-dom";
 import { getProducts, deleteProduct } from "../services/productService";
 import { createReservation } from "../services/reservationService";
@@ -24,6 +25,8 @@ function Products() {
   const [pickupTime, setPickupTime] = useState("");
   const [error, setError] = useState("");
   const [reservationError, setReservationError] = useState("");
+  const [reserving, setReserving] = useState(false);
+  const reservingRef = useRef(false);
   const [success, setSuccess] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("AVAILABLE");
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,12 +42,6 @@ function Products() {
   const isSupermarket = userRole === "SUPERMARKET";
   const isOng = userRole === "ONG";
   const isAdmin = userRole === "ADMIN";
-
-  const userRoleLabel = isSupermarket
-    ? "Supermercado"
-    : isAdmin
-    ? "Administrador"
-    : "Comedor";
 
   const getUserInitials = (name = "Usuario") =>
     name
@@ -98,10 +95,7 @@ function Products() {
     navigate("/login");
   };
 
-  const formatDate = (date) => {
-    if (!date) return "-";
-    return new Date(date).toLocaleDateString("es-AR");
-  };
+  const formatDate = (date) => formatDateOnly(date);
 
   const getDaysUntilExpiry = (expirationDate) => {
     if (!expirationDate) return null;
@@ -109,10 +103,11 @@ function Products() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const expDate = new Date(expirationDate);
+    const expDate = parseDateOnly(expirationDate);
+    if (!expDate) return null;
     expDate.setHours(0, 0, 0, 0);
 
-    return Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+    return Math.round((expDate - today) / (1000 * 60 * 60 * 24));
   };
 
   const formatRemainingDays = (expirationDate) => {
@@ -135,7 +130,8 @@ function Products() {
 
   const isProductSoonToExpire = (expirationDate) => {
     const days = getDaysUntilExpiry(expirationDate);
-    return days !== null && days > 0 && days <= 7;
+    // Incluye los que vencen hoy: son los más urgentes.
+    return days !== null && days >= 0 && days <= 7;
   };
 
   const getProductStatusLabel = (status) => {
@@ -257,7 +253,9 @@ function Products() {
   };
 
   const handleReserve = async () => {
-    if (!selectedProduct) return;
+    // Evita reservas duplicadas por doble clic: el ref se actualiza al instante,
+    // el estado recién en el próximo render.
+    if (!selectedProduct || reservingRef.current) return;
 
     const quantity = Number(reservationQuantity);
 
@@ -279,11 +277,17 @@ function Products() {
     const maxReservable = getMaxReservableQuantity(selectedProduct.quantity);
 
     if (quantity > maxReservable) {
-      setReservationError("La cantidad solicitada supera el stock disponible.");
+      setReservationError(
+        maxReservable < Number(selectedProduct.quantity)
+          ? `Podés reservar hasta ${maxReservable} ${selectedProduct.unit || ""} por reserva (la mitad del stock disponible).`
+          : "La cantidad solicitada supera el stock disponible."
+      );
       return;
     }
 
     try {
+      reservingRef.current = true;
+      setReserving(true);
       setReservationError("");
       setError("");
       setSuccess("");
@@ -309,6 +313,9 @@ function Products() {
           err.response?.data?.message ||
           "No se pudo crear la reserva."
       );
+    } finally {
+      reservingRef.current = false;
+      setReserving(false);
     }
   };
 
@@ -384,10 +391,10 @@ function Products() {
       .filter((product) => getSearchableProductText(product, normalizedSearch))
       .sort((a, b) => {
         const dateA = a.expiration_date
-          ? new Date(a.expiration_date).getTime()
+          ? parseDateOnly(a.expiration_date)?.getTime() ?? 0
           : Number.MAX_SAFE_INTEGER;
         const dateB = b.expiration_date
-          ? new Date(b.expiration_date).getTime()
+          ? parseDateOnly(b.expiration_date)?.getTime() ?? 0
           : Number.MAX_SAFE_INTEGER;
 
         const diff = dateA - dateB;
@@ -940,12 +947,18 @@ function Products() {
                     setReservationError("");
                     setSelectedProduct(null);
                   }}
+                  disabled={reserving}
                 >
                   Cancelar
                 </button>
 
-                <button type="button" style={styles.primaryButton} onClick={handleReserve}>
-                  Confirmar reserva
+                <button
+                  type="button"
+                  style={{ ...styles.primaryButton, opacity: reserving ? 0.7 : 1 }}
+                  onClick={handleReserve}
+                  disabled={reserving}
+                >
+                  {reserving ? "Reservando..." : "Confirmar reserva"}
                 </button>
               </div>
             </div>
