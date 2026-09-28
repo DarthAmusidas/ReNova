@@ -51,16 +51,15 @@ function AuthHero() {
 
           <div className="login-hero-copy">
             <h1 className="login-title">
-              Conectamos para
-              <span className="login-title-accent">
-                {" "}compartir
+              Conectamos
+              <span className="login-title-line">
+                para <span className="login-title-accent">compartir</span>
               </span>
             </h1>
 
             <p className="login-description">
-              ReNova conecta supermercados y organizaciones sociales para
-              facilitar la donación de productos disponibles y generar impacto
-              positivo en la comunidad.
+              ReNova conecta comercios y organizaciones sociales para aprovechar
+              productos disponibles y reducir el desperdicio.
             </p>
           </div>
 
@@ -73,7 +72,6 @@ function AuthHero() {
 
               <div>
                 <strong>Menos desperdicio</strong>
-                <p>Más impacto</p>
               </div>
             </div>
 
@@ -84,18 +82,6 @@ function AuthHero() {
 
               <div>
                 <strong>Más comunidad</strong>
-                <p>Más colaboración</p>
-              </div>
-            </div>
-
-            <div className="login-benefit-card">
-              <div className="benefit-icon benefit-icon-heart">
-                <BenefitIcon type="heart" />
-              </div>
-
-              <div>
-                <strong>Más solidaridad</strong>
-                <p>Más futuro</p>
               </div>
             </div>
 

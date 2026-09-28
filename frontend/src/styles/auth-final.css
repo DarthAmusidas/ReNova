@@ -814,3 +814,295 @@
   opacity: 0.7;
   cursor: wait;
 }
+
+/* ==========================================================
+   Login editorial inspirado en la referencia visual
+   ========================================================== */
+.login-layout-reference {
+  grid-template-columns: 56% 44% !important;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(139, 213, 84, 0.22), transparent 27%),
+    radial-gradient(circle at 73% 88%, rgba(112, 190, 70, 0.12), transparent 28%),
+    linear-gradient(135deg, #fffdf8 0%, #f7fbf2 55%, #eff8e9 100%) !important;
+}
+
+.login-layout-reference .login-left-modern {
+  padding: 48px 22px 0 clamp(72px, 5.7vw, 102px) !important;
+}
+
+.login-layout-reference .login-left-modern::after {
+  content: "";
+  position: absolute;
+  left: -90px;
+  bottom: -120px;
+  width: 310px;
+  height: 310px;
+  border-radius: 50%;
+  background: rgba(73, 150, 39, 0.19);
+  filter: blur(26px);
+  pointer-events: none;
+}
+
+.login-layout-reference .login-hero {
+  min-height: calc(100vh - 48px) !important;
+  max-width: 920px !important;
+}
+
+.login-layout-reference .login-hero-content {
+  max-width: 650px !important;
+  gap: 22px !important;
+}
+
+.login-layout-reference .login-brand-block {
+  align-items: flex-start !important;
+  gap: 18px !important;
+}
+
+.login-layout-reference .login-main-logo {
+  width: clamp(330px, 22vw, 405px) !important;
+}
+
+.login-layout-reference .login-badge {
+  padding: 8px 16px !important;
+  background: #edf8e5 !important;
+  border-color: rgba(70, 151, 54, 0.1) !important;
+  box-shadow: none !important;
+  font-size: 0.95rem !important;
+}
+
+.login-layout-reference .login-title {
+  max-width: 650px !important;
+  font-size: clamp(3.9rem, 4.75vw, 5.05rem) !important;
+  line-height: 0.95 !important;
+  letter-spacing: -3px !important;
+}
+
+.login-layout-reference .login-title-line {
+  display: block !important;
+  color: #102018 !important;
+}
+
+.login-layout-reference .login-title-accent {
+  display: inline !important;
+  color: #2a9e31 !important;
+}
+
+.login-layout-reference .login-description {
+  max-width: 570px !important;
+  margin-top: 4px !important;
+  color: #4c5750 !important;
+  font-size: 1.12rem !important;
+  line-height: 1.48 !important;
+}
+
+.login-layout-reference .login-benefits {
+  width: min(100%, 470px) !important;
+  max-width: 470px !important;
+  margin-top: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.login-layout-reference .login-benefit-card {
+  min-height: 58px !important;
+  padding: 9px 16px !important;
+  border-radius: 16px !important;
+  background: rgba(239, 248, 231, 0.94) !important;
+  border: 1px solid rgba(87, 151, 66, 0.1) !important;
+  box-shadow: none !important;
+  gap: 11px !important;
+}
+
+.login-layout-reference .login-benefit-card:nth-child(2) {
+  background: rgba(255, 247, 224, 0.96) !important;
+}
+
+.login-layout-reference .benefit-icon {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+}
+
+.login-layout-reference .benefit-icon svg {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.login-layout-reference .login-benefit-card strong {
+  font-size: 0.92rem !important;
+}
+
+.login-layout-reference .login-illustration-wrap {
+  left: clamp(165px, 13vw, 220px) !important;
+  bottom: -112px !important;
+  width: clamp(620px, 42vw, 720px) !important;
+}
+
+.login-layout-reference .login-right-modern {
+  padding: 32px 72px 32px 0 !important;
+  justify-content: flex-start !important;
+}
+
+.login-layout-reference .login-card-modern {
+  width: min(100%, 620px) !important;
+  max-width: 620px !important;
+  min-height: 730px !important;
+  padding: 80px 48px 48px !important;
+  border-radius: 30px !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  border: 1px solid rgba(116, 150, 111, 0.16) !important;
+  box-shadow: 0 28px 70px rgba(39, 79, 36, 0.13) !important;
+  backdrop-filter: blur(16px) saturate(115%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(115%) !important;
+  transform: translateY(22px) !important;
+}
+
+.login-layout-reference .auth-login-card .login-card-logo {
+  display: none !important;
+}
+
+.login-layout-reference .login-card-modern h2 {
+  margin-bottom: 10px !important;
+  font-size: 2.45rem !important;
+}
+
+.login-layout-reference .login-card-modern > p {
+  margin-bottom: 40px !important;
+  color: #66706a !important;
+  font-size: 1rem !important;
+}
+
+.login-layout-reference .input-group-modern {
+  margin-bottom: 20px !important;
+}
+
+.login-layout-reference .input-group-modern label {
+  margin-bottom: 8px !important;
+  font-size: 0.98rem !important;
+}
+
+.login-layout-reference .input-with-icon {
+  min-height: 66px !important;
+  padding: 0 18px !important;
+  border-radius: 15px !important;
+  border-color: rgba(97, 122, 103, 0.28) !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  box-shadow: none !important;
+}
+
+.login-layout-reference .auth-field-icon,
+.login-layout-reference .auth-field-icon svg {
+  width: 23px !important;
+  height: 23px !important;
+  min-width: 23px !important;
+}
+
+.login-layout-reference .input-with-icon input {
+  font-size: 1rem !important;
+}
+
+.login-layout-reference .login-options {
+  margin: 10px 0 30px !important;
+}
+
+.login-layout-reference .remember-me input {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+.login-layout-reference .btn-login-modern {
+  min-height: 68px !important;
+  border-radius: 15px !important;
+  font-size: 1.12rem !important;
+}
+
+.login-layout-reference .login-separator {
+  margin: 30px 0 22px !important;
+}
+
+@media (max-width: 1200px) {
+  .login-layout-reference {
+    grid-template-columns: minmax(0, 1fr) minmax(500px, 0.92fr) !important;
+  }
+
+  .login-layout-reference .login-left-modern {
+    padding: 36px 24px 0 44px !important;
+  }
+
+  .login-layout-reference .login-title {
+    font-size: 3.45rem !important;
+    letter-spacing: -2px !important;
+  }
+
+  .login-layout-reference .login-illustration-wrap {
+    position: absolute !important;
+    left: 90px !important;
+    bottom: -76px !important;
+    width: 560px !important;
+  }
+
+  .login-layout-reference .login-right-modern {
+    padding: 28px 30px 28px 12px !important;
+  }
+
+  .login-layout-reference .login-card-modern {
+    padding: 54px 34px 38px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .login-layout-reference {
+    display: flex !important;
+    padding: 18px !important;
+  }
+
+  .login-layout-reference .login-left-modern {
+    display: none !important;
+  }
+
+  .login-layout-reference .login-right-modern {
+    min-height: calc(100vh - 36px) !important;
+    padding: 0 !important;
+  }
+
+  .login-layout-reference .login-card-modern {
+    width: min(100%, 440px) !important;
+    min-height: auto !important;
+    padding: 34px 24px 28px !important;
+    border-radius: 26px !important;
+    transform: none !important;
+  }
+
+  .login-layout-reference .auth-login-card .login-card-logo {
+    display: block !important;
+    width: 150px !important;
+    margin: 0 auto 20px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .login-layout-reference .login-card-modern {
+    padding: 28px 18px 24px !important;
+  }
+
+  .login-layout-reference .login-card-modern h2 {
+    font-size: 1.9rem !important;
+  }
+
+  .login-layout-reference .login-card-modern > p {
+    margin-bottom: 24px !important;
+    font-size: 0.92rem !important;
+  }
+
+  .login-layout-reference .login-options {
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .login-layout-reference .forgot-link {
+    text-align: right !important;
+  }
+}
