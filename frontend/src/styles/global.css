@@ -12598,3 +12598,68 @@ html:not(.renova-dark-mode) .renova-impact-main .renova-impact-environment-card-
   background: transparent !important;
   box-shadow: none !important;
 }
+
+/* ==========================================================
+   Filtro por categoría y "Limpiar filtros" (Productos)
+   ========================================================== */
+/* Filtros de estado arriba; categoría, orden y búsqueda en una fila debajo. */
+.renova-products-toolbar > .renova-products-toolbar-left {
+  flex: 1 1 100% !important;
+}
+
+.renova-products-toolbar > .renova-sort-control {
+  flex: 0 1 230px !important;
+  width: auto !important;
+  min-width: 200px !important;
+}
+
+.renova-products-toolbar > .renova-sort-control.renova-category-control {
+  flex: 0 1 290px !important;
+}
+
+.renova-products-toolbar > .renova-search-box-inline {
+  flex: 1 1 280px !important;
+  width: auto !important;
+  max-width: none !important;
+}
+
+@media (max-width: 620px) {
+  .renova-products-toolbar > .renova-sort-control,
+  .renova-products-toolbar > .renova-sort-control.renova-category-control,
+  .renova-products-toolbar > .renova-search-box-inline {
+    /* En celular la barra va en columna: el ancho completo es con width. */
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    align-self: stretch !important;
+  }
+}
+
+.renova-clear-filters {
+  margin-left: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #1d7f22;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.renova-clear-filters:focus-visible {
+  outline: 3px solid rgba(31, 139, 36, 0.35);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+html.renova-dark-mode .renova-clear-filters {
+  color: #9ee88f !important;
+}
+
+/* La lista desplegable nativa no hereda el fondo transparente del select. */
+html.renova-dark-mode select option {
+  background: #10241a;
+  color: #f4fbf1;
+}

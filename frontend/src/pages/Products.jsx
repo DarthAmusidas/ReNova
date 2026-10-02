@@ -7,6 +7,8 @@ import { createReservation } from "../services/reservationService";
 import AppSidebar from "../components/AppSidebar";
 import HeaderUserCard from "../components/HeaderUserCard";
 import { pageStyles as styles } from "../styles/pageStyles";
+import useProductCategories from "../hooks/useProductCategories";
+import { normalizeCategory } from "../utils/categories";
 
 const PRODUCTS_PER_PAGE = 4;
 
@@ -28,10 +30,13 @@ function Products() {
   const [reserving, setReserving] = useState(false);
   const reservingRef = useRef(false);
   const [success, setSuccess] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState("AVAILABLE");
+  const DEFAULT_FILTER = "AVAILABLE";
+  const [selectedFilter, setSelectedFilter] = useState(DEFAULT_FILTER);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentProductPage, setCurrentProductPage] = useState(1);
   const [expirationSort, setExpirationSort] = useState("ASC");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const categories = useProductCategories();
 
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
@@ -87,7 +92,7 @@ function Products() {
 
   useEffect(() => {
     setCurrentProductPage(1);
-  }, [selectedFilter, searchTerm, expirationSort]);
+  }, [selectedFilter, searchTerm, expirationSort, selectedCategory]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -388,6 +393,11 @@ function Products() {
 
         return true;
       })
+      .filter(
+        (product) =>
+          !selectedCategory ||
+          normalizeCategory(product.category) === selectedCategory
+      )
       .filter((product) => getSearchableProductText(product, normalizedSearch))
       .sort((a, b) => {
         const dateA = a.expiration_date
@@ -400,7 +410,45 @@ function Products() {
         const diff = dateA - dateB;
         return expirationSort === "DESC" ? -diff : diff;
       });
-  }, [products, selectedFilter, searchTerm, expirationSort]);
+  }, [products, selectedFilter, searchTerm, expirationSort, selectedCategory]);
+
+  // Opciones del filtro: las categorías del catálogo que tienen productos, en su
+  // orden, más las categorías viejas (texto libre) que no están en el catálogo.
+  const categoryOptions = useMemo(() => {
+    const counts = new Map();
+    const legacyNames = new Map();
+
+    products.forEach((product) => {
+      const key = normalizeCategory(product.category);
+      if (!key) return;
+      counts.set(key, (counts.get(key) || 0) + 1);
+      if (!legacyNames.has(key)) legacyNames.set(key, product.category.trim());
+    });
+
+    const options = categories
+      .map((category) => ({
+        key: normalizeCategory(category.name),
+        label: category.name,
+      }))
+      .filter((option) => counts.has(option.key));
+
+    const catalogKeys = new Set(options.map((option) => option.key));
+
+    legacyNames.forEach((label, key) => {
+      if (!catalogKeys.has(key)) options.push({ key, label });
+    });
+
+    return options.map((option) => ({ ...option, count: counts.get(option.key) }));
+  }, [products, categories]);
+
+  const hasActiveFilters =
+    selectedFilter !== DEFAULT_FILTER || selectedCategory !== "" || searchTerm.trim() !== "";
+
+  const handleClearFilters = () => {
+    setSelectedFilter(DEFAULT_FILTER);
+    setSelectedCategory("");
+    setSearchTerm("");
+  };
 
   const totalProductPages = Math.max(
     1,
@@ -570,8 +618,33 @@ function Products() {
 
             <p className="renova-products-result-count">
               {filteredProducts.length} productos · ordenados por fecha de vencimiento
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  className="renova-clear-filters"
+                  onClick={handleClearFilters}
+                >
+                  Limpiar filtros
+                </button>
+              )}
             </p>
           </div>
+
+          <label className="renova-sort-control renova-category-control">
+            <span>Categoría</span>
+
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              <option value="">Todas</option>
+              {categoryOptions.map((option) => (
+                <option key={option.key} value={option.key}>
+                  {option.label} ({option.count})
+                </option>
+              ))}
+            </select>
+          </label>
 
           <label className="renova-sort-control">
             <span>Ordenar</span>
@@ -679,8 +752,8 @@ function Products() {
           <section className="renova-empty-state">
             <h2>No hay productos para mostrar</h2>
             <p>
-              {selectedFilter !== "ALL"
-                ? "No encontramos productos para el filtro seleccionado."
+              {hasActiveFilters || selectedFilter !== "ALL"
+                ? "No encontramos productos para los filtros seleccionados."
                 : isSupermarket
                 ? "Todavía no cargaste productos disponibles para donar."
                 : "Por el momento no hay productos disponibles para visualizar."}

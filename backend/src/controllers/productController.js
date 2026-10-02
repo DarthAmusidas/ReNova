@@ -1,6 +1,7 @@
 // Controlador de productos
 const pool = require("../db/pool");
 const { isValidUUID } = require("../utils/validators");
+const { resolveCategory } = require("./categoryController");
 
 
 const createNotificationForOng = async (userId, productName, supermarketName) => {
@@ -82,6 +83,7 @@ const createProduct = async (req, res) => {
       name,
       description,
       category,
+      category_id,
       quantity,
       unit,
       expiration_date,
@@ -127,23 +129,36 @@ const createProduct = async (req, res) => {
       });
     }
 
+    const resolvedCategory = await resolveCategory({ category_id, category });
+
+    const columns = [
+      "supermarket_id", "name", "description", "category", "quantity",
+      "unit", "expiration_date", "low_rotation", "status"
+    ];
+    const values = [
+      supermarket_id,
+      name,
+      description || null,
+      resolvedCategory?.name || null,
+      parsedQuantity,
+      unit,
+      expiration_date,
+      low_rotation || false,
+      "AVAILABLE"
+    ];
+
+    // category_id solo existe si se corrió prisma/product_categories.sql
+    if (resolvedCategory?.id) {
+      columns.push("category_id");
+      values.push(resolvedCategory.id);
+    }
+
     // Inserta el producto en la base de datos
     const result = await pool.query(
-      `INSERT INTO products
-      (supermarket_id, name, description, category, quantity, unit, expiration_date, low_rotation, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO products (${columns.join(", ")})
+      VALUES (${values.map((_, index) => `$${index + 1}`).join(", ")})
       RETURNING *`,
-      [
-        supermarket_id,
-        name,
-        description || null,
-        category || null,
-        parsedQuantity,
-        unit,
-        expiration_date,
-        low_rotation || false,
-        "AVAILABLE"
-      ]
+      values
     );
 
     await notifyOngUsersAboutProduct(result.rows[0].name, supermarket_id);
@@ -154,6 +169,10 @@ const createProduct = async (req, res) => {
       product: result.rows[0]
     });
   } catch (error) {
+    if (error.status === 400) {
+      return res.status(400).json({ error: error.message });
+    }
+
     console.error(error);
 
     res.status(500).json({
@@ -249,6 +268,7 @@ const updateProduct = async (req, res) => {
       name,
       description,
       category,
+      category_id,
       quantity,
       unit,
       expiration_date,
@@ -303,6 +323,7 @@ const updateProduct = async (req, res) => {
       name !== undefined ||
       description !== undefined ||
       category !== undefined ||
+      category_id !== undefined ||
       quantity !== undefined ||
       unit !== undefined ||
       expiration_date !== undefined ||
@@ -388,31 +409,39 @@ const updateProduct = async (req, res) => {
       parsedStatus = "UNAVAILABLE";
     }
 
+    const categoryChanged = category !== undefined || category_id !== undefined;
+    const resolvedCategory = categoryChanged
+      ? await resolveCategory({ category_id, category })
+      : null;
+
+    const updates = {
+      name: name !== undefined ? name : product.name,
+      description: description !== undefined ? description : product.description,
+      category: categoryChanged
+        ? resolvedCategory?.name || (category === undefined ? product.category : null)
+        : product.category,
+      quantity: parsedQuantity,
+      unit: unit !== undefined ? unit : product.unit,
+      expiration_date: parsedExpirationDate,
+      low_rotation: low_rotation !== undefined ? low_rotation : product.low_rotation,
+      status: parsedStatus,
+    };
+
+    // category_id solo existe si se corrió prisma/product_categories.sql
+    // (en ese caso el producto ya lo trae en el SELECT *).
+    if (categoryChanged && "category_id" in product) {
+      updates.category_id = resolvedCategory?.id || null;
+    }
+
+    const fields = Object.keys(updates);
+
     // Actualiza el producto
     const result = await pool.query(
       `UPDATE products
-       SET
-        name = $1,
-        description = $2,
-        category = $3,
-        quantity = $4,
-        unit = $5,
-        expiration_date = $6,
-        low_rotation = $7,
-        status = $8
-       WHERE id = $9
+       SET ${fields.map((field, index) => `${field} = $${index + 1}`).join(", ")}
+       WHERE id = $${fields.length + 1}
        RETURNING *`,
-      [
-        name !== undefined ? name : product.name,
-        description !== undefined ? description : product.description,
-        category !== undefined ? category : product.category,
-        parsedQuantity,
-        unit !== undefined ? unit : product.unit,
-        parsedExpirationDate,
-        low_rotation !== undefined ? low_rotation : product.low_rotation,
-        parsedStatus,
-        id
-      ]
+      [...Object.values(updates), id]
     );
 
     // Responde con el producto actualizado
@@ -421,6 +450,10 @@ const updateProduct = async (req, res) => {
       product: result.rows[0]
     });
   } catch (error) {
+    if (error.status === 400) {
+      return res.status(400).json({ error: error.message });
+    }
+
     console.error(error);
 
     res.status(500).json({

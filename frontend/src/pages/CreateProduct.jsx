@@ -4,6 +4,9 @@ import { createProduct } from "../services/productService";
 import AppSidebar from "../components/AppSidebar";
 import HeaderUserCard from "../components/HeaderUserCard";
 import UiIcon from "../components/UiIcon";
+import CategorySelect from "../components/CategorySelect";
+import useProductCategories from "../hooks/useProductCategories";
+import { findCategoryByName } from "../utils/categories";
 import { pageStyles as pageStyles } from "../styles/pageStyles";
 
 function CreateProduct() {
@@ -22,6 +25,8 @@ function CreateProduct() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const categories = useProductCategories();
 
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
@@ -57,7 +62,7 @@ function CreateProduct() {
     }
 
     if (!formData.category.trim()) {
-      setError("Ingresá una categoría.");
+      setError("Elegí una categoría.");
       return;
     }
 
@@ -73,6 +78,7 @@ function CreateProduct() {
         name: formData.name,
         description: formData.description,
         category: formData.category,
+        category_id: findCategoryByName(categories, formData.category)?.id || null,
         quantity: Number(formData.quantity),
         unit: formData.unit,
         expiration_date: formData.expiration_date || null,
@@ -156,11 +162,9 @@ function CreateProduct() {
 
               <div style={styles.inputGroup}>
                 <label style={styles.inputLabel}>Categoría</label>
-                <input
+                <CategorySelect
                   style={styles.input}
-                  type="text"
-                  name="category"
-                  placeholder="Ej: Almacén"
+                  categories={categories}
                   value={formData.category}
                   onChange={handleChange}
                 />

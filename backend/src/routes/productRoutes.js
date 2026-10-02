@@ -10,6 +10,10 @@ const {
   updateProduct,
   deleteProduct,
 } = require("../controllers/productController");
+const { getCategories } = require("../controllers/categoryController");
+
+// Lista las categorías de productos
+router.get("/categories", authMiddleware, getCategories);
 
 // Crea un producto
 router.post(
