@@ -1157,7 +1157,12 @@
     color: #1d7f22 !important;
   }
 
+  .login-page-modern.login-layout-reference .login-main-logo {
+    width: clamp(380px, 26vw, 470px) !important;
+  }
+
   .login-page-modern.login-layout-reference .login-description {
+    margin-top: 18px !important;
     color: #1f2a23 !important;
     font-weight: 600 !important;
     text-shadow:
