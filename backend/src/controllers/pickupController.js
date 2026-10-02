@@ -5,6 +5,7 @@
 const pool = require("../db/pool");
 const { isValidUUID } = require("../utils/validators");
 const { createPickupToken, verifyPickupToken } = require("../utils/pickupToken");
+const { emitReservationStatus } = require("../realtime");
 const {
   createNotification,
   expireOldOngReservations,
@@ -200,6 +201,8 @@ const confirmPickup = async (req, res) => {
     await createNotification(client, reservation.supermarket_id, "Entrega completada", message, "RESERVATION_UPDATE");
 
     await client.query("COMMIT");
+
+    emitReservationStatus(reservation.id, "COMPLETED");
 
     res.json({
       message: "Entrega confirmada",

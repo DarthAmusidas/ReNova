@@ -1,6 +1,8 @@
 ﻿import { useCallback, useEffect, useRef, useState } from "react";
 import ModalPortal from "../components/ModalPortal";
 import PickupQrModal from "../components/PickupQrModal";
+import ReservationChat from "../components/ReservationChat";
+import { getChatSocket, getChatSummary } from "../services/chatSocket";
 import { useNavigate } from "react-router-dom";
 import {
   getReservations,
@@ -22,6 +24,10 @@ function Reservations() {
   const updatingRef = useRef(false);
   const [copiedId, setCopiedId] = useState(null);
   const [pickupQrReservation, setPickupQrReservation] = useState(null);
+  const [chatReservation, setChatReservation] = useState(null);
+  // { [reservationId]: { total, unread } }
+  const [chatSummary, setChatSummary] = useState({});
+  const openChatIdRef = useRef(null);
 
   const handleCopyOrderCode = async (reservationId, code) => {
     const markCopied = () => {
@@ -104,6 +110,58 @@ function Reservations() {
   useEffect(() => {
     loadReservations();
   }, [loadReservations]);
+
+  const loadChatSummary = useCallback(async () => {
+    try {
+      setChatSummary(await getChatSummary());
+    } catch (err) {
+      // Sin contadores el resto de la página sigue funcionando.
+      console.error("Error cargando mensajes:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    getChatSummary()
+      .then(setChatSummary)
+      .catch((err) => console.error("Error cargando mensajes:", err));
+  }, []);
+
+  // Mensaje nuevo en una reserva cuyo chat no está abierto: sube el contador.
+  useEffect(() => {
+    const socket = getChatSocket();
+    if (!socket) return undefined;
+
+    const handleUnread = ({ reservationId }) => {
+      if (String(reservationId) === openChatIdRef.current) return;
+
+      setChatSummary((current) => {
+        const entry = current[reservationId] || { total: 0, unread: 0 };
+        return {
+          ...current,
+          [reservationId]: { total: entry.total + 1, unread: entry.unread + 1 },
+        };
+      });
+    };
+
+    socket.on("chat:unread", handleUnread);
+    return () => socket.off("chat:unread", handleUnread);
+  }, []);
+
+  const handleOpenChat = (reservation) => {
+    openChatIdRef.current = String(reservation.id);
+    setChatReservation(reservation);
+    setChatSummary((current) =>
+      current[reservation.id]
+        ? { ...current, [reservation.id]: { ...current[reservation.id], unread: 0 } }
+        : current
+    );
+  };
+
+  const handleCloseChat = useCallback(() => {
+    openChatIdRef.current = null;
+    setChatReservation(null);
+    loadChatSummary();
+  }, [loadChatSummary]);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -1187,6 +1245,38 @@ function Reservations() {
                   <footer className="renova-rcard-actions">
                     {renderActions(reservation, status, isUpdating)}
 
+                    {(() => {
+                      const chat = chatSummary[reservation.id] || { total: 0, unread: 0 };
+                      // El chat se abre al confirmar; después queda el historial si hubo mensajes.
+                      const showChat =
+                        (status === "CONFIRMED" && !isAdmin) || chat.total > 0;
+
+                      if (!showChat) return null;
+
+                      return (
+                        <button
+                          type="button"
+                          className="renova-rbtn renova-rbtn-ghost renova-rcard-chat"
+                          onClick={() => handleOpenChat(reservation)}
+                          aria-label={
+                            chat.unread > 0
+                              ? `Abrir chat, ${chat.unread} mensajes sin leer`
+                              : "Abrir chat"
+                          }
+                        >
+                          <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12Z" />
+                          </svg>
+                          {status === "CONFIRMED" ? "Chat" : "Ver chat"}
+                          {chat.unread > 0 && (
+                            <span className="renova-rcard-chat-badge">
+                              {chat.unread > 9 ? "9+" : chat.unread}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })()}
+
                     <button
                       type="button"
                       className="renova-rbtn renova-rbtn-ghost renova-rcard-print"
@@ -1253,6 +1343,15 @@ function Reservations() {
               Siguiente
             </button>
           </nav>
+        )}
+
+        {chatReservation && (
+          <ReservationChat
+            reservation={chatReservation}
+            productName={getProductName(chatReservation)}
+            currentUser={user}
+            onClose={handleCloseChat}
+          />
         )}
 
         {pickupQrReservation && (

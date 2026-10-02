@@ -13049,3 +13049,314 @@ html.renova-dark-mode .renova-reservations-main .renova-rcard-code-hidden {
     grid-auto-rows: 1fr;
   }
 }
+
+/* ==========================================================
+   Chat de la reserva (panel lateral)
+   ========================================================== */
+.renova-rcard-chat {
+  position: relative;
+}
+
+.renova-rcard-chat-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #c4362b;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.renova-chat-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5200;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(10, 24, 14, 0.38);
+}
+
+.renova-chat-panel {
+  width: min(440px, 100%);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #f6f9f3;
+  box-shadow: -18px 0 50px rgba(10, 30, 14, 0.18);
+  animation: renova-chat-in 0.18s ease-out;
+}
+
+@keyframes renova-chat-in {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .renova-chat-panel { animation: none; }
+}
+
+.renova-chat-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 14px;
+  background: #ffffff;
+  border-bottom: 1px solid #e1eadc;
+}
+
+.renova-chat-header h2 {
+  margin: 2px 0;
+  color: #102018;
+  font-size: 1.12rem;
+  line-height: 1.25;
+}
+
+.renova-chat-eyebrow {
+  margin: 0;
+  color: #1d7f22;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.renova-chat-presence {
+  margin: 0;
+  color: #5d6b60;
+  font-size: 0.82rem;
+}
+
+.renova-chat-presence .is-typing {
+  color: #1d7f22;
+  font-weight: 800;
+}
+
+.renova-chat-presence .is-offline {
+  color: #9b2c22;
+  font-weight: 800;
+}
+
+.renova-chat-close {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 12px;
+  background: #f1f5ee;
+  color: #3f4d43;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.renova-chat-close svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.renova-chat-close:focus-visible,
+.renova-chat-send:focus-visible {
+  outline: 3px solid rgba(31, 139, 36, 0.35);
+  outline-offset: 2px;
+}
+
+.renova-chat-banner {
+  margin: 0;
+  padding: 10px 18px;
+  background: #fff6e0;
+  color: #6b4800;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.renova-chat-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.renova-chat-empty {
+  margin: auto 12px;
+  color: #5d6b60;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.renova-chat-empty.is-error {
+  color: #9b2c22;
+  font-weight: 700;
+}
+
+.renova-chat-day {
+  margin: 10px 0 6px;
+  text-align: center;
+  color: #6b786d;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.renova-chat-row {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.renova-chat-row.is-mine {
+  justify-content: flex-end;
+}
+
+.renova-chat-bubble {
+  max-width: 82%;
+  padding: 8px 12px 6px;
+  border-radius: 16px 16px 16px 6px;
+  background: #ffffff;
+  border: 1px solid #e1eadc;
+  color: #102018;
+}
+
+.renova-chat-row.is-mine .renova-chat-bubble {
+  border-radius: 16px 16px 6px 16px;
+  background: #dcefd2;
+  border-color: #c9e3bc;
+}
+
+.renova-chat-bubble p {
+  margin: 0;
+  font-size: 0.94rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.renova-chat-sender {
+  display: block;
+  margin-bottom: 2px;
+  color: #1d7f22;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.renova-chat-meta {
+  display: block;
+  margin-top: 3px;
+  color: #6b786d;
+  font-size: 0.7rem;
+  text-align: right;
+}
+
+.renova-chat-meta .is-read {
+  color: #1d7f22;
+  font-weight: 800;
+}
+
+.renova-chat-form {
+  padding: 10px 12px 14px;
+  background: #ffffff;
+  border-top: 1px solid #e1eadc;
+}
+
+.renova-chat-compose {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.renova-chat-compose textarea {
+  flex: 1;
+  min-height: 46px;
+  max-height: 140px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1.5px solid #d6e2d0;
+  background: #ffffff;
+  color: #102018;
+  font: inherit;
+  font-size: 0.95rem;
+  resize: none;
+  field-sizing: content;
+  outline: none;
+}
+
+.renova-chat-compose textarea:focus {
+  border-color: #1f8b24;
+  box-shadow: 0 0 0 3px rgba(31, 139, 36, 0.14);
+}
+
+.renova-chat-send {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #1f8b24 0%, #136b19 100%);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.renova-chat-send:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.renova-chat-send svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.renova-chat-send-error {
+  margin: 0 0 8px;
+  color: #9b2c22;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.renova-chat-counter {
+  display: block;
+  margin-top: 6px;
+  color: #6b786d;
+  font-size: 0.74rem;
+  text-align: right;
+}
+
+/* Modo oscuro */
+html.renova-dark-mode .renova-chat-panel { background: #0d1d13; }
+html.renova-dark-mode .renova-chat-header,
+html.renova-dark-mode .renova-chat-form { background: #12261a; border-color: rgba(160, 210, 140, 0.12); }
+html.renova-dark-mode .renova-chat-header h2 { color: #f4fbf1; }
+html.renova-dark-mode .renova-chat-eyebrow,
+html.renova-dark-mode .renova-chat-sender,
+html.renova-dark-mode .renova-chat-presence .is-typing,
+html.renova-dark-mode .renova-chat-meta .is-read { color: #9ee88f; }
+html.renova-dark-mode .renova-chat-presence,
+html.renova-dark-mode .renova-chat-empty,
+html.renova-dark-mode .renova-chat-day,
+html.renova-dark-mode .renova-chat-meta,
+html.renova-dark-mode .renova-chat-counter { color: #a3b7a3; }
+html.renova-dark-mode .renova-chat-close { background: rgba(255, 255, 255, 0.07); color: #d7e8d3; }
+html.renova-dark-mode .renova-chat-bubble { background: #17301f; border-color: rgba(160, 210, 140, 0.14); color: #eef8e9; }
+html.renova-dark-mode .renova-chat-row.is-mine .renova-chat-bubble { background: #24502b; border-color: #2f6436; }
+html.renova-dark-mode .renova-chat-compose textarea { background: #0d1d13; border-color: rgba(160, 210, 140, 0.22); color: #eef8e9; }
+html.renova-dark-mode .renova-chat-banner { background: rgba(230, 170, 30, 0.14); color: #ffd27a; }
+html.renova-dark-mode .renova-chat-presence .is-offline,
+html.renova-dark-mode .renova-chat-empty.is-error,
+html.renova-dark-mode .renova-chat-send-error { color: #ffa6a6; }

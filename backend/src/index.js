@@ -1,5 +1,6 @@
 ﻿require("dotenv").config({ quiet: true });
 
+const http = require("http");
 const express = require("express");
 const cors = require("cors");
 
@@ -13,36 +14,11 @@ const pickupRoutes = require("./routes/pickupRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const authMiddleware = require("./middlewares/authMiddleware");
+const chatRoutes = require("./routes/chatRoutes");
+const { allowedOrigins, isAllowedOrigin } = require("./utils/allowedOrigins");
+const { setupSocket } = require("./socket");
 
 const app = express();
-
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:5174",
-  "http://localhost:5175",
-  "http://127.0.0.1:5173",
-  "http://127.0.0.1:5174",
-  "http://127.0.0.1:5175",
-  process.env.FRONTEND_URL,
-].filter(Boolean);
-
-function isAllowedOrigin(origin) {
-  if (!origin) return true;
-
-  if (allowedOrigins.includes(origin)) return true;
-
-  try {
-    const url = new URL(origin);
-
-    if (url.hostname === "localhost") return true;
-    if (url.hostname === "127.0.0.1") return true;
-    if (url.hostname.endsWith(".vercel.app")) return true;
-
-    return false;
-  } catch {
-    return false;
-  }
-}
 
 app.use(
   cors({
@@ -68,6 +44,7 @@ app.use(express.json());
 app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
 app.use("/products", productRoutes);
+app.use("/reservations", chatRoutes);
 app.use("/reservations", reservationRoutes);
 app.use("/pickup", pickupRoutes);
 app.use("/notifications", notificationRoutes);
@@ -109,7 +86,11 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+// Un solo servidor HTTP para la API y el chat en tiempo real (Socket.IO).
+const server = http.createServer(app);
+setupSocket(server);
+
+server.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
   console.log("Origins permitidos:", allowedOrigins);
 });

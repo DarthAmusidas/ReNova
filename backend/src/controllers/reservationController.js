@@ -1,5 +1,6 @@
 const pool = require("../db/pool");
 const { isValidUUID } = require("../utils/validators");
+const { emitReservationStatus } = require("../realtime");
 
 
 const createNotification = async (client, userId, title, message, type) => {
@@ -918,6 +919,9 @@ const updateReservationStatus = async (req, res) => {
     }
 
     await client.query("COMMIT");
+
+    // El chat de la reserva se entera del nuevo estado (abre o cierra la escritura).
+    emitReservationStatus(id, updatedReservation?.status);
 
     // El comercio no recibe el número de pedido hasta que la entrega se completa.
     if (

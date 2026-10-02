@@ -4,6 +4,7 @@ import {
   markNotificationAsRead,
   markNotificationsAsRead,
 } from "../services/notificationService";
+import { getChatSocket } from "../services/chatSocket";
 
 // Cada cuánto se buscan notificaciones nuevas mientras la pestaña está visible.
 const REFRESH_INTERVAL_MS = 60 * 1000;
@@ -53,9 +54,14 @@ function NotificationBell() {
 
     document.addEventListener("visibilitychange", handleVisibility);
 
+    // Avisos en tiempo real (por ejemplo, un mensaje nuevo en un chat).
+    const socket = getChatSocket();
+    socket?.on("notifications:changed", loadNotifications);
+
     return () => {
       clearInterval(intervalId);
       document.removeEventListener("visibilitychange", handleVisibility);
+      socket?.off("notifications:changed", loadNotifications);
     };
   }, []);
 

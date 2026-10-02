@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import renovaLogo from "../assets/renova-logo-login.png";
+import { disconnectChatSocket } from "../services/chatSocket";
 
 function SidebarIcon({ type }) {
   const commonProps = {
@@ -195,7 +196,15 @@ function AppSidebar({
           {darkMode ? "Modo claro" : "Modo oscuro"}
         </button>
 
-        <button type="button" className="renova-sidebar-logout" onClick={onLogout}>
+        <button
+          type="button"
+          className="renova-sidebar-logout"
+          onClick={() => {
+            // Cierra también la conexión del chat de esta sesión.
+            disconnectChatSocket();
+            onLogout?.();
+          }}
+        >
           <span className="renova-sidebar-footer-icon">
             <LogoutIcon />
           </span>
