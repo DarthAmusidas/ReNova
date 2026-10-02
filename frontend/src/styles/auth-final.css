@@ -1156,8 +1156,10 @@
     flex: 1 1 0 !important;
     min-height: 0 !important;
     width: 100% !important;
-    max-width: 760px !important;
-    margin: 8px 0 0 !important;
+    max-width: 820px !important;
+    /* La parte de abajo de la bolsa sale de la pantalla: la ilustración gana
+       altura sin subir sobre el texto. */
+    margin: 4px 0 calc(-1 * clamp(110px, 22vh, 240px)) !important;
     display: flex !important;
     align-items: flex-end !important;
     justify-content: center !important;
@@ -1168,7 +1170,7 @@
     width: auto !important;
     max-width: 100% !important;
     height: 100% !important;
-    max-height: 680px !important;
+    max-height: 820px !important;
     object-fit: contain !important;
     object-position: bottom center !important;
   }
@@ -1200,5 +1202,32 @@
 
   .login-page-modern.login-layout-reference .login-separator {
     margin: 18px 0 14px !important;
+  }
+}
+
+/* Pantallas bajas: texto más compacto para que la bolsa se vea más grande. */
+@media (min-width: 901px) and (max-height: 820px) {
+  .login-page-modern.login-layout-reference .login-left-modern {
+    padding-top: 26px !important;
+  }
+
+  .login-page-modern.login-layout-reference .login-hero-content {
+    gap: 12px !important;
+  }
+
+  .login-page-modern.login-layout-reference .login-main-logo {
+    width: clamp(200px, 14vw, 250px) !important;
+  }
+
+  .login-page-modern.login-layout-reference .login-title {
+    font-size: clamp(2.8rem, 3.6vw, 3.6rem) !important;
+  }
+
+  .login-page-modern.login-layout-reference .login-description {
+    font-size: 1.02rem !important;
+  }
+
+  .login-page-modern.login-layout-reference .login-illustration-wrap {
+    margin-bottom: calc(-1 * clamp(90px, 16vh, 160px)) !important;
   }
 }
