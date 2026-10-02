@@ -629,13 +629,20 @@ function Reservations() {
       .toLowerCase();
   };
 
+  // Las canceladas (incluidas las vencidas) no se mezclan en "Todas":
+  // se ven solo en su pestaña.
+  const isCancelledStatus = (status) =>
+    ["CANCELLED", "CANCELED"].includes(String(status || "").toUpperCase());
+
   const getFilteredReservations = () => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     return reservations.filter((res) => {
       const status = res.status || "PENDING";
       const matchesStatus =
-        selectedFilter === "ALL" || status === selectedFilter;
+        selectedFilter === "ALL"
+          ? !isCancelledStatus(status)
+          : status === selectedFilter;
 
       if (!matchesStatus) return false;
       if (!normalizedSearch) return true;
@@ -646,7 +653,7 @@ function Reservations() {
 
   const getStatusCounts = () => {
     const counts = {
-      ALL: reservations.length,
+      ALL: reservations.filter((res) => !isCancelledStatus(res.status)).length,
       PENDING: 0,
       CONFIRMED: 0,
       COMPLETED: 0,
@@ -874,7 +881,7 @@ function Reservations() {
         <div className="renova-reservations-toolbar">
           <div style={localStyles.filterBar} className="renova-reservations-filter-bar">
             {[
-              { key: "ALL", label: "Todas", count: statusCounts.ALL },
+              { key: "ALL", label: "Todas", count: statusCounts.ALL, title: "Pendientes, confirmadas y completadas. Las canceladas están en su pestaña." },
               { key: "PENDING", label: "Pendientes", count: statusCounts.PENDING, title: "Reservas esperando confirmación del supermercado" },
               { key: "CONFIRMED", label: "Confirmadas", count: statusCounts.CONFIRMED, title: "Reservas confirmadas por el supermercado" },
               { key: "COMPLETED", label: "Completadas", count: statusCounts.COMPLETED, title: "Entregas confirmadas por ambas partes" },

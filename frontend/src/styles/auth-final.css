@@ -1106,3 +1106,99 @@
     text-align: right !important;
   }
 }
+
+/* ==========================================================
+   Login: la ilustración ocupa solo el espacio que queda debajo
+   del texto, así nunca tapa el título ni la descripción.
+   ========================================================== */
+@media (min-width: 901px) {
+  .login-page-modern.login-layout-reference .login-left-modern {
+    height: 100vh !important;
+    padding: 40px 24px 0 clamp(64px, 5.2vw, 96px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .login-page-modern.login-layout-reference .login-hero {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    position: relative !important;
+  }
+
+  .login-page-modern.login-layout-reference .login-hero-content {
+    flex: 0 0 auto !important;
+    position: relative !important;
+    z-index: 4 !important;
+    gap: 16px !important;
+  }
+
+  .login-page-modern.login-layout-reference .login-main-logo {
+    width: clamp(240px, 17vw, 320px) !important;
+  }
+
+  .login-page-modern.login-layout-reference .login-title {
+    font-size: clamp(3.2rem, 4vw, 4.4rem) !important;
+    line-height: 0.98 !important;
+  }
+
+  .login-page-modern.login-layout-reference .login-description {
+    margin-top: 10px !important;
+    color: #3f4a43 !important;
+  }
+
+  .login-page-modern.login-layout-reference .login-illustration-wrap {
+    position: relative !important;
+    left: auto !important;
+    bottom: auto !important;
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    max-width: 760px !important;
+    margin: 8px 0 0 !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+    z-index: 1 !important;
+  }
+
+  .login-page-modern.login-layout-reference .login-grocery-image {
+    width: auto !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 680px !important;
+    object-fit: contain !important;
+    object-position: bottom center !important;
+  }
+}
+
+/* Pantallas bajas (notebooks): la tarjeta entra completa sin cortarse. */
+@media (min-width: 901px) and (max-height: 820px) {
+  .login-page-modern.login-layout-reference .login-card-modern {
+    min-height: auto !important;
+    padding: 36px 40px 28px !important;
+    transform: none !important;
+  }
+
+  .login-page-modern.login-layout-reference .login-card-modern > p {
+    margin-bottom: 22px !important;
+  }
+
+  .login-page-modern.login-layout-reference .input-with-icon {
+    min-height: 54px !important;
+  }
+
+  .login-page-modern.login-layout-reference .btn-login-modern {
+    min-height: 56px !important;
+  }
+
+  .login-page-modern.login-layout-reference .login-options {
+    margin: 6px 0 20px !important;
+  }
+
+  .login-page-modern.login-layout-reference .login-separator {
+    margin: 18px 0 14px !important;
+  }
+}

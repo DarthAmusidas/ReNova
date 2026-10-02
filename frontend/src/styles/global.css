@@ -13034,3 +13034,18 @@ html.renova-dark-mode .renova-reservations-main .renova-rcard-code-hidden {
   border-color: rgba(160, 210, 140, 0.25);
   color: #aac0aa !important;
 }
+
+/* Tarjetas de reserva de la misma altura en cada fila; las acciones quedan abajo. */
+.renova-reservations-grid {
+  align-items: stretch !important;
+}
+
+.renova-rcard .renova-rcard-actions {
+  margin-top: auto;
+}
+
+@media (min-width: 901px) {
+  .renova-reservations-grid {
+    grid-auto-rows: 1fr;
+  }
+}
