@@ -12663,3 +12663,374 @@ html.renova-dark-mode select option {
   background: #10241a;
   color: #f4fbf1;
 }
+
+/* ==========================================================
+   Entrega con QR: pista en la tarjeta y modal del comercio
+   ========================================================== */
+.renova-rcard-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #f1f5ee;
+  color: #3f4d43;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.renova-rcard-hint svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  fill: none;
+  stroke: #1d7f22;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-hint {
+  background: rgba(255, 255, 255, 0.05);
+  color: #c9d8c6 !important;
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-hint svg {
+  stroke: #9ee88f;
+}
+
+.renova-qr-modal {
+  max-width: 460px !important;
+}
+
+.renova-qr-steps {
+  margin: 0 0 18px;
+  padding-left: 20px;
+  display: grid;
+  gap: 4px;
+  color: #3f4d43;
+  font-size: 0.94rem;
+  line-height: 1.45;
+}
+
+.renova-qr-frame {
+  position: relative;
+  width: min(100%, 300px);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  padding: 14px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1.5px solid #dfe8d8;
+  box-shadow: 0 14px 34px rgba(30, 80, 35, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.renova-qr-frame img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+}
+
+.renova-qr-frame.is-expired img {
+  opacity: 0.12;
+  filter: blur(2px);
+}
+
+.renova-qr-placeholder {
+  color: #5d6b60;
+  font-weight: 700;
+  text-align: center;
+  padding: 0 12px;
+}
+
+.renova-qr-placeholder.is-error {
+  color: #9b2c22;
+}
+
+.renova-qr-expired {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #102018;
+}
+
+.renova-qr-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 16px 0 4px;
+  color: #3f4d43;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.renova-qr-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #1d6a21;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.renova-qr-pulse {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #1f8b24;
+  animation: renova-qr-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes renova-qr-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.75); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .renova-qr-pulse { animation: none; }
+}
+
+.renova-qr-actions {
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between !important;
+}
+
+.renova-qr-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #1d7f22;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.renova-qr-done {
+  text-align: center;
+}
+
+.renova-qr-done-icon,
+.renova-pickup-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 14px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e3f2dc;
+  color: #116a18;
+  font-size: 1.8rem;
+  font-weight: 900;
+}
+
+.renova-qr-done-icon svg,
+.renova-pickup-icon svg {
+  width: 34px;
+  height: 34px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.renova-qr-done .renova-qr-done-icon + h2 + p + div {
+  justify-content: center !important;
+}
+
+html.renova-dark-mode .renova-qr-steps,
+html.renova-dark-mode .renova-qr-meta {
+  color: #c9d8c6 !important;
+}
+
+html.renova-dark-mode .renova-qr-meta strong {
+  color: #f4fbf1 !important;
+}
+
+/* El QR se queda con fondo blanco también en modo oscuro: así lo leen las cámaras. */
+html.renova-dark-mode .renova-qr-frame {
+  border-color: rgba(160, 210, 140, 0.2);
+}
+
+html.renova-dark-mode .renova-qr-timer,
+html.renova-dark-mode .renova-qr-link {
+  color: #9ee88f !important;
+}
+
+html.renova-dark-mode .renova-qr-done-icon {
+  background: rgba(55, 166, 45, 0.18);
+  color: #9ee88f;
+}
+
+/* ==========================================================
+   Página pública de retiro (/retiro/:token), pensada para celular
+   ========================================================== */
+.renova-pickup-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 20px 16px 32px;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(126, 196, 92, 0.22), transparent 55%),
+    #f4f8f1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  color: #102018;
+}
+
+.renova-pickup-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 22px 20px 24px;
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid #e1eadc;
+  box-shadow: 0 18px 45px rgba(31, 77, 28, 0.08);
+}
+
+.renova-pickup-brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.renova-pickup-brand img {
+  height: 40px;
+  width: auto;
+}
+
+.renova-pickup-eyebrow {
+  margin: 0 0 4px;
+  color: #1d7f22;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.renova-pickup-title {
+  margin: 0 0 16px;
+  font-size: 1.55rem;
+  line-height: 1.2;
+}
+
+.renova-pickup-details {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 20px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #f6f9f3;
+}
+
+.renova-pickup-details div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.renova-pickup-details dt {
+  color: #5d6b60;
+}
+
+.renova-pickup-details dd {
+  margin: 0;
+  font-weight: 800;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.renova-pickup-button {
+  width: 100%;
+  min-height: 56px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #1f8b24 0%, #136b19 100%);
+  color: #ffffff;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 12px 26px rgba(22, 131, 30, 0.22);
+}
+
+.renova-pickup-status .renova-pickup-button {
+  margin-top: 20px;
+}
+
+.renova-pickup-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.renova-pickup-button:focus-visible {
+  outline: 3px solid rgba(31, 139, 36, 0.4);
+  outline-offset: 3px;
+}
+
+.renova-pickup-muted {
+  margin: 16px 0 0;
+  color: #5d6b60;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.renova-pickup-status {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.renova-pickup-status h1 {
+  margin: 0 0 8px;
+  font-size: 1.5rem;
+}
+
+.renova-pickup-status p {
+  margin: 0;
+  color: #3f4d43;
+  line-height: 1.5;
+}
+
+.renova-pickup-status.is-error .renova-pickup-icon {
+  background: #fbe4e2;
+  color: #9b2c22;
+}
+
+.renova-pickup-code {
+  margin-top: 14px !important;
+  font-family: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  font-weight: 700;
+  color: #59695d !important;
+}
+
+/* El comercio no ve el número de pedido hasta completar la entrega. */
+.renova-rcard-code-hidden {
+  padding: 4px 10px;
+  border-radius: 10px;
+  border: 1px dashed rgba(94, 145, 78, 0.35);
+  color: #59695d;
+  font-size: 0.76rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+html.renova-dark-mode .renova-reservations-main .renova-rcard-code-hidden {
+  border-color: rgba(160, 210, 140, 0.25);
+  color: #aac0aa !important;
+}

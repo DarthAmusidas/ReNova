@@ -9,6 +9,7 @@ const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/authRoutes");
 const productRoutes = require("./routes/productRoutes");
 const reservationRoutes = require("./routes/reservationRoutes");
+const pickupRoutes = require("./routes/pickupRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const authMiddleware = require("./middlewares/authMiddleware");
@@ -68,6 +69,7 @@ app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
 app.use("/products", productRoutes);
 app.use("/reservations", reservationRoutes);
+app.use("/pickup", pickupRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/dashboard", dashboardRoutes);
 

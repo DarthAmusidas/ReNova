@@ -1,5 +1,6 @@
 ﻿import { useCallback, useEffect, useRef, useState } from "react";
 import ModalPortal from "../components/ModalPortal";
+import PickupQrModal from "../components/PickupQrModal";
 import { useNavigate } from "react-router-dom";
 import {
   getReservations,
@@ -20,6 +21,7 @@ function Reservations() {
   const [reservationToCancel, setReservationToCancel] = useState(null);
   const updatingRef = useRef(false);
   const [copiedId, setCopiedId] = useState(null);
+  const [pickupQrReservation, setPickupQrReservation] = useState(null);
 
   const handleCopyOrderCode = async (reservationId, code) => {
     const markCopied = () => {
@@ -173,7 +175,7 @@ function Reservations() {
     const code = deliveryCode.trim();
 
     if (!code) {
-      setDeliveryCodeError("Debe ingresar el código de entrega.");
+      setDeliveryCodeError("Ingresá el número de pedido.");
       return;
     }
 
@@ -192,7 +194,7 @@ function Reservations() {
         }
       );
 
-      setSuccess("Confirmación registrada correctamente.");
+      setSuccess("Entrega completada.");
       await loadReservations();
       handleCloseDeliveryModal();
     } catch (err) {
@@ -330,7 +332,8 @@ function Reservations() {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;");
 
-    const orderCode = escapeHtml(reservation.order_code || String(reservation.id).slice(0, 8));
+    // El comercio no ve el número de pedido hasta que la entrega se completa.
+    const orderCode = escapeHtml(reservation.order_code || "En poder de la ONG");
     const productName = escapeHtml(getProductName(reservation));
     const quantity = escapeHtml(reservation.quantity_reserved || reservation.quantity || 0);
     const ongName = escapeHtml(getOngName(reservation) || "No informado");
@@ -356,8 +359,7 @@ function Reservations() {
         minute: "2-digit",
       })
     );
-    const pickupStep = reservation.ong_completed ? "done" : "";
-    const deliveryStep = reservation.supermarket_completed ? "done" : "";
+    const completed = reservation.status === "COMPLETED";
 
     const receiptHTML = `
       <!DOCTYPE html>
@@ -472,6 +474,8 @@ function Reservations() {
           }
           .step.done { background: #e3f2dc; color: #116a18; }
           .step.done i { background: #136b19; color: #fff; }
+          .howto { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+          .howto-note { margin: 8px 0 0; color: #5d6b60; font-size: 11.5px; }
           .signatures {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -538,11 +542,15 @@ function Reservations() {
             </section>
 
             <section class="wide">
-              <h2>Entrega</h2>
-              <div class="steps">
-                <div class="step ${pickupStep}"><i>${pickupStep ? "&#10003;" : "1"}</i> Retiro confirmado por la organización</div>
-                <div class="step ${deliveryStep}"><i>${deliveryStep ? "&#10003;" : "2"}</i> Entrega validada por el comercio</div>
-              </div>
+              <h2>Cómo se retira</h2>
+              ${completed
+                ? `<div class="steps"><div class="step done"><i>&#10003;</i> Entrega completada</div></div>`
+                : `<ol class="howto">
+                    <li>En el comercio te muestran un <b>código QR</b> en la pantalla.</li>
+                    <li>Escanealo con la cámara del celular.</li>
+                    <li>Iniciá sesión con la cuenta de la ONG y tocá <b>“Recibí el pedido”</b>.</li>
+                  </ol>
+                  <p class="howto-note">¿Sin celular? Mostrá este comprobante: el comercio carga el número de pedido.</p>`}
             </section>
           </div>
 
@@ -778,43 +786,47 @@ function Reservations() {
       if (isOng && !reservation.ong_completed) {
         return (
           <>
+            {confirmationExpired
+              ? waiting("Reserva vencida")
+              : waiting("Listo para retirar")}
+            {cancelButton()}
+          </>
+        );
+      }
+
+      if (isSupermarket && !reservation.supermarket_completed) {
+        return (
+          <>
             {confirmationExpired ? (
               waiting("Reserva vencida")
             ) : (
-              <button
-                type="button"
-                className="renova-rbtn renova-rbtn-primary"
-                disabled={isUpdating}
-                onClick={() => handleUpdateStatus(reservation.id, "COMPLETED")}
-              >
-                Confirmar retiro
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="renova-rbtn renova-rbtn-primary"
+                  disabled={isUpdating}
+                  onClick={() => setPickupQrReservation(reservation)}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h3v-3" />
+                  </svg>
+                  Entregar con QR
+                </button>
+                <button
+                  type="button"
+                  className="renova-rbtn renova-rbtn-ghost"
+                  disabled={isUpdating}
+                  onClick={() => handleOpenDeliveryModal(reservation)}
+                >
+                  Usar código
+                </button>
+              </>
             )}
-            {cancelButton()}
+            {!reservation.ong_completed && cancelButton()}
           </>
-        );
-      }
-
-      if (isSupermarket && !reservation.ong_completed) {
-        return (
-          <>
-            {waiting("Esperando el retiro de la ONG")}
-            {cancelButton()}
-          </>
-        );
-      }
-
-      // Con el retiro confirmado por la ONG ya no se puede cancelar.
-      if (isSupermarket && !reservation.supermarket_completed) {
-        return (
-          <button
-            type="button"
-            className="renova-rbtn renova-rbtn-primary"
-            disabled={isUpdating}
-            onClick={() => handleOpenDeliveryModal(reservation)}
-          >
-            Validar entrega
-          </button>
         );
       }
 
@@ -1039,6 +1051,7 @@ function Reservations() {
                       <span className={`renova-rcard-status is-${String(status).toLowerCase()}`}>
                         {getStatusLabel(status)}
                       </span>
+                      {reservation.order_code ? (
                       <div className="renova-rcard-code">
                         <span className="renova-rcard-code-label">Pedido</span>
                         <strong>
@@ -1068,6 +1081,16 @@ function Reservations() {
                           )}
                         </button>
                       </div>
+                      ) : (
+                        isSupermarket && (
+                          <span
+                            className="renova-rcard-code-hidden"
+                            title="Por seguridad, el número de pedido lo tiene solo la ONG"
+                          >
+                            Pedido en poder de la ONG
+                          </span>
+                        )
+                      )}
                     </div>
                   </header>
 
@@ -1140,20 +1163,18 @@ function Reservations() {
                     </dl>
                   )}
 
-                  {status === "CONFIRMED" && (
-                    <div
-                      className="renova-rcard-progress"
-                      title="La entrega se completa cuando la ONG confirma el retiro y el comercio valida el código"
-                    >
-                      <span className={reservation.ong_completed ? "is-done" : ""}>
-                        <b aria-hidden="true">{reservation.ong_completed ? "\u2713" : "1"}</b>
-                        Retiro de la ONG
-                      </span>
-                      <span className={reservation.supermarket_completed ? "is-done" : ""}>
-                        <b aria-hidden="true">{reservation.supermarket_completed ? "\u2713" : "2"}</b>
-                        Validación del comercio
-                      </span>
-                    </div>
+                  {status === "CONFIRMED" && !reservation.supermarket_completed && (
+                    <p className="renova-rcard-hint">
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="3" y="3" width="7" height="7" rx="1" />
+                        <rect x="14" y="3" width="7" height="7" rx="1" />
+                        <rect x="3" y="14" width="7" height="7" rx="1" />
+                        <path d="M14 14h3v3h-3z" />
+                      </svg>
+                      {isSupermarket
+                        ? "Cuando llegue quien retira, tocá “Entregar con QR”: lo escanea con su celular y confirma con la cuenta de la ONG."
+                        : "En el comercio te muestran un QR: escanealo con la cámara del celular e iniciá sesión con la cuenta de la ONG para confirmar."}
+                    </p>
                   )}
 
                   <footer className="renova-rcard-actions">
@@ -1227,6 +1248,23 @@ function Reservations() {
           </nav>
         )}
 
+        {pickupQrReservation && (
+          <PickupQrModal
+            reservation={pickupQrReservation}
+            productName={getProductName(pickupQrReservation)}
+            onClose={() => setPickupQrReservation(null)}
+            onCompleted={() => {
+              setSuccess("Entrega completada con QR.");
+              loadReservations();
+            }}
+            onUseCode={() => {
+              const reservation = pickupQrReservation;
+              setPickupQrReservation(null);
+              handleOpenDeliveryModal(reservation);
+            }}
+          />
+        )}
+
         {selectedReservationForDelivery && (
           <ModalPortal>
           <div style={styles.modalOverlay}>
@@ -1234,7 +1272,8 @@ function Reservations() {
               <h2 style={styles.modalTitle}>Confirmar entrega</h2>
 
               <p style={styles.modalText}>
-                Ingresá el código de entrega que figura en el comprobante de la reserva.
+                Si quien retira no puede escanear el QR, pedile el número de pedido:
+                lo tiene solo la ONG, en su cuenta y en su comprobante.
               </p>
 
               {deliveryCodeError && (
@@ -1242,7 +1281,7 @@ function Reservations() {
               )}
 
               <div style={styles.inputGroup}>
-                <label style={styles.inputLabel}>Código de entrega</label>
+                <label style={styles.inputLabel}>Número de pedido</label>
                 <input
                   style={styles.input}
                   type="text"

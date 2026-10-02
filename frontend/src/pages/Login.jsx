@@ -95,7 +95,9 @@ function Login() {
       localStorage.setItem("renova-remember", remember ? "1" : "0");
       sessionStorage.setItem("renova-session", "1");
 
-      navigate("/dashboard");
+      // Si llegó escaneando un QR de retiro, vuelve a esa pantalla.
+      const next = new URLSearchParams(window.location.search).get("next") || "";
+      navigate(next.startsWith("/retiro/") ? next : "/dashboard");
     } catch (err) {
       if (err.response?.data?.code === "EMAIL_NOT_VERIFIED") {
         setUnverifiedEmail(err.response.data.email || email);

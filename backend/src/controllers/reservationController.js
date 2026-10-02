@@ -410,7 +410,9 @@ const getReservations = async (req, res) => {
           END AS confirmation_time_remaining_ms,
           r.supermarket_completed,
           r.ong_completed,
-          r.order_code,
+          -- El número de pedido lo tiene solo la ONG: el comercio lo pide al
+          -- entregar sin QR. Se muestra recién cuando la entrega se completó.
+          CASE WHEN r.status = 'COMPLETED' THEN r.order_code END AS order_code,
           r.pickup_person_name,
           r.pickup_person_dni,
           r.pickup_person_phone,
@@ -805,46 +807,18 @@ const updateReservationStatus = async (req, res) => {
         });
       }
 
-      // ONG confirms pickup first
+      // La ONG ya no confirma el retiro por separado: quien retira lo confirma
+      // escaneando el QR del comercio (pickupController).
       if (isReservationOng && userRole === "ONG") {
-        if (reservation.ong_completed) {
-          await client.query("ROLLBACK");
+        await client.query("ROLLBACK");
 
-          return res.status(400).json({
-            error: "La ONG ya confirmó el retiro",
-          });
-        }
-
-        const partialResult = await client.query(
-          `
-          UPDATE reservations
-          SET ong_completed = true
-          WHERE id = $1
-          RETURNING *
-          `,
-          [id]
-        );
-
-        updatedReservation = partialResult.rows[0];
-
-        await createNotification(
-          client,
-          reservation.supermarket_id,
-          "Retiro confirmado",
-          `La ONG confirmó el retiro del producto "${reservation.product_name}". Por favor, confirmá que realizaste la entrega.`,
-          "RESERVATION_UPDATE"
-        );
-      } 
-      // Supermarket confirms delivery (only after ONG confirms pickup)
-      else if (isReservationSupermarket && userRole === "SUPERMARKET") {
-        if (!reservation.ong_completed) {
-          await client.query("ROLLBACK");
-
-          return res.status(400).json({
-            error: "El supermercado solo puede confirmar entrega después de que la ONG confirme el retiro",
-          });
-        }
-
+        return res.status(400).json({
+          error: "El retiro se confirma en el comercio: quien retira escanea el QR que le muestran y carga su DNI.",
+        });
+      }
+      // Respaldo del QR: el comercio carga el número de pedido que le muestra
+      // quien retira y la entrega queda completada en un solo paso.
+      if (isReservationSupermarket && userRole === "SUPERMARKET") {
         if (reservation.supermarket_completed) {
           await client.query("ROLLBACK");
 
@@ -890,7 +864,8 @@ const updateReservationStatus = async (req, res) => {
         const partialResult = await client.query(
           `
           UPDATE reservations
-          SET supermarket_completed = true
+          SET supermarket_completed = true,
+              ong_completed = true
           WHERE id = $1
           RETURNING *
           `,
@@ -944,6 +919,15 @@ const updateReservationStatus = async (req, res) => {
 
     await client.query("COMMIT");
 
+    // El comercio no recibe el número de pedido hasta que la entrega se completa.
+    if (
+      isReservationSupermarket &&
+      updatedReservation &&
+      updatedReservation.status !== "COMPLETED"
+    ) {
+      updatedReservation = { ...updatedReservation, order_code: null };
+    }
+
     res.json({
       message: "Reserva actualizada correctamente",
       reservation: updatedReservation,
@@ -974,4 +958,9 @@ module.exports = {
   createReservation,
   getReservations,
   updateReservationStatus,
+  // Compartidos con la entrega por QR (pickupController)
+  createNotification,
+  expireOldOngReservations,
+  isConfirmationExpired,
+  EXPIRATION_ERROR,
 };

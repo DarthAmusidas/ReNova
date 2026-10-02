@@ -10,6 +10,7 @@ const {
   getReservations,
   updateReservationStatus,
 } = require("../controllers/reservationController");
+const { createPickupQr } = require("../controllers/pickupController");
 
 // POST /reservations - Crea una nueva reserva (requiere ser ONG)
 router.post("/", authMiddleware, roleMiddleware(["ONG"]), createReservation);
@@ -23,6 +24,14 @@ router.put(
   authMiddleware,
   roleMiddleware(["SUPERMARKET", "ONG"]),
   updateReservationStatus
+);
+
+// POST /reservations/:id/pickup-qr - El comercio genera el QR de entrega
+router.post(
+  "/:id/pickup-qr",
+  authMiddleware,
+  roleMiddleware(["SUPERMARKET"]),
+  createPickupQr
 );
 
 module.exports = router;

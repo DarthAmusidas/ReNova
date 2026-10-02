@@ -22,3 +22,19 @@ export const updateReservationStatus = async (
 
   return response.data;
 };
+
+// Entrega con QR
+export const createPickupQr = async (reservationId) => {
+  const response = await api.post(`/reservations/${reservationId}/pickup-qr`);
+  return response.data;
+};
+
+export const getPickup = async (token) => {
+  const response = await api.get(`/pickup/${encodeURIComponent(token)}`);
+  return response.data;
+};
+
+export const confirmPickup = async (token) => {
+  const response = await api.post(`/pickup/${encodeURIComponent(token)}/confirm`);
+  return response.data;
+};

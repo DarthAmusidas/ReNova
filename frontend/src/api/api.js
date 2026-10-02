@@ -25,7 +25,10 @@ api.interceptors.response.use(
     if (status === 401 && !url.startsWith("/auth/") && localStorage.getItem("token")) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.assign("/login?session=expired");
+      const next = window.location.pathname.startsWith("/retiro/")
+        ? `&next=${encodeURIComponent(window.location.pathname)}`
+        : "";
+      window.location.assign(`/login?session=expired${next}`);
     }
 
     return Promise.reject(error);

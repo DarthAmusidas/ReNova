@@ -12,6 +12,7 @@ import ImpactReport from "./pages/ImpactReport";
 import CreateProduct from "./pages/CreateProduct";
 import EditProduct from "./pages/EditProduct";
 import AdminUsers from "./pages/AdminUsers";
+import PickupConfirm from "./pages/PickupConfirm";
 
 // "Recordarme" destildado: la sesión no sobrevive a cerrar el navegador.
 // sessionStorage se borra al cerrarlo, así que si falta la marca se cierra la sesión.
@@ -43,6 +44,8 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        {/* Pública: la abre quien retira al escanear el QR del comercio */}
+        <Route path="/retiro/:token" element={<PickupConfirm />} />
 
         <Route
           path="/dashboard"
