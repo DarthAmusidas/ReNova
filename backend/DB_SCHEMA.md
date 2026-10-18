@@ -17,6 +17,7 @@ Relevado desde `information_schema` el 2026-09-27. Todos los `id` son `uuid` con
 | created_at | timestamp | sí | CURRENT_TIMESTAMP |
 | terms_accepted_at | timestamptz | sí | — requiere `prisma/terms_acceptance.sql` |
 | terms_version | varchar(20) | sí | — requiere `prisma/terms_acceptance.sql` |
+| password_changed_at | timestamptz (último cambio de contraseña; invalida los JWT anteriores) | sí | — requiere `prisma/session_security.sql` |
 
 ## products
 | Columna | Tipo | Nulo | Default |
@@ -103,6 +104,7 @@ La misma migración agrega el tipo `NEW_MESSAGE` a `notifications.type`.
 ## Migraciones en el repo
 - `prisma/auth_email_password_recovery.sql`: `email_verified_at` y `auth_tokens`.
 - `prisma/terms_acceptance.sql`: `terms_accepted_at` y `terms_version` en `users`.
+- `prisma/session_security.sql`: `password_changed_at` en `users` (cierre de sesiones al cambiar la contraseña).
 - `prisma/reservation_messages.sql`: tabla `reservation_messages` (chat) y tipo de notificación `NEW_MESSAGE`.
 - `prisma/product_categories.sql`: tabla `product_categories` con las categorías iniciales y `products.category_id`.
 - `../DATABASE_MIGRATIONS.sql`: `order_code` y datos de retiro en `reservations` (la columna `validation_code` que menciona no existe y no se usa).

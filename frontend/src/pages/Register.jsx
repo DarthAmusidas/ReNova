@@ -6,6 +6,7 @@ import AuthHero from "../components/AuthHero";
 import TermsModal from "../components/TermsModal";
 import { TERMS_VERSION, getTermsAudience } from "../utils/terms";
 import "../styles/auth-final.css";
+import { PASSWORD_HINT, PASSWORD_MIN_LENGTH, validatePassword } from "../utils/password";
 
 const organizationTypes = [
   "Comedor",
@@ -133,6 +134,13 @@ function Register() {
 
     setError("");
     setSuccess("");
+
+    const passwordError = validatePassword(formData.password);
+
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
 
     if (!acceptedTerms) {
       setError("Tenés que aceptar los términos y condiciones para crear la cuenta.");
@@ -295,11 +303,11 @@ function Register() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     name="password"
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder={PASSWORD_HINT}
                     value={formData.password}
                     onChange={handleChange}
                     disabled={loading}
-                    minLength={6}
+                    minLength={PASSWORD_MIN_LENGTH}
                     required
                   />
 

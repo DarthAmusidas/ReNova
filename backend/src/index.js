@@ -3,6 +3,7 @@
 const http = require("http");
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 
 const pool = require("./db/pool");
 
@@ -19,6 +20,16 @@ const { allowedOrigins, isAllowedOrigin } = require("./utils/allowedOrigins");
 const { setupSocket } = require("./socket");
 
 const app = express();
+
+// Encabezados de seguridad HTTP (helmet): evita que el navegador "adivine" tipos
+// de archivo, bloquea que la API se muestre dentro de iframes ajenos, fuerza HTTPS
+// (HSTS) y oculta que el servidor usa Express. "cross-origin" permite que el
+// frontend de Vercel lea las respuestas.
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
 
 app.use(
   cors({

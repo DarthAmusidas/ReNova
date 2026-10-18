@@ -27,11 +27,31 @@ const buildConnectionString = (databaseUrl) => {
   return url.toString();
 };
 
+// Certificado raíz de Supabase (Project Settings > Database > SSL Configuration).
+// Con DATABASE_CA_CERT cargado, la conexión verifica que el servidor sea realmente
+// Supabase (evita ataques de intermediario). Sin él, la conexión va cifrada pero
+// sin verificar el certificado. En Render el valor puede pegarse con saltos de
+// línea reales o como "\n".
+const caCert = process.env.DATABASE_CA_CERT
+  ? process.env.DATABASE_CA_CERT.replace(/\\n/g, "\n")
+  : null;
+
+const buildSslConfig = () => {
+  if (!rawDatabaseUrl || isLocalDatabase) return false;
+
+  if (caCert) {
+    return { ca: caCert, rejectUnauthorized: true };
+  }
+
+  console.warn(
+    "DATABASE_CA_CERT no está configurada: la conexión a la base va cifrada pero sin verificar el certificado."
+  );
+  return { rejectUnauthorized: false };
+};
+
 const pool = new Pool({
   connectionString: buildConnectionString(rawDatabaseUrl),
-  ssl: rawDatabaseUrl && !isLocalDatabase
-    ? { rejectUnauthorized: false }
-    : false,
+  ssl: buildSslConfig(),
 });
 
 module.exports = pool;

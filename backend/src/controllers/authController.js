@@ -12,6 +12,7 @@ const {
   sendVerificationEmail,
   sendPasswordResetEmail,
 } = require("../services/emailService");
+const { validatePassword } = require("../utils/passwordPolicy");
 
 const allowedRoles = ["SUPERMARKET", "ONG", "ADMIN"];
 
@@ -116,9 +117,11 @@ const register = async (req, res) => {
       });
     }
 
-    if (password.length < 6) {
+    const passwordError = validatePassword(password);
+
+    if (passwordError) {
       return res.status(400).json({
-        error: "La contraseña debe tener al menos 6 caracteres",
+        error: passwordError,
       });
     }
 
@@ -401,9 +404,11 @@ const resetPassword = async (req, res) => {
       });
     }
 
-    if (password.length < 6) {
+    const passwordError = validatePassword(password);
+
+    if (passwordError) {
       return res.status(400).json({
-        error: "La contraseña debe tener al menos 6 caracteres",
+        error: passwordError,
       });
     }
 
@@ -421,13 +426,29 @@ const resetPassword = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await pool.query(
-      `UPDATE users
-       SET password = $1,
-           email_verified_at = COALESCE(email_verified_at, NOW())
-       WHERE id = $2`,
-      [hashedPassword, authToken.user_id]
-    );
+    // password_changed_at cierra las sesiones abiertas antes del cambio
+    // (ver services/sessionService.js).
+    try {
+      await pool.query(
+        `UPDATE users
+         SET password = $1,
+             email_verified_at = COALESCE(email_verified_at, NOW()),
+             password_changed_at = NOW()
+         WHERE id = $2`,
+        [hashedPassword, authToken.user_id]
+      );
+    } catch (error) {
+      // 42703: falta correr prisma/session_security.sql; se cambia igual la contraseña.
+      if (error.code !== "42703") throw error;
+
+      await pool.query(
+        `UPDATE users
+         SET password = $1,
+             email_verified_at = COALESCE(email_verified_at, NOW())
+         WHERE id = $2`,
+        [hashedPassword, authToken.user_id]
+      );
+    }
 
     await markAuthTokenAsUsed({
       pool,

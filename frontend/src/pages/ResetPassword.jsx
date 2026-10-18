@@ -2,6 +2,7 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { resetPassword } from "../services/authService";
 import renovaLogo from "../assets/renova-logo-login.png";
+import { PASSWORD_HINT, validatePassword } from "../utils/password";
 
 function ResetPassword() {
   const navigate = useNavigate();
@@ -26,8 +27,10 @@ function ResetPassword() {
       return;
     }
 
-    if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres.");
+    const passwordError = validatePassword(password);
+
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 
@@ -92,7 +95,7 @@ function ResetPassword() {
                     id="new-password"
                     type="password"
                     value={password}
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder={PASSWORD_HINT}
                     disabled={loading || !token}
                     onChange={(event) => setPassword(event.target.value)}
                   />

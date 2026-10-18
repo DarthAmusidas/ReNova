@@ -3,11 +3,11 @@
 // Cada usuario se conecta con su JWT y entra a la sala "user:<id>" (avisos de
 // mensajes nuevos para los contadores). Al abrir el chat de una reserva entra a
 // "reservation:<id>", donde se reciben los mensajes en vivo.
-const jwt = require("jsonwebtoken");
 const { Server } = require("socket.io");
 const { isAllowedOrigin } = require("./utils/allowedOrigins");
 const { setIO } = require("./realtime");
 const chatService = require("./services/chatService");
+const { verifySessionToken } = require("./services/sessionService");
 
 // Límite simple contra spam: mensajes por ventana de tiempo y por conexión.
 const SEND_WINDOW_MS = 10 * 1000;
@@ -44,14 +44,15 @@ function setupSocket(httpServer) {
   setIO(io);
 
   // Autenticación con el mismo JWT que usa la API.
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     try {
       const token = socket.handshake.auth?.token;
 
       if (!token) return next(new Error("UNAUTHORIZED"));
 
-      const user = jwt.verify(token, process.env.JWT_SECRET);
-      socket.data.user = { id: user.id, role: user.role, name: user.name };
+      // Misma verificación que la API: firma, vencimiento y sesión vigente.
+      const user = await verifySessionToken(token);
+      socket.data.user = user;
       socket.data.sentAt = [];
 
       return next();
